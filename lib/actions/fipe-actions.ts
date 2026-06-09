@@ -47,8 +47,7 @@ export async function getFipeModelsAction(brandCode: string) {
     }
 
     const data = await res.json();
-    // A API v2 retorna { models: [...], years: [...] }
-    const models = data?.models || [];
+    const models = Array.isArray(data) ? data : (data?.models || []);
     return { success: true, data: models };
   } catch (error: any) {
     console.error(`Erro ao buscar modelos FIPE da marca ${brandCode}:`, error);
