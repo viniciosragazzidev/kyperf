@@ -7,8 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FaultyTerminal from "@/components/ui/faulty-terminal";
 import Link from "next/link";
-import { WrenchIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -66,18 +64,10 @@ export default function LoginPage() {
       {/* Login Form */}
       <div className="relative z-50 w-full max-w-md px-8 py-12 bg-zinc-950/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-2xl">
         <div className="flex flex-col items-center gap-6 text-center">
-          <div className="flex aspect-square size-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 ring-1 ring-emerald-500/20">
-            <HugeiconsIcon icon={WrenchIcon} strokeWidth={2} className="size-6" />
-          </div>
-
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight text-white geist-mono font-heading">
-              KyperFix
-            </h1>
-            <p className="text-zinc-400 text-sm geist-mono">
-              Acesse sua oficina para gerenciar o pátio.
-            </p>
-          </div>
+          <img src="/logo.svg" alt="KyperFix Logo" className="h-12 w-auto object-contain" />
+          <p className="text-zinc-400 text-sm geist-mono">
+            Acesse sua oficina para gerenciar o pátio.
+          </p>
         </div>
 
         <form onSubmit={handleLogin} className="mt-10 space-y-6">
