@@ -12,13 +12,7 @@ export async function proxy(request: NextRequest) {
 
   if (sessionToken) {
     try {
-      const getBaseUrl = () => {
-        let url = "";
-        if (process.env.BETTER_AUTH_URL) url = process.env.BETTER_AUTH_URL;
-        else if (process.env.VERCEL_URL) url = `https://${process.env.VERCEL_URL}`;
-        else url = "http://localhost:3000";
-        return url.replace(/\/$/, "");
-      };
+      const getBaseUrl = () => request.nextUrl.origin;
       
       const res = await fetch(`${getBaseUrl()}/api/onboarding/status`, {
         headers: new Headers(request.headers),
