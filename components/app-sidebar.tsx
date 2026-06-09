@@ -20,6 +20,7 @@ import {
   Invoice01Icon,
   Settings02Icon,
   WrenchIcon,
+  ToolsIcon,
 } from "@hugeicons/core-free-icons"
 
 const data = {
@@ -133,8 +134,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" render={<a href="/panel" />}>
-              <div className="flex items-center justify-start pl-1">
-                <img src="/logo.svg" alt="KyperFix Logo" className="h-8 w-auto object-contain" />
+              <div className="flex items-center gap-2 justify-start pl-1">
+                <HugeiconsIcon icon={ToolsIcon} strokeWidth={2} className="size-5 text-primary shrink-0" />
+                <img src="/logo.svg" alt="KyperFix Logo" className="h-8 w-auto object-contain logo-invert" />
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -9,6 +9,8 @@ import FaultyTerminal from "@/components/ui/faulty-terminal";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ToolsIcon } from "@hugeicons/core-free-icons";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -63,7 +65,10 @@ export default function RegisterPage() {
       {/* Register Form */}
       <div className="relative z-50 w-full max-w-md px-8 py-12 bg-zinc-950/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-2xl">
         <div className="flex flex-col items-center gap-6 text-center">
-          <img src="/logo.svg" alt="KyperFix Logo" className="h-12 w-auto object-contain" />
+          <div className="flex items-center gap-2 justify-center">
+            <HugeiconsIcon icon={ToolsIcon} strokeWidth={2} className="size-6 text-primary shrink-0" />
+            <img src="/logo.svg" alt="KyperFix Logo" className="h-12 w-auto object-contain logo-invert" />
+          </div>
 
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight text-white font-heading">
