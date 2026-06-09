@@ -1,26 +1,38 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  let session = null;
 
   const sessionToken = request.cookies.get("better-auth.session_token")?.value || 
                        request.cookies.get("__secure-better-auth.session_token")?.value;
 
+  let isAuthenticated = false;
+  let onboardingCompleted = false;
+
   if (sessionToken) {
     try {
-      session = await auth.api.getSession({
-        headers: request.headers,
+      const getBaseUrl = () => {
+        if (process.env.BETTER_AUTH_URL) return process.env.BETTER_AUTH_URL;
+        if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+        return "http://localhost:3050"; // Internal edge check uses fallback
+      };
+      
+      const res = await fetch(`${getBaseUrl()}/api/onboarding/status`, {
+        headers: {
+          cookie: request.headers.get("cookie") || "",
+        },
       });
+
+      if (res.ok) {
+        const data = await res.json();
+        isAuthenticated = !!data.authenticated;
+        onboardingCompleted = !!data.onboardingCompleted;
+      }
     } catch (err) {
       console.error("Erro ao verificar onboarding no proxy:", err);
     }
   }
-
-  const isAuthenticated = !!(session && session.user);
 
   // 1. Não autenticado tentando acessar rotas protegidas (/panel ou /onboarding)
   if (pathname.startsWith('/panel') || pathname.startsWith('/onboarding')) {
@@ -32,31 +44,15 @@ export async function proxy(request: NextRequest) {
   }
 
   // 2. Se estiver autenticado e sessão for válida
-  if (isAuthenticated && session) {
-    const userId = session.user.id;
-    const dbUser = await db.query.user.findFirst({
-      where: (user, { eq }) => eq(user.id, userId),
-    });
+  if (isAuthenticated) {
+    // Se o onboarding NÃO foi completado e tenta acessar qualquer rota diferente de /onboarding
+    if (!onboardingCompleted && !pathname.startsWith('/onboarding')) {
+      return NextResponse.redirect(new URL('/onboarding', request.url));
+    }
 
-    if (dbUser) {
-      let onboardingCompleted = false;
-
-      if (dbUser.tenantId) {
-        const tenant = await db.query.tenants.findFirst({
-          where: (tenants, { eq }) => eq(tenants.id, dbUser.tenantId!),
-        });
-        onboardingCompleted = !!tenant?.onboardingCompleted;
-      }
-
-      // Se o onboarding NÃO foi completado e tenta acessar qualquer rota diferente de /onboarding
-      if (!onboardingCompleted && !pathname.startsWith('/onboarding')) {
-        return NextResponse.redirect(new URL('/onboarding', request.url));
-      }
-
-      // Se o onboarding JÁ foi completado e tenta acessar /onboarding, vai para /panel
-      if (onboardingCompleted && pathname.startsWith('/onboarding')) {
-        return NextResponse.redirect(new URL('/panel', request.url));
-      }
+    // Se o onboarding JÁ foi completado e tenta acessar /onboarding, vai para /panel
+    if (onboardingCompleted && pathname.startsWith('/onboarding')) {
+      return NextResponse.redirect(new URL('/panel', request.url));
     }
 
     // Redireciona usuários logados para o painel se tentarem acessar login ou register
