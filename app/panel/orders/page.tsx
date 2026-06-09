@@ -43,6 +43,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Skeleton } from "@/components/ui/skeleton"
 import dynamic from "next/dynamic"
 
 const ThermalPrinterCard = dynamic(
@@ -271,15 +272,48 @@ export default function OrdersPage() {
     }
   }
 
+  const triggerBackgroundQuickEditUpdate = (payload: any, originalOrders: WorkOrderSummary[]) => {
+    const mechName = mechanics.find(m => m.id === payload.mechanicId)?.name || null
+    setOrders(prev => prev.map(o => o.id === payload.id ? {
+      ...o,
+      status: payload.status,
+      paymentStatus: payload.paymentStatus,
+      mechanicName: mechName,
+    } : o))
+
+    updateWorkOrderAction(payload).then(res => {
+      if (res.success) {
+        toast.success("Ordem de Serviço atualizada com sucesso!")
+      } else {
+        setOrders(originalOrders)
+        toast.error("Erro ao salvar alterações na OS. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => triggerBackgroundQuickEditUpdate(payload, originalOrders)
+          }
+        })
+      }
+    }).catch(() => {
+      setOrders(originalOrders)
+      toast.error("Erro de conexão. Quer tentar novamente?", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => triggerBackgroundQuickEditUpdate(payload, originalOrders)
+        }
+      })
+    })
+  }
+
   // Salva alterações rápidas feitas no Drawer
   const handleSaveQuickEdits = async () => {
     if (!selectedOrderId) return
 
-    setIsSavingDetails(true)
-    const res = await updateWorkOrderAction({
+    const originalOrders = [...orders]
+    const currentOrderId = selectedOrderId
+    const payload = {
       id: selectedOrderId,
       status: editStatus as any,
-      mechanicId: editMechanicId || null as any,
+      mechanicId: editMechanicId || null,
       paymentStatus: editPaymentStatus as any,
       allocatedBox: editAllocatedBox,
       notes: editNotes,
@@ -294,16 +328,51 @@ export default function OrdersPage() {
         unitSalePrice: it.unitSalePrice,
         isApproved: it.isApproved
       }))
-    })
-    setIsSavingDetails(false)
-
-    if (res.success) {
-      setSuccessMessage("Ordem de Serviço atualizada com sucesso!")
-      setIsDrawerOpen(false)
-      loadInitialData() // recarrega a tabela
-    } else {
-      setErrorMessage(res.error || "Erro ao salvar alterações na O.S.")
     }
+
+    // Calcular novo total aprovado localmente
+    const approvedVal = drawerItems
+      .filter((i: any) => i.isApproved === 1)
+      .reduce((acc: number, curr: any) => acc + (curr.quantity * parseFloat(curr.unitSalePrice)), 0)
+    const disc = parseFloat(selectedOrderDetails?.discount || '0')
+    const sur = parseFloat(selectedOrderDetails?.surcharge || '0')
+    const calculatedGrandTotal = Math.max(0, approvedVal - disc + sur)
+    const mechName = mechanics.find(m => m.id === editMechanicId)?.name || null
+
+    // Atualização otimista
+    setOrders(prev => prev.map(o => o.id === currentOrderId ? {
+      ...o,
+      status: editStatus as any,
+      paymentStatus: editPaymentStatus as any,
+      mechanicName: mechName,
+      grandTotal: calculatedGrandTotal,
+      totalApproved: approvedVal
+    } : o))
+
+    setIsDrawerOpen(false)
+
+    // Despacha em background
+    updateWorkOrderAction(payload as any).then(res => {
+      if (res.success) {
+        toast.success("Ordem de Serviço atualizada com sucesso!")
+      } else {
+        setOrders(originalOrders)
+        toast.error("Erro ao salvar alterações na OS. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => triggerBackgroundQuickEditUpdate(payload, originalOrders)
+          }
+        })
+      }
+    }).catch(() => {
+      setOrders(originalOrders)
+      toast.error("Erro de conexão ao salvar alterações. Quer tentar novamente?", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => triggerBackgroundQuickEditUpdate(payload, originalOrders)
+        }
+      })
+    })
   }
 
   const handleUpdateDrawerItemApproval = (itemId: string, status: number) => {
@@ -320,21 +389,62 @@ export default function OrdersPage() {
     setEditStatus("IN_PROGRESS") // Avança status automaticamente ao aprovar orçamento
   }
 
+  const handleDeleteOrderRetry = (orderId: string, originalOrders: WorkOrderSummary[]) => {
+    setOrders(prev => prev.filter(o => o.id !== orderId))
+    deleteWorkOrderAction(orderId).then(res => {
+      if (res.success) {
+        toast.success("Ordem de Serviço excluída com sucesso!")
+      } else {
+        setOrders(originalOrders)
+        toast.error("Erro ao excluir. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleDeleteOrderRetry(orderId, originalOrders)
+          }
+        })
+      }
+    }).catch(() => {
+      setOrders(originalOrders)
+      toast.error("Erro de conexão ao excluir.", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => handleDeleteOrderRetry(orderId, originalOrders)
+        }
+      })
+    })
+  }
+
   // Deleta ordem de serviço
   const handleDeleteOrder = async () => {
     if (!orderToDelete) return
-    setIsDeleting(true)
-    const res = await deleteWorkOrderAction(orderToDelete)
-    setIsDeleting(false)
+    const originalOrders = [...orders]
+    const currentOrderId = orderToDelete
+
+    // Optimistically remove the order
+    setOrders(prev => prev.filter(o => o.id !== currentOrderId))
     setOrderToDelete(null)
 
-    if (res.success) {
-      setSuccessMessage("Ordem de Serviço excluída com sucesso!")
-      setIsDrawerOpen(false)
-      loadInitialData()
-    } else {
-      setErrorMessage(res.error || "Erro ao excluir a Ordem de Serviço.")
-    }
+    deleteWorkOrderAction(currentOrderId).then(res => {
+      if (res.success) {
+        toast.success("Ordem de Serviço excluída com sucesso!")
+      } else {
+        setOrders(originalOrders)
+        toast.error("Erro ao excluir a Ordem de Serviço. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleDeleteOrderRetry(currentOrderId, originalOrders)
+          }
+        })
+      }
+    }).catch(() => {
+      setOrders(originalOrders)
+      toast.error("Erro de conexão ao excluir a Ordem de Serviço. Quer tentar novamente?", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => handleDeleteOrderRetry(currentOrderId, originalOrders)
+        }
+      })
+    })
   }
 
   // Filtro de Busca & Status Tabs
@@ -550,9 +660,21 @@ export default function OrdersPage() {
       </div>
       {/* 📋 Listagem de Ordens */}
       {isLoading ? (
-        <div className="bg-card border border-border/50 rounded-2xl p-16 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="size-8 text-emerald-500 animate-spin" />
-          <span className="text-xs text-muted-foreground font-semibold">Buscando ordens de serviço...</span>
+        <div className="bg-card border border-border/50 rounded-2xl p-6 space-y-4">
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((idx) => (
+              <div key={idx} className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-1/4 rounded-md animate-pulse" />
+                  <Skeleton className="h-3 w-1/3 rounded-md animate-pulse" />
+                </div>
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-4 w-20 rounded-full animate-pulse" />
+                  <Skeleton className="h-6 w-16 rounded-md animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className="bg-card border border-border/50 rounded-2xl p-12 text-center flex flex-col items-center justify-center gap-3">

@@ -44,6 +44,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const springConfig = { type: "spring" as const, stiffness: 300, damping: 28 }
 
@@ -218,15 +219,48 @@ export default function KanbanPage() {
     }
   }
 
+  const triggerBackgroundQuickEditUpdate = (payload: any, originalOrders: WorkOrderSummary[]) => {
+    const mechName = mechanics.find(m => m.id === payload.mechanicId)?.name || null
+    setOrders(prev => prev.map(o => o.id === payload.id ? {
+      ...o,
+      status: payload.status,
+      paymentStatus: payload.paymentStatus,
+      mechanicName: mechName,
+    } : o))
+
+    updateWorkOrderAction(payload).then(res => {
+      if (res.success) {
+        toast.success("Ordem de Serviço atualizada com sucesso!")
+      } else {
+        setOrders(originalOrders)
+        toast.error("Erro ao salvar alterações na OS. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => triggerBackgroundQuickEditUpdate(payload, originalOrders)
+          }
+        })
+      }
+    }).catch(() => {
+      setOrders(originalOrders)
+      toast.error("Erro de conexão. Quer tentar novamente?", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => triggerBackgroundQuickEditUpdate(payload, originalOrders)
+        }
+      })
+    })
+  }
+
   // Salva alterações rápidas feitas no Drawer
   const handleSaveQuickEdits = async () => {
     if (!selectedOrderId) return
 
-    setIsSavingDetails(true)
-    const res = await updateWorkOrderAction({
+    const originalOrders = [...orders]
+    const currentOrderId = selectedOrderId
+    const payload = {
       id: selectedOrderId,
       status: editStatus as any,
-      mechanicId: editMechanicId || null as any,
+      mechanicId: editMechanicId || null,
       paymentStatus: editPaymentStatus as any,
       allocatedBox: editAllocatedBox,
       notes: editNotes,
@@ -241,16 +275,51 @@ export default function KanbanPage() {
         unitSalePrice: it.unitSalePrice,
         isApproved: it.isApproved
       }))
-    })
-    setIsSavingDetails(false)
-
-    if (res.success) {
-      setSuccessMessage("Ordem de Serviço atualizada com sucesso!")
-      setIsDrawerOpen(false)
-      loadInitialData()
-    } else {
-      setErrorMessage(res.error || "Erro ao salvar alterações na O.S.")
     }
+
+    // Calcular novo total aprovado localmente
+    const approvedVal = drawerItems
+      .filter((i: any) => i.isApproved === 1)
+      .reduce((acc: number, curr: any) => acc + (curr.quantity * parseFloat(curr.unitSalePrice)), 0)
+    const disc = parseFloat(selectedOrderDetails?.discount || '0')
+    const sur = parseFloat(selectedOrderDetails?.surcharge || '0')
+    const calculatedGrandTotal = Math.max(0, approvedVal - disc + sur)
+    const mechName = mechanics.find(m => m.id === editMechanicId)?.name || null
+
+    // Atualização otimista
+    setOrders(prev => prev.map(o => o.id === currentOrderId ? {
+      ...o,
+      status: editStatus as any,
+      paymentStatus: editPaymentStatus as any,
+      mechanicName: mechName,
+      grandTotal: calculatedGrandTotal,
+      totalApproved: approvedVal
+    } : o))
+
+    setIsDrawerOpen(false)
+
+    // Despacha em background
+    updateWorkOrderAction(payload as any).then(res => {
+      if (res.success) {
+        toast.success("Ordem de Serviço atualizada com sucesso!")
+      } else {
+        setOrders(originalOrders)
+        toast.error("Erro ao salvar alterações na OS. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => triggerBackgroundQuickEditUpdate(payload, originalOrders)
+          }
+        })
+      }
+    }).catch(() => {
+      setOrders(originalOrders)
+      toast.error("Erro de conexão ao salvar alterações. Quer tentar novamente?", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => triggerBackgroundQuickEditUpdate(payload, originalOrders)
+        }
+      })
+    })
   }
 
   const handleUpdateDrawerItemApproval = (itemId: string, status: number) => {
@@ -301,20 +370,35 @@ export default function KanbanPage() {
   // Mover status de uma OS via Kanban
   const handleMoveOrderStatus = async (orderId: string, targetStatus: 'CHECK_IN' | 'AWAITING_BUDGET' | 'AWAITING_APPROVAL' | 'AWAITING_PARTS' | 'IN_PROGRESS' | 'TESTING_WASHING' | 'READY' | 'DELIVERED') => {
     const originalOrders = [...orders]
+    // 1. Update state instantly
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: targetStatus, statusChangedAt: new Date() } : o))
 
-    const res = await updateWorkOrderAction({
+    // 2. Dispatch background request without blocking the UI
+    updateWorkOrderAction({
       id: orderId,
       status: targetStatus
-    })
-
-    if (!res.success) {
-      setErrorMessage(res.error || "Erro ao mover status da O.S.")
+    }).then(res => {
+      if (!res.success) {
+        // Rollback snapshot
+        setOrders(originalOrders)
+        toast.error("Não foi possível salvar o status da OS. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleMoveOrderStatus(orderId, targetStatus)
+          }
+        })
+      } else {
+        toast.success(`O.S. movida para ${STATUS_LABELS[targetStatus]} com sucesso!`)
+      }
+    }).catch(() => {
       setOrders(originalOrders)
-    } else {
-      setSuccessMessage(`O.S. movida para ${STATUS_LABELS[targetStatus]} com sucesso!`)
-      loadInitialData()
-    }
+      toast.error("Erro de conexão ao salvar status. Quer tentar novamente?", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => handleMoveOrderStatus(orderId, targetStatus)
+        }
+      })
+    })
   }
 
   // Processa comando da IA
@@ -359,10 +443,39 @@ export default function KanbanPage() {
           description: "A IA analisou os gargalos operacionais e as competências dos mecânicos para reequilibrar o pátio.",
           logs,
           execute: async () => {
-            for (const action of actions) {
-              await action()
-            }
-            loadInitialData()
+            const originalOrders = [...orders]
+            setIsCommandBarOpen(false)
+            // Optimistically update local state: allocate mechanics
+            setOrders(prev => prev.map(o => {
+              const activeIndex = activeOrders.findIndex(ao => ao.id === o.id)
+              if (activeIndex !== -1 && mechanics.length > 0) {
+                const targetMech = mechanics[activeIndex % mechanics.length]
+                return { ...o, mechanicName: targetMech.name }
+              }
+              return o
+            }))
+            
+            // Run background updates
+            toast.promise(
+              Promise.all(activeOrders.map((o, index) => {
+                const targetMech = mechanics[index % mechanics.length]
+                if (o.mechanicName !== targetMech.name) {
+                  return updateWorkOrderAction({ id: o.id, mechanicId: targetMech.id })
+                }
+                return Promise.resolve({ success: true })
+              })).then(results => {
+                const someFailed = results.some(r => !r.success)
+                if (someFailed) {
+                  setOrders(originalOrders)
+                  throw new Error("Algumas alocações falharam.")
+                }
+              }),
+              {
+                loading: "Sincronizando alocações de mecânicos...",
+                success: "Rampas rebalanceadas com sucesso!",
+                error: "Falha ao sincronizar rebalanceamento."
+              }
+            )
           }
         })
       }
@@ -414,10 +527,36 @@ export default function KanbanPage() {
           description: "Move em lote todas as ordens prontas ou em fase de testes para o status final de 'Entregue' (deliberado).",
           logs,
           execute: async () => {
-            for (const action of actions) {
-              await action()
-            }
-            loadInitialData()
+            const originalOrders = [...orders]
+            setIsCommandBarOpen(false)
+            // Optimistic update
+            setOrders(prev => prev.map(o => {
+              if (o.status === 'READY' || o.status === 'TESTING_WASHING') {
+                return { ...o, status: 'DELIVERED', paymentStatus: 'PAID', statusChangedAt: new Date() }
+              }
+              return o
+            }))
+
+            toast.promise(
+              Promise.all(readyOrders.map(o => 
+                updateWorkOrderAction({
+                  id: o.id,
+                  status: 'DELIVERED',
+                  paymentStatus: 'PAID'
+                })
+              )).then(results => {
+                const someFailed = results.some(r => !r.success)
+                if (someFailed) {
+                  setOrders(originalOrders)
+                  throw new Error("Algumas liberações falharam.")
+                }
+              }),
+              {
+                loading: "Sincronizando liberação de boxes...",
+                success: "Todos os boxes liberados com sucesso!",
+                error: "Falha ao sincronizar liberação de boxes."
+              }
+            )
           }
         })
       }
@@ -601,10 +740,50 @@ export default function KanbanPage() {
 
       {/* 📋 Listagem em Kanban */}
       {isLoading ? (
-        <div className="flex-1 bg-card border border-border/50 rounded-2xl p-16 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="size-8 text-emerald-500 animate-spin" />
-          <span className="text-xs text-muted-foreground font-semibold">Buscando ordens de serviço...</span>
-        </div>
+        <ScrollArea className="flex-1 w-full min-w-0" data-slot="kanban-scroll-area">
+          <div className="flex gap-4 pb-4 select-none min-h-full">
+            {[
+              { label: 'Check-in' },
+              { label: 'Orçamento' },
+              { label: 'Aprovação' },
+              { label: 'Peças' },
+              { label: 'Execução' },
+              { label: 'Teste/Lavagem' },
+              { label: 'Pronto' },
+              { label: 'Entregue' }
+            ].map((col, idx) => (
+              <div
+                key={idx}
+                className="flex-none w-[280px] min-w-[280px] bg-card/60 border border-border/50 rounded-3xl p-4 flex flex-col h-full min-h-0"
+              >
+                <div className="flex items-center justify-between mb-4 pb-2 border-b border-border/30 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className="size-2 rounded-full bg-zinc-350 animate-pulse" />
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{col.label}</span>
+                  </div>
+                  <Skeleton className="h-4 w-6 rounded-full" />
+                </div>
+                <div className="space-y-3 pb-4">
+                  {[1, 2].map((cardIdx) => (
+                    <div key={cardIdx} className="bg-card border border-border/40 rounded-2xl p-4 space-y-3.5 shadow-sm">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-1.5 flex-1">
+                          <Skeleton className="h-4 w-3/4 rounded-md" />
+                          <Skeleton className="h-3 w-1/2 rounded-md" />
+                        </div>
+                        <Skeleton className="h-5 w-12 rounded-md" />
+                      </div>
+                      <div className="pt-2.5 border-t border-dashed border-border/40 flex items-center justify-between">
+                        <Skeleton className="h-3 w-20 rounded-md" />
+                        <Skeleton className="h-3 w-10 rounded-md" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
       ) : (
         <ScrollArea className="flex-1 w-full min-w-0" data-slot="kanban-scroll-area">
           <div className="flex gap-4 pb-4 select-none min-h-full">

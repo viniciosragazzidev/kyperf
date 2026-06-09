@@ -27,6 +27,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const springConfig = { type: "spring" as const, stiffness: 300, damping: 28 }
 
@@ -178,50 +179,185 @@ export default function CustomersPage() {
     setIsModalOpen(true)
   }
 
+  const handleSaveCustomerRetry = (payload: any, originalCustomers: Customer[], isUpdate: boolean) => {
+    if (isUpdate) {
+      setCustomers(prev => prev.map(c => c.id === payload.id ? {
+        ...c,
+        name: payload.name,
+        phone: payload.phone,
+        document: payload.document || null,
+        email: payload.email || null,
+        address: payload.address || null
+      } : c))
+
+      updateCustomerAction(payload).then(res => {
+        if (res.success) {
+          toast.success("Cliente atualizado com sucesso!")
+        } else {
+          setCustomers(originalCustomers)
+          toast.error("Erro ao atualizar o cliente. Quer tentar novamente?", {
+            action: {
+              label: "Tentar Novamente",
+              onClick: () => handleSaveCustomerRetry(payload, originalCustomers, isUpdate)
+            }
+          })
+        }
+      }).catch(() => {
+        setCustomers(originalCustomers)
+        toast.error("Erro ao atualizar. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleSaveCustomerRetry(payload, originalCustomers, isUpdate)
+          }
+        })
+      })
+    } else {
+      const tempId = `temp-${Date.now()}`
+      const newCustomerObj: Customer = {
+        id: tempId,
+        name: payload.name,
+        phone: payload.phone,
+        document: payload.document || null,
+        email: payload.email || null,
+        address: payload.address || null,
+        riskProfile: null,
+        vehiclesCount: payload.initialVehicle ? 1 : 0,
+        workOrdersCount: 0
+      }
+      setCustomers(prev => [newCustomerObj, ...prev])
+
+      createCustomerAction(payload).then(res => {
+        if (res.success && res.data) {
+          const realCustomer = res.data as any
+          setCustomers(prev => prev.map(c => c.id === tempId ? { ...c, id: realCustomer.id } : c))
+          toast.success("Cliente cadastrado com sucesso!")
+        } else {
+          setCustomers(originalCustomers)
+          toast.error("Erro ao cadastrar. Quer tentar novamente?", {
+            action: {
+              label: "Tentar Novamente",
+              onClick: () => handleSaveCustomerRetry(payload, originalCustomers, isUpdate)
+            }
+          })
+        }
+      }).catch(() => {
+        setCustomers(originalCustomers)
+        toast.error("Erro ao cadastrar. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleSaveCustomerRetry(payload, originalCustomers, isUpdate)
+          }
+        })
+      })
+    }
+  }
+
   // Envio do formulário (Criar / Editar)
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formName || !formPhone) return
 
-    setActionLoading(true)
+    const originalCustomers = [...customers]
     const rawPhone = formPhone.replace(/\D/g, "")
     const rawDocument = formDocument.replace(/\D/g, "")
 
-    let res
+    const inputPayload = {
+      name: formName,
+      phone: rawPhone,
+      document: rawDocument || undefined,
+      email: formEmail || undefined,
+      address: formAddress || undefined,
+    }
+
     if (editingCustomer) {
-      res = await updateCustomerAction({
-        id: editingCustomer.id,
-        name: formName,
-        phone: rawPhone,
-        document: rawDocument || undefined,
-        email: formEmail || undefined,
-        address: formAddress || undefined
+      const currentEditingId = editingCustomer.id
+      const updatePayload = { ...inputPayload, id: currentEditingId }
+
+      // Optimistic update
+      setCustomers(prev => prev.map(c => c.id === currentEditingId ? {
+        ...c,
+        name: updatePayload.name,
+        phone: updatePayload.phone,
+        document: updatePayload.document || null,
+        email: updatePayload.email || null,
+        address: updatePayload.address || null
+      } : c))
+      setIsModalOpen(false)
+
+      updateCustomerAction(updatePayload as any).then(res => {
+        if (res.success) {
+          toast.success("Dados do cliente atualizados!")
+        } else {
+          setCustomers(originalCustomers)
+          toast.error("Erro ao salvar alterações no cliente. Quer tentar novamente?", {
+            action: {
+              label: "Tentar Novamente",
+              onClick: () => handleSaveCustomerRetry(updatePayload, originalCustomers, true)
+            }
+          })
+        }
+      }).catch(() => {
+        setCustomers(originalCustomers)
+        toast.error("Erro de conexão ao salvar cliente. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleSaveCustomerRetry(updatePayload, originalCustomers, true)
+          }
+        })
       })
     } else {
-      res = await createCustomerAction({
-        name: formName,
-        phone: rawPhone,
-        document: rawDocument || undefined,
-        email: formEmail || undefined,
-        address: formAddress || undefined,
+      const createPayload = {
+        ...inputPayload,
         initialVehicle: addInitialVehicle ? {
-          plate: vPlate,
+          plate: vPlate.toUpperCase().replace(/[^A-Z0-9]/g, ""),
           brand: vBrand,
           model: vModel,
-          year: vYear || undefined,
+          year: vYear ? parseInt(vYear, 10) : undefined,
           engine: vEngine || undefined,
-          mileage: vMileage || undefined
+          mileage: vMileage ? parseInt(vMileage, 10) : undefined
         } : undefined
-      })
-    }
-    setActionLoading(false)
+      }
 
-    if (res.success) {
-      setSuccessMessage(editingCustomer ? "Dados do cliente atualizados!" : "Novo cliente cadastrado com sucesso!")
+      const tempId = `temp-${Date.now()}`
+      const newCustomerObj: Customer = {
+        id: tempId,
+        name: createPayload.name,
+        phone: createPayload.phone,
+        document: createPayload.document || null,
+        email: createPayload.email || null,
+        address: createPayload.address || null,
+        riskProfile: null,
+        vehiclesCount: createPayload.initialVehicle ? 1 : 0,
+        workOrdersCount: 0
+      }
+
+      // Optimistic create
+      setCustomers(prev => [newCustomerObj, ...prev])
       setIsModalOpen(false)
-      loadCustomers()
-    } else {
-      setErrorMessage(res.error || "Não foi possível salvar o cliente.")
+
+      createCustomerAction(createPayload as any).then(res => {
+        if (res.success && res.data) {
+          const realCustomer = res.data as any
+          setCustomers(prev => prev.map(c => c.id === tempId ? { ...c, id: realCustomer.id, vehicles: realCustomer.vehicles || [] } : c))
+          toast.success("Novo cliente cadastrado com sucesso!")
+        } else {
+          setCustomers(originalCustomers)
+          toast.error("Erro ao cadastrar o cliente. Quer tentar novamente?", {
+            action: {
+              label: "Tentar Novamente",
+              onClick: () => handleSaveCustomerRetry(createPayload, originalCustomers, false)
+            }
+          })
+        }
+      }).catch(() => {
+        setCustomers(originalCustomers)
+        toast.error("Erro de conexão ao cadastrar o cliente. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleSaveCustomerRetry(createPayload, originalCustomers, false)
+          }
+        })
+      })
     }
   }
 
@@ -231,20 +367,62 @@ export default function CustomersPage() {
     setDeleteConfirmOpen(true)
   }
 
+  const handleConfirmDeleteCustomerRetry = (customerId: string, originalCustomers: any[]) => {
+    setCustomers(prev => prev.filter(c => c.id !== customerId))
+    deleteCustomerAction(customerId).then(res => {
+      if (res.success) {
+        toast.success("Cliente removido com sucesso!")
+      } else {
+        setCustomers(originalCustomers)
+        toast.error("Erro ao deletar o cliente. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleConfirmDeleteCustomerRetry(customerId, originalCustomers)
+          }
+        })
+      }
+    }).catch(() => {
+      setCustomers(originalCustomers)
+      toast.error("Erro de conexão. Quer tentar novamente?", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => handleConfirmDeleteCustomerRetry(customerId, originalCustomers)
+        }
+      })
+    })
+  }
+
   const handleConfirmDeleteCustomer = async () => {
     if (!customerIdToDelete) return
+    const originalCustomers = [...customers]
+    const currentCustomerId = customerIdToDelete
     setDeleteConfirmOpen(false)
-    setActionLoading(true)
-    const res = await deleteCustomerAction(customerIdToDelete)
-    setActionLoading(false)
-
-    if (res.success) {
-      toast.success("Cliente removido com sucesso!")
-      loadCustomers()
-    } else {
-      toast.error(res.error || "Erro ao deletar o cliente.")
-    }
     setCustomerIdToDelete(null)
+
+    // Optimistically remove
+    setCustomers(prev => prev.filter(c => c.id !== currentCustomerId))
+
+    deleteCustomerAction(currentCustomerId).then(res => {
+      if (res.success) {
+        toast.success("Cliente removido com sucesso!")
+      } else {
+        setCustomers(originalCustomers)
+        toast.error("Erro ao deletar o cliente. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleConfirmDeleteCustomerRetry(currentCustomerId, originalCustomers)
+          }
+        })
+      }
+    }).catch(() => {
+      setCustomers(originalCustomers)
+      toast.error("Erro de conexão ao deletar o cliente. Quer tentar novamente?", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => handleConfirmDeleteCustomerRetry(currentCustomerId, originalCustomers)
+        }
+      })
+    })
   }
 
   // Filtra clientes
@@ -311,9 +489,19 @@ export default function CustomersPage() {
       {/* Card da Tabela de Clientes (Jeet Style) */}
       <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] border border-border/50 overflow-hidden text-card-foreground">
         {isLoading ? (
-          <div className="p-16 flex flex-col items-center justify-center gap-2">
-            <Loader2 className="size-6 text-emerald-500 animate-spin" />
-            <span className="text-xs text-muted-foreground font-medium">Carregando lista de clientes...</span>
+          <div className="p-6 space-y-4">
+            {[1, 2, 3, 4].map((idx) => (
+              <div key={idx} className="flex items-center justify-between py-3 border-b border-border/40 last:border-0">
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-1/4 rounded-md animate-pulse" />
+                  <Skeleton className="h-3 w-1/3 rounded-md animate-pulse" />
+                </div>
+                <div className="flex gap-4">
+                  <Skeleton className="h-5 w-20 rounded-md animate-pulse" />
+                  <Skeleton className="h-8 w-16 rounded-md animate-pulse" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredCustomers.length === 0 ? (
           <div className="p-16 text-center text-xs text-muted-foreground">

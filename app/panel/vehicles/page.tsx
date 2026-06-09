@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // Import Server Actions
 import { 
@@ -280,27 +281,128 @@ export default function VehiclesPage() {
     setDeleteConfirmOpen(true)
   }
 
-  const handleConfirmDeleteVehicle = async () => {
-    if (!vehicleIdToDelete) return
-    setDeleteConfirmOpen(false)
-    try {
-      const res = await deleteVehicleAction(vehicleIdToDelete)
+  const handleDeleteVehicleRetry = (vehicleId: string, originalVehicles: any[]) => {
+    setVehicles(prev => prev.filter(v => v.id !== vehicleId))
+    deleteVehicleAction(vehicleId).then(res => {
       if (res.success) {
-        setVehicles(prev => prev.filter(v => v.id !== vehicleIdToDelete))
-        if (selectedVehicle?.id === vehicleIdToDelete) setSelectedVehicle(null)
         toast.success("Veículo excluído com sucesso!")
       } else {
+        setVehicles(originalVehicles)
         const errMsg = res.error || ""
         if (errMsg.includes("foreign key") || errMsg.includes("violates foreign key") || errMsg.includes("work_orders_vehicle_id_vehicles_id_fk")) {
           toast.error("Não é possível excluir este veículo pois ele possui ordens de serviço vinculadas.")
         } else {
-          toast.error("Erro ao deletar veículo: " + res.error)
+          toast.error("Erro ao deletar veículo. Quer tentar novamente?", {
+            action: {
+              label: "Tentar Novamente",
+              onClick: () => handleDeleteVehicleRetry(vehicleId, originalVehicles)
+            }
+          })
         }
       }
-    } catch (err: any) {
-      toast.error("Erro interno: " + err.message)
-    } finally {
-      setVehicleIdToDelete(null)
+    }).catch(() => {
+      setVehicles(originalVehicles)
+      toast.error("Erro de conexão ao excluir. Quer tentar novamente?", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => handleDeleteVehicleRetry(vehicleId, originalVehicles)
+        }
+      })
+    })
+  }
+
+  const handleConfirmDeleteVehicle = async () => {
+    if (!vehicleIdToDelete) return
+    const originalVehicles = [...vehicles]
+    const currentVehicleId = vehicleIdToDelete
+    setDeleteConfirmOpen(false)
+    setVehicleIdToDelete(null)
+
+    // Optimistically remove
+    setVehicles(prev => prev.filter(v => v.id !== currentVehicleId))
+    if (selectedVehicle?.id === currentVehicleId) setSelectedVehicle(null)
+
+    deleteVehicleAction(currentVehicleId).then(res => {
+      if (res.success) {
+        toast.success("Veículo excluído com sucesso!")
+      } else {
+        setVehicles(originalVehicles)
+        const errMsg = res.error || ""
+        if (errMsg.includes("foreign key") || errMsg.includes("violates foreign key") || errMsg.includes("work_orders_vehicle_id_vehicles_id_fk")) {
+          toast.error("Não é possível excluir este veículo pois ele possui ordens de serviço vinculadas.")
+        } else {
+          toast.error("Erro ao deletar veículo. Quer tentar novamente?", {
+            action: {
+              label: "Tentar Novamente",
+              onClick: () => handleDeleteVehicleRetry(currentVehicleId, originalVehicles)
+            }
+          })
+        }
+      }
+    }).catch(() => {
+      setVehicles(originalVehicles)
+      toast.error("Erro de conexão ao excluir. Quer tentar novamente?", {
+        action: {
+          label: "Tentar Novamente",
+          onClick: () => handleDeleteVehicleRetry(currentVehicleId, originalVehicles)
+        }
+      })
+    })
+  }
+
+  const handleFormSubmitRetry = (payload: any, originalVehicles: any[], isUpdate: boolean) => {
+    const customer = customers.find(c => c.id === payload.customerId)
+    if (isUpdate) {
+      setVehicles(prev => prev.map(v => v.id === payload.id ? { ...v, ...payload, customer } : v))
+      updateVehicleAction(payload).then(res => {
+        if (res.success) {
+          toast.success("Veículo atualizado com sucesso!")
+        } else {
+          setVehicles(originalVehicles)
+          toast.error("Erro ao atualizar o veículo. Quer tentar novamente?", {
+            action: {
+              label: "Tentar Novamente",
+              onClick: () => handleFormSubmitRetry(payload, originalVehicles, isUpdate)
+            }
+          })
+        }
+      }).catch(() => {
+        setVehicles(originalVehicles)
+        toast.error("Erro ao atualizar. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleFormSubmitRetry(payload, originalVehicles, isUpdate)
+          }
+        })
+      })
+    } else {
+      const tempId = `temp-${Date.now()}`
+      const newVehicleObj = { ...payload, id: tempId, customer }
+      setVehicles(prev => [newVehicleObj, ...prev])
+
+      createVehicleAction(payload).then(res => {
+        if (res.success && res.data) {
+          const realVehicle = res.data as any
+          setVehicles(prev => prev.map(v => v.id === tempId ? { ...v, id: realVehicle.id } : v))
+          toast.success("Veículo cadastrado com sucesso!")
+        } else {
+          setVehicles(originalVehicles)
+          toast.error("Erro ao cadastrar. Quer tentar novamente?", {
+            action: {
+              label: "Tentar Novamente",
+              onClick: () => handleFormSubmitRetry(payload, originalVehicles, isUpdate)
+            }
+          })
+        }
+      }).catch(() => {
+        setVehicles(originalVehicles)
+        toast.error("Erro ao cadastrar. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleFormSubmitRetry(payload, originalVehicles, isUpdate)
+          }
+        })
+      })
     }
   }
 
@@ -311,36 +413,79 @@ export default function VehiclesPage() {
       return
     }
 
-    setSubmitting(true)
-    try {
-      const input = {
-        customerId,
-        plate: plate.toUpperCase().replace(/[^A-Z0-9]/g, ""),
-        brand,
-        model,
-        year: year ? parseInt(year, 10) : undefined,
-        engine: engine || undefined,
-        mileage: mileage ? parseInt(mileage, 10) : undefined,
-      }
+    const originalVehicles = [...vehicles]
+    const formattedPlate = plate.toUpperCase().replace(/[^A-Z0-9]/g, "")
+    const inputPayload = {
+      customerId,
+      plate: formattedPlate,
+      brand,
+      model,
+      year: year ? parseInt(year, 10) : null,
+      engine: engine || null,
+      mileage: mileage ? parseInt(mileage, 10) : null,
+    }
 
-      let res
-      if (editingId) {
-        res = await updateVehicleAction({ ...input, id: editingId })
-      } else {
-        res = await createVehicleAction(input)
-      }
+    const customer = customers.find(c => c.id === customerId)
 
-      if (res.success) {
-        setModalOpen(false)
-        loadData()
-        toast.success(editingId ? "Veículo atualizado com sucesso!" : "Veículo cadastrado com sucesso!")
-      } else {
-        toast.error("Erro ao salvar: " + res.error)
-      }
-    } catch (err: any) {
-      toast.error("Erro interno: " + err.message)
-    } finally {
-      setSubmitting(false)
+    if (editingId) {
+      const currentEditingId = editingId
+      // Optimistic update
+      setVehicles(prev => prev.map(v => v.id === currentEditingId ? { ...v, ...inputPayload, customer } as any : v))
+      setModalOpen(false)
+
+      updateVehicleAction({ ...inputPayload, id: currentEditingId } as any).then(res => {
+        if (res.success) {
+          toast.success("Veículo atualizado com sucesso!")
+        } else {
+          setVehicles(originalVehicles)
+          toast.error("Erro ao atualizar o veículo. Quer tentar novamente?", {
+            action: {
+              label: "Tentar Novamente",
+              onClick: () => handleFormSubmitRetry({ ...inputPayload, id: currentEditingId }, originalVehicles, true)
+            }
+          })
+        }
+      }).catch(() => {
+        setVehicles(originalVehicles)
+        toast.error("Erro de conexão ao atualizar o veículo. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleFormSubmitRetry({ ...inputPayload, id: currentEditingId }, originalVehicles, true)
+          }
+        })
+      })
+    } else {
+      const tempId = `temp-${Date.now()}`
+      const newVehicleObj = { ...inputPayload, id: tempId, customer } as any
+
+      // Optimistic create
+      setVehicles(prev => [newVehicleObj, ...prev])
+      setModalOpen(false)
+
+      createVehicleAction(inputPayload as any).then(res => {
+        if (res.success && res.data) {
+          // Replace temp ID with the database ID
+          const realVehicle = res.data as any
+          setVehicles(prev => prev.map(v => v.id === tempId ? { ...v, id: realVehicle.id } : v))
+          toast.success("Veículo cadastrado com sucesso!")
+        } else {
+          setVehicles(originalVehicles)
+          toast.error("Erro ao cadastrar o veículo. Quer tentar novamente?", {
+            action: {
+              label: "Tentar Novamente",
+              onClick: () => handleFormSubmitRetry(inputPayload, originalVehicles, false)
+            }
+          })
+        }
+      }).catch(() => {
+        setVehicles(originalVehicles)
+        toast.error("Erro de conexão ao cadastrar o veículo. Quer tentar novamente?", {
+          action: {
+            label: "Tentar Novamente",
+            onClick: () => handleFormSubmitRetry(inputPayload, originalVehicles, false)
+          }
+        })
+      })
     }
   }
 
@@ -419,8 +564,16 @@ export default function VehiclesPage() {
 
             {/* Vehicle List */}
             {loading ? (
-              <div className="text-center py-12 text-muted-foreground text-xs font-medium">
-                Carregando frota...
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((idx) => (
+                  <div key={idx} className="p-3.5 border border-border/40 bg-muted/10 rounded-2xl flex items-center justify-between">
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-5 w-24 rounded-lg animate-pulse" />
+                      <Skeleton className="h-3.5 w-32 rounded-md animate-pulse" />
+                    </div>
+                    <Skeleton className="h-8 w-8 rounded-full animate-pulse" />
+                  </div>
+                ))}
               </div>
             ) : filteredVehicles.length > 0 ? (
               <div className="space-y-3 max-h-[550px] overflow-y-auto pr-1 no-scrollbar">
