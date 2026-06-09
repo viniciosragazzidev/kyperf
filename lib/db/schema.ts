@@ -309,11 +309,24 @@ export const serviceParts = pgTable('service_parts', {
   index('service_parts_part_idx').on(table.partId),
 ]);
 
+export const whatsappConfig = pgTable('whatsapp_config', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).unique().notNull(),
+  apiUrl: text('api_url').notNull(),
+  apiToken: text('api_token'),
+  sessionName: text('session_name'),
+  status: text('status').default('DISCONNECTED').notNull(), // 'DISCONNECTED' | 'CONNECTED' | 'CONNECTING'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('whatsapp_config_tenant_idx').on(table.tenantId),
+]);
+
 // ==========================================
 // RELACIONAMENTOS (Drizzle Relations)
 // ==========================================
 
-export const tenantsRelations = relations(tenants, ({ many }) => ({
+export const tenantsRelations = relations(tenants, ({ many, one }) => ({
   branches: many(branches),
   users: many(user),
   customers: many(customers),
@@ -322,6 +335,11 @@ export const tenantsRelations = relations(tenants, ({ many }) => ({
   servicesCatalog: many(servicesCatalog),
   workOrders: many(workOrders),
   suppliers: many(suppliers),
+  whatsappConfig: one(whatsappConfig),
+}));
+
+export const whatsappConfigRelations = relations(whatsappConfig, ({ one }) => ({
+  tenant: one(tenants, { fields: [whatsappConfig.tenantId], references: [tenants.id] }),
 }));
 
 export const branchesRelations = relations(branches, ({ one, many }) => ({

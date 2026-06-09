@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 const instrumentSansHeading = Instrument_Sans({ subsets: ['latin'], variable: '--font-heading' });
 
@@ -34,6 +35,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <TooltipProvider>
           {children}
+          <Toaster richColors closeButton />
         </TooltipProvider>
       </body>
     </html>

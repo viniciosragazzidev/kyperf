@@ -1,5 +1,3 @@
-"use client";
-
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { PdfHeader } from "../pdf-header";
 import { PdfFooter } from "../pdf-footer";

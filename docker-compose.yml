@@ -1,0 +1,30 @@
+services:
+  openwa-api:
+    image: ghcr.io/rmyndharis/openwa:latest
+    container_name: openwa-api
+    restart: unless-stopped
+    ports:
+      - "2785:2785"
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - PORT=2785
+      - DATABASE_TYPE=sqlite
+      - DATABASE_NAME=/app/data/openwa.sqlite
+      - SESSION_DATA_PATH=/app/data/sessions
+      # Defina sua API Key para autenticação das chamadas
+      - API_KEY_ENABLED=true
+      - API_MASTER_KEY=owa_k1_299e8be6ae7a9ecfee1942dd249a2186dcd5bbea405c1e4a8cda1168ac13e683
+      - PUPPETEER_ARGS=--no-sandbox --disable-setuid-sandbox
+    volumes:
+      - ./openwa-data:/app/data
+
+  # Cloudflare Tunnel Agent - Expõe a API do OpenWA via HTTPS sem abrir portas no roteador
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      # Insira o Token do Tunnel gerado no painel da Cloudflare (Zero Trust)
+      - TUNNEL_TOKEN=eyJhIjoiZjZhYjJjN2ZmMTU5OTNhOTk4NTBlNTIzNDI1OTgxODUiLCJ0IjoiZWY1OTFlNGYtMGJkNC00NjcwLWJlOWQtMTI2YTMwZTIzZGFkIiwicyI6Ik9URmxZelV6TWpjdFpHUmhaUzAwTURkaExUaGpOVGd0WWprNE5tWXdZVFEzTkRNeCJ9

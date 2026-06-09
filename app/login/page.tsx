@@ -10,6 +10,7 @@ import Link from "next/link";
 import { WrenchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -28,10 +29,16 @@ export default function LoginPage() {
         callbackURL: "/panel",
       });
       if (res?.error) {
-        setError(res.error.message || "Erro ao efetuar login. Verifique suas credenciais.");
+        const msg = res.error.message || "Erro ao efetuar login. Verifique suas credenciais.";
+        setError(msg);
+        toast.error(msg);
+      } else {
+        toast.success("Login efetuado com sucesso! Redirecionando...");
       }
     } catch (err: any) {
-      setError(err.message || "Ocorreu um erro interno ao efetuar login.");
+      const msg = err.message || "Ocorreu um erro interno ao efetuar login.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
