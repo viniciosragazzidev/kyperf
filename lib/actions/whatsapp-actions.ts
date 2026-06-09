@@ -48,6 +48,22 @@ function cleanSessionName(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+function getEffectiveApiUrl(configApiUrl: string): string {
+  const envUrl = process.env.OPENWA_API_URL || process.env.NEXT_PUBLIC_OPENWA_API_URL;
+  if (envUrl && envUrl.trim() !== "") {
+    return envUrl;
+  }
+  return configApiUrl;
+}
+
+function getEffectiveApiToken(configApiToken: string | null): string {
+  const envToken = process.env.OPENWA_API_TOKEN;
+  if (envToken && envToken.trim() !== "") {
+    return envToken;
+  }
+  return configApiToken || "";
+}
+
 /**
  * Resolve o UUID da sessão pelo seu nome.
  * Lista as sessões do OpenWA. Se encontrar uma correspondente ao nome, retorna o ID dela.
@@ -178,15 +194,14 @@ export async function getWhatsappConfigAction() {
 
       config = inserted[0];
     } else if (
-      !config.apiToken || 
-      config.apiToken === "" || 
-      !config.apiUrl || 
+      config.apiUrl !== defaultApiUrl ||
+      config.apiToken !== defaultApiToken ||
       !config.sessionName || 
       cleanSessionName(config.sessionName) !== config.sessionName
     ) {
       const updated = await db.update(schema.whatsappConfig).set({
-        apiUrl: config.apiUrl || defaultApiUrl,
-        apiToken: config.apiToken || defaultApiToken,
+        apiUrl: defaultApiUrl,
+        apiToken: defaultApiToken,
         sessionName: defaultSessionName,
         updatedAt: new Date(),
       }).where(eq(schema.whatsappConfig.id, config.id)).returning();
@@ -214,13 +229,13 @@ export async function checkWhatsappStatusAction() {
       return { success: true, status: "DISCONNECTED" };
     }
 
-    const cleanUrl = getCleanApiUrl(config.apiUrl);
+    const cleanUrl = getCleanApiUrl(getEffectiveApiUrl(config.apiUrl));
     const session = cleanSessionName(config.sessionName || "default");
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-    const token = getOpenwaApiKey() || config.apiToken;
+    const token = getOpenwaApiKey() || getEffectiveApiToken(config.apiToken);
     if (token) {
       headers["X-API-Key"] = token;
     }
@@ -289,13 +304,13 @@ export async function startWhatsappSessionAction() {
       throw new Error("WhatsApp não configurado. Salve as configurações primeiro.");
     }
 
-    const cleanUrl = getCleanApiUrl(config.apiUrl);
+    const cleanUrl = getCleanApiUrl(getEffectiveApiUrl(config.apiUrl));
     const session = cleanSessionName(config.sessionName || "default");
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-    const token = getOpenwaApiKey() || config.apiToken;
+    const token = getOpenwaApiKey() || getEffectiveApiToken(config.apiToken);
     if (token) {
       headers["X-API-Key"] = token;
     }
@@ -348,11 +363,11 @@ export async function getWhatsappQrCodeAction() {
 
     if (!config) throw new Error("Configuração do WhatsApp não encontrada.");
 
-    const cleanUrl = getCleanApiUrl(config.apiUrl);
+    const cleanUrl = getCleanApiUrl(getEffectiveApiUrl(config.apiUrl));
     const session = cleanSessionName(config.sessionName || "default");
 
     const headers: Record<string, string> = {};
-    const token = getOpenwaApiKey() || config.apiToken;
+    const token = getOpenwaApiKey() || getEffectiveApiToken(config.apiToken);
     if (token) {
       headers["X-API-Key"] = token;
     }
@@ -400,13 +415,13 @@ export async function disconnectWhatsappSessionAction() {
 
     if (!config) throw new Error("Configuração do WhatsApp não encontrada.");
 
-    const cleanUrl = getCleanApiUrl(config.apiUrl);
+    const cleanUrl = getCleanApiUrl(getEffectiveApiUrl(config.apiUrl));
     const session = cleanSessionName(config.sessionName || "default");
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-    const token = getOpenwaApiKey() || config.apiToken;
+    const token = getOpenwaApiKey() || getEffectiveApiToken(config.apiToken);
     if (token) {
       headers["X-API-Key"] = token;
     }
@@ -504,13 +519,13 @@ export async function sendDirectWhatsappAction(orderId: string) {
 
     const message = `Olá, ${customerName}! Segue em anexo o documento em PDF da sua Ordem de Serviço *#${osNum}*.\n\nVocê também pode visualizar e aprovar os itens online pelo link:\n*Link:* ${urlPublic}\n*Código de Acesso:* *${accessCode}*\n\nSe tiver qualquer dúvida, estamos à disposição!`;
 
-    const cleanUrl = getCleanApiUrl(config.apiUrl);
+    const cleanUrl = getCleanApiUrl(getEffectiveApiUrl(config.apiUrl));
     const session = cleanSessionName(config.sessionName || "default");
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-    const token = getOpenwaApiKey() || config.apiToken;
+    const token = getOpenwaApiKey() || getEffectiveApiToken(config.apiToken);
     if (token) {
       headers["X-API-Key"] = token;
     }
