@@ -35,6 +35,11 @@ import {
   deleteVehicleAction 
 } from "@/lib/actions/vehicles-actions"
 import { getCustomersAction } from "@/lib/actions/customers-actions"
+import { 
+  getFipeBrandsAction, 
+  getFipeModelsAction, 
+  getFipeYearsAction 
+} from "@/lib/actions/fipe-actions"
 
 interface Customer {
   id: string
@@ -110,6 +115,84 @@ export default function VehiclesPage() {
   const [mileage, setMileage] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
+  // FIPE states
+  const [fipeBrands, setFipeBrands] = useState<{ code: string; name: string }[]>([])
+  const [fipeModels, setFipeModels] = useState<{ code: string; name: string }[]>([])
+  const [fipeYears, setFipeYears] = useState<{ code: string; name: string }[]>([])
+  const [selectedFipeBrandCode, setSelectedFipeBrandCode] = useState("")
+  const [selectedFipeModelCode, setSelectedFipeModelCode] = useState("")
+  const [isManualInput, setIsManualInput] = useState(false)
+  const [loadingBrands, setLoadingBrands] = useState(false)
+  const [loadingModels, setLoadingModels] = useState(false)
+  const [loadingYears, setLoadingYears] = useState(false)
+  const [brandSearch, setBrandSearch] = useState("")
+  const [modelSearch, setModelSearch] = useState("")
+  const [showBrandDropdown, setShowBrandDropdown] = useState(false)
+  const [showModelDropdown, setShowModelDropdown] = useState(false)
+
+  const loadFipeBrands = async () => {
+    if (fipeBrands.length > 0) return
+    setLoadingBrands(true)
+    const res = await getFipeBrandsAction()
+    if (res.success && res.data) {
+      setFipeBrands(res.data)
+    }
+    setLoadingBrands(false)
+  }
+
+  const handleFipeBrandChange = async (brandCode: string) => {
+    setSelectedFipeBrandCode(brandCode)
+    setSelectedFipeModelCode("")
+    setFipeModels([])
+    setFipeYears([])
+    
+    const found = fipeBrands.find(b => b.code === brandCode)
+    if (found) {
+      setBrand(found.name)
+      setModel("")
+      setYear("")
+      setModelSearch("")
+    }
+
+    if (!brandCode) return
+
+    setLoadingModels(true)
+    const res = await getFipeModelsAction(brandCode)
+    if (res.success && res.data) {
+      setFipeModels(res.data)
+    }
+    setLoadingModels(false)
+  }
+
+  const handleFipeModelChange = async (modelCode: string) => {
+    setSelectedFipeModelCode(modelCode)
+    setFipeYears([])
+    
+    const found = fipeModels.find(m => m.code === modelCode)
+    if (found) {
+      setModel(found.name)
+      setYear("")
+    }
+
+    if (!selectedFipeBrandCode || !modelCode) return
+
+    setLoadingYears(true)
+    const res = await getFipeYearsAction(selectedFipeBrandCode, modelCode)
+    if (res.success && res.data) {
+      setFipeYears(res.data)
+    }
+    setLoadingYears(false)
+  }
+
+  const handleFipeYearChange = (yearValue: string) => {
+    const match = yearValue.match(/^\d{4}/)
+    if (match) {
+      setYear(match[0])
+    } else {
+      setYear(yearValue)
+    }
+  }
+
   const loadData = async () => {
     setLoading(true)
     try {
@@ -160,7 +243,15 @@ export default function VehiclesPage() {
     setYear("")
     setEngine("")
     setMileage("")
+    setIsManualInput(false)
+    setSelectedFipeBrandCode("")
+    setSelectedFipeModelCode("")
+    setBrandSearch("")
+    setModelSearch("")
+    setFipeModels([])
+    setFipeYears([])
     setModalOpen(true)
+    loadFipeBrands()
   }
 
   const openEditModal = (vehicle: Vehicle, e: React.MouseEvent) => {
@@ -173,6 +264,7 @@ export default function VehiclesPage() {
     setYear(vehicle.year ? String(vehicle.year) : "")
     setEngine(vehicle.engine || "")
     setMileage(vehicle.mileage ? String(vehicle.mileage) : "")
+    setIsManualInput(true)
     setModalOpen(true)
   }
 
@@ -591,27 +683,140 @@ export default function VehiclesPage() {
                     />
                   </div>
 
-                  {/* Brand & Model */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Marca *</label>
-                      <input 
-                        placeholder="EX: HONDA"
-                        className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
-                        required
-                        value={brand}
-                        onChange={(e) => setBrand(e.target.value)}
-                      />
+                  {/* Brand & Model Selector */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between col-span-2">
+                      <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Informações do Veículo *</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsManualInput(!isManualInput);
+                          if (!isManualInput) {
+                            if (brandSearch) setBrand(brandSearch);
+                            if (modelSearch) setModel(modelSearch);
+                          } else {
+                            setBrandSearch(brand);
+                            setModelSearch(model);
+                          }
+                        }}
+                        className="text-[10px] text-emerald-500 hover:underline font-bold"
+                      >
+                        {isManualInput ? "Usar Busca FIPE" : "Digitar Manualmente"}
+                      </button>
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Modelo *</label>
-                      <input 
-                        placeholder="EX: CIVIC"
-                        className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
-                        required
-                        value={model}
-                        onChange={(e) => setModel(e.target.value)}
-                      />
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Marca */}
+                      <div className="space-y-1 relative">
+                        <label className="text-[9px] font-bold text-muted-foreground uppercase">Marca *</label>
+                        {isManualInput ? (
+                          <input 
+                            placeholder="EX: HONDA"
+                            className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                            required
+                            value={brand}
+                            onChange={(e) => setBrand(e.target.value)}
+                          />
+                        ) : (
+                          <div className="relative">
+                            <input 
+                              placeholder="BUSCAR MARCA..."
+                              className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                              required
+                              value={brandSearch}
+                              onChange={(e) => {
+                                setBrandSearch(e.target.value);
+                                setShowBrandDropdown(true);
+                              }}
+                              onFocus={() => {
+                                loadFipeBrands();
+                                setShowBrandDropdown(true);
+                              }}
+                              onBlur={() => setTimeout(() => setShowBrandDropdown(false), 250)}
+                            />
+                            {showBrandDropdown && (
+                              <div className="absolute top-9 left-0 right-0 max-h-48 overflow-y-auto bg-card border border-border rounded-xl shadow-lg z-30 text-[10px] uppercase no-scrollbar">
+                                {loadingBrands ? (
+                                  <div className="p-3 text-muted-foreground text-center font-medium">Carregando marcas...</div>
+                                ) : (
+                                  fipeBrands
+                                    .filter(b => b.name.toLowerCase().includes(brandSearch.toLowerCase()))
+                                    .map(b => (
+                                      <button
+                                        key={b.code}
+                                        type="button"
+                                        onMouseDown={() => {
+                                          handleFipeBrandChange(b.code);
+                                          setBrandSearch(b.name);
+                                          setShowBrandDropdown(false);
+                                        }}
+                                        className="w-full text-left px-3 py-1.5 hover:bg-muted font-bold text-foreground border-b border-border/20 last:border-b-0"
+                                      >
+                                        {b.name}
+                                      </button>
+                                    ))
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Modelo */}
+                      <div className="space-y-1 relative">
+                        <label className="text-[9px] font-bold text-muted-foreground uppercase">Modelo *</label>
+                        {isManualInput ? (
+                          <input 
+                            placeholder="EX: CIVIC"
+                            className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                            required
+                            value={model}
+                            onChange={(e) => setModel(e.target.value)}
+                          />
+                        ) : (
+                          <div className="relative">
+                            <input 
+                              placeholder={selectedFipeBrandCode ? "BUSCAR MODELO..." : "SELECIONE A MARCA"}
+                              className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                              required
+                              disabled={!selectedFipeBrandCode}
+                              value={modelSearch}
+                              onChange={(e) => {
+                                setModelSearch(e.target.value);
+                                setShowModelDropdown(true);
+                              }}
+                              onFocus={() => {
+                                if (selectedFipeBrandCode) setShowModelDropdown(true);
+                              }}
+                              onBlur={() => setTimeout(() => setShowModelDropdown(false), 250)}
+                            />
+                            {showModelDropdown && selectedFipeBrandCode && (
+                              <div className="absolute top-9 left-0 right-0 max-h-48 overflow-y-auto bg-card border border-border rounded-xl shadow-lg z-30 text-[10px] uppercase no-scrollbar">
+                                {loadingModels ? (
+                                  <div className="p-3 text-muted-foreground text-center font-medium">Carregando modelos...</div>
+                                ) : (
+                                  fipeModels
+                                    .filter(m => m.name.toLowerCase().includes(modelSearch.toLowerCase()))
+                                    .map(m => (
+                                      <button
+                                        key={m.code}
+                                        type="button"
+                                        onMouseDown={() => {
+                                          handleFipeModelChange(m.code);
+                                          setModelSearch(m.name);
+                                          setShowModelDropdown(false);
+                                        }}
+                                        className="w-full text-left px-3 py-1.5 hover:bg-muted font-bold text-foreground border-b border-border/20 last:border-b-0"
+                                      >
+                                        {m.name}
+                                      </button>
+                                    ))
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -619,13 +824,33 @@ export default function VehiclesPage() {
                   <div className="grid grid-cols-3 gap-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Ano</label>
-                      <input 
-                        type="number"
-                        placeholder="2020"
-                        className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
-                        value={year}
-                        onChange={(e) => setYear(e.target.value)}
-                      />
+                      {isManualInput ? (
+                        <input 
+                          type="number"
+                          placeholder="2020"
+                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
+                          value={year}
+                          onChange={(e) => setYear(e.target.value)}
+                        />
+                      ) : (
+                        <select
+                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground uppercase"
+                          disabled={!selectedFipeModelCode}
+                          value={fipeYears.find(y => y.name.startsWith(year))?.code || ""}
+                          onChange={(e) => handleFipeYearChange(e.target.value)}
+                        >
+                          <option value="">-- SELECIONE --</option>
+                          {loadingYears ? (
+                            <option disabled>Carregando...</option>
+                          ) : (
+                            fipeYears.map(y => (
+                              <option key={y.code} value={y.code}>
+                                {y.name}
+                              </option>
+                            ))
+                          )}
+                        </select>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Motor</label>

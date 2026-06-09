@@ -37,6 +37,11 @@ import {
 import { getPartsAction } from "@/lib/actions/parts-actions"
 import { getServicesAction } from "@/lib/actions/services-actions"
 import dynamic from "next/dynamic"
+import { 
+  getFipeBrandsAction, 
+  getFipeModelsAction, 
+  getFipeYearsAction 
+} from "@/lib/actions/fipe-actions"
 import { Printer } from "lucide-react"
 
 const ThermalPrinterCard = dynamic(
@@ -217,6 +222,84 @@ function NewWorkOrderForm() {
   const [vehEngine, setVehEngine] = useState("")
   const [vehMileage, setVehMileage] = useState("")
   const [fuelLevel, setFuelLevel] = useState("1/2")
+
+  // FIPE states
+  const [fipeBrands, setFipeBrands] = useState<{ code: string; name: string }[]>([])
+  const [fipeModels, setFipeModels] = useState<{ code: string; name: string }[]>([])
+  const [fipeYears, setFipeYears] = useState<{ code: string; name: string }[]>([])
+  const [selectedFipeBrandCode, setSelectedFipeBrandCode] = useState("")
+  const [selectedFipeModelCode, setSelectedFipeModelCode] = useState("")
+  const [isManualInput, setIsManualInput] = useState(false)
+  const [loadingBrands, setLoadingBrands] = useState(false)
+  const [loadingModels, setLoadingModels] = useState(false)
+  const [loadingYears, setLoadingYears] = useState(false)
+  const [brandSearch, setBrandSearch] = useState("")
+  const [modelSearch, setModelSearch] = useState("")
+  const [showBrandDropdown, setShowBrandDropdown] = useState(false)
+  const [showModelDropdown, setShowModelDropdown] = useState(false)
+
+  const loadFipeBrands = async () => {
+    if (fipeBrands.length > 0) return
+    setLoadingBrands(true)
+    const res = await getFipeBrandsAction()
+    if (res.success && res.data) {
+      setFipeBrands(res.data)
+    }
+    setLoadingBrands(false)
+  }
+
+  const handleFipeBrandChange = async (brandCode: string) => {
+    setSelectedFipeBrandCode(brandCode)
+    setSelectedFipeModelCode("")
+    setFipeModels([])
+    setFipeYears([])
+    
+    const found = fipeBrands.find(b => b.code === brandCode)
+    if (found) {
+      setVehBrand(found.name)
+      setVehModel("")
+      setVehYear("")
+      setModelSearch("")
+    }
+
+    if (!brandCode) return
+
+    setLoadingModels(true)
+    const res = await getFipeModelsAction(brandCode)
+    if (res.success && res.data) {
+      setFipeModels(res.data)
+    }
+    setLoadingModels(false)
+  }
+
+  const handleFipeModelChange = async (modelCode: string) => {
+    setSelectedFipeModelCode(modelCode)
+    setFipeYears([])
+    
+    const found = fipeModels.find(m => m.code === modelCode)
+    if (found) {
+      setVehModel(found.name)
+      setVehYear("")
+    }
+
+    if (!selectedFipeBrandCode || !modelCode) return
+
+    setLoadingYears(true)
+    const res = await getFipeYearsAction(selectedFipeBrandCode, modelCode)
+    if (res.success && res.data) {
+      setFipeYears(res.data)
+    }
+    setLoadingYears(false)
+  }
+
+  const handleFipeYearChange = (yearValue: string) => {
+    const match = yearValue.match(/^\d{4}/)
+    if (match) {
+      setVehYear(match[0])
+    } else {
+      setVehYear(yearValue)
+    }
+  }
 
   // 3. Checklist e Check-in
   const [checklist, setChecklist] = useState<Record<string, 'P' | 'A' | 'N'>>({
@@ -420,6 +503,7 @@ function NewWorkOrderForm() {
         setVehYear(v.year ? String(v.year) : "")
         setVehEngine(v.engine || "")
         setVehMileage(v.mileage ? String(v.mileage) : "")
+        setIsManualInput(true) // Preenchido automaticamente do banco, então habilita o manual
         
         if (v.customer) {
           setSelectedCustomer(v.customer as Customer)
@@ -438,6 +522,7 @@ function NewWorkOrderForm() {
         setVehYear(mockResult.year ? String(mockResult.year) : "")
         setVehEngine(mockResult.engine || "")
         setVehMileage(mockResult.mileage ? String(mockResult.mileage) : "")
+        setIsManualInput(true) // Preenchido automaticamente do mock, então habilita o manual
       }
     } else {
       setSelectedVehicle(null)
@@ -944,10 +1029,28 @@ function NewWorkOrderForm() {
 
           {/* 🚗 Bloco do Veículo */}
           <div className="bg-card rounded-3xl p-5 border border-border/50 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.03)] space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Car className="size-4 text-emerald-500" />
-              Especificações do Veículo
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Car className="size-4 text-emerald-500" />
+                Especificações do Veículo
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsManualInput(!isManualInput);
+                  if (!isManualInput) {
+                    if (brandSearch) setVehBrand(brandSearch);
+                    if (modelSearch) setVehModel(modelSearch);
+                  } else {
+                    setBrandSearch(vehBrand);
+                    setModelSearch(vehModel);
+                  }
+                }}
+                className="text-[10px] text-emerald-500 hover:underline font-bold"
+              >
+                {isManualInput ? "Usar Busca FIPE" : "Digitar Manualmente"}
+              </button>
+            </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="space-y-1">
@@ -961,25 +1064,117 @@ function NewWorkOrderForm() {
                   className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-extrabold font-mono placeholder-muted-foreground/30"
                 />
               </div>
-              <div className="space-y-1">
+
+              {/* Marca */}
+              <div className="space-y-1 relative">
                 <label className="text-[9px] font-bold text-muted-foreground uppercase">Marca</label>
-                <input
-                  type="text"
-                  placeholder="Ex: Toyota"
-                  value={vehBrand}
-                  onChange={(e) => setVehBrand(e.target.value)}
-                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-medium"
-                />
+                {isManualInput ? (
+                  <input
+                    type="text"
+                    placeholder="Ex: Toyota"
+                    value={vehBrand}
+                    onChange={(e) => setVehBrand(e.target.value)}
+                    className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-medium"
+                  />
+                ) : (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="BUSCAR MARCA..."
+                      value={brandSearch}
+                      onChange={(e) => {
+                        setBrandSearch(e.target.value);
+                        setShowBrandDropdown(true);
+                      }}
+                      onFocus={() => {
+                        loadFipeBrands();
+                        setShowBrandDropdown(true);
+                      }}
+                      onBlur={() => setTimeout(() => setShowBrandDropdown(false), 250)}
+                      className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-medium uppercase"
+                    />
+                    {showBrandDropdown && (
+                      <div className="absolute top-9 left-0 right-0 max-h-48 overflow-y-auto bg-card border border-border rounded-xl shadow-lg z-30 text-[10px] uppercase no-scrollbar">
+                        {loadingBrands ? (
+                          <div className="p-3 text-muted-foreground text-center font-medium">Carregando marcas...</div>
+                        ) : (
+                          fipeBrands
+                            .filter(b => b.name.toLowerCase().includes(brandSearch.toLowerCase()))
+                            .map(b => (
+                              <button
+                                key={b.code}
+                                type="button"
+                                onMouseDown={() => {
+                                  handleFipeBrandChange(b.code);
+                                  setBrandSearch(b.name);
+                                  setShowBrandDropdown(false);
+                                }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-muted font-bold text-foreground border-b border-border/20 last:border-b-0"
+                              >
+                                {b.name}
+                              </button>
+                            ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="space-y-1 col-span-2 sm:col-span-2">
+
+              {/* Modelo */}
+              <div className="space-y-1 col-span-2 sm:col-span-2 relative">
                 <label className="text-[9px] font-bold text-muted-foreground uppercase">Modelo</label>
-                <input
-                  type="text"
-                  placeholder="Ex: Corolla Altis Hybrid"
-                  value={vehModel}
-                  onChange={(e) => setVehModel(e.target.value)}
-                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-bold"
-                />
+                {isManualInput ? (
+                  <input
+                    type="text"
+                    placeholder="Ex: Corolla Altis Hybrid"
+                    value={vehModel}
+                    onChange={(e) => setVehModel(e.target.value)}
+                    className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-bold"
+                  />
+                ) : (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder={selectedFipeBrandCode ? "BUSCAR MODELO..." : "SELECIONE A MARCA"}
+                      disabled={!selectedFipeBrandCode}
+                      value={modelSearch}
+                      onChange={(e) => {
+                        setModelSearch(e.target.value);
+                        setShowModelDropdown(true);
+                      }}
+                      onFocus={() => {
+                        if (selectedFipeBrandCode) setShowModelDropdown(true);
+                      }}
+                      onBlur={() => setTimeout(() => setShowModelDropdown(false), 250)}
+                      className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-bold uppercase"
+                    />
+                    {showModelDropdown && selectedFipeBrandCode && (
+                      <div className="absolute top-9 left-0 right-0 max-h-48 overflow-y-auto bg-card border border-border rounded-xl shadow-lg z-30 text-[10px] uppercase no-scrollbar">
+                        {loadingModels ? (
+                          <div className="p-3 text-muted-foreground text-center font-medium">Carregando modelos...</div>
+                        ) : (
+                          fipeModels
+                            .filter(m => m.name.toLowerCase().includes(modelSearch.toLowerCase()))
+                            .map(m => (
+                              <button
+                                key={m.code}
+                                type="button"
+                                onMouseDown={() => {
+                                  handleFipeModelChange(m.code);
+                                  setModelSearch(m.name);
+                                  setShowModelDropdown(false);
+                                }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-muted font-bold text-foreground border-b border-border/20 last:border-b-0"
+                              >
+                                {m.name}
+                              </button>
+                            ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -996,13 +1191,33 @@ function NewWorkOrderForm() {
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-muted-foreground uppercase">Ano</label>
-                <input
-                  type="number"
-                  placeholder="Ex: 2023"
-                  value={vehYear}
-                  onChange={(e) => setVehYear(e.target.value)}
-                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-medium"
-                />
+                {isManualInput ? (
+                  <input
+                    type="number"
+                    placeholder="Ex: 2023"
+                    value={vehYear}
+                    onChange={(e) => setVehYear(e.target.value)}
+                    className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-medium"
+                  />
+                ) : (
+                  <select
+                    disabled={!selectedFipeModelCode}
+                    value={fipeYears.find(y => y.name.startsWith(vehYear))?.code || ""}
+                    onChange={(e) => handleFipeYearChange(e.target.value)}
+                    className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-medium uppercase"
+                  >
+                    <option value="">-- SELECIONE --</option>
+                    {loadingYears ? (
+                      <option disabled>Carregando...</option>
+                    ) : (
+                      fipeYears.map(y => (
+                        <option key={y.code} value={y.code}>
+                          {y.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                )}
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-muted-foreground uppercase">Km Atual</label>
