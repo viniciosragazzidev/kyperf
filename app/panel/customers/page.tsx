@@ -444,14 +444,14 @@ export default function CustomersPage() {
             </span>
             Gestão de Clientes
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
             Cadastre os proprietários dos veículos, veja suas ordens de serviço e associe veículos de forma simplificada.
           </p>
         </div>
         
         <Button
           onClick={handleOpenCreateModal}
-          className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-full px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
+          className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-none px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
         >
           <Plus className="size-3.5" />
           <span>Cadastrar Cliente</span>
@@ -535,13 +535,13 @@ export default function CustomersPage() {
                   <td className="px-4 py-3 text-muted-foreground font-medium">{formatPhone(cust.phone)}</td>
                   <td className="px-4 py-3 text-muted-foreground font-normal">{cust.email || "--"}</td>
                   <td className="px-4 py-3 text-center">
-                    <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full border border-emerald-500/20 text-[10px] font-bold">
+                    <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-none border border-emerald-500/20 text-[10px] font-bold geist-mono">
                       <Car className="size-3" />
                       <span>{cust.vehiclesCount}</span>
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className="inline-flex items-center gap-1 bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full border border-blue-500/20 text-[10px] font-bold">
+                    <span className="inline-flex items-center gap-1 bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-none border border-blue-500/20 text-[10px] font-bold geist-mono">
                       <FileText className="size-3" />
                       <span>{cust.workOrdersCount}</span>
                     </span>
@@ -768,14 +768,14 @@ export default function CustomersPage() {
                   <Button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors"
+                    className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-none px-4 py-2 transition-colors"
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
                     disabled={actionLoading}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-none px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"
                   >
                     {actionLoading && <Loader2 className="size-3 animate-spin" />}
                     <span>Salvar Cliente</span>

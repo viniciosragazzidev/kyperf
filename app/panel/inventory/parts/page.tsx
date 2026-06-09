@@ -315,7 +315,7 @@ export default function PartsPage() {
             </span>
             Estoque de Peças & Insumos
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
             Gerencie componentes físicos, controle o nível crítico de estoque, adicione dimensões e customize preços por carro.
           </p>
         </div>
@@ -397,10 +397,10 @@ export default function PartsPage() {
                       <td className="px-4 py-3 text-muted-foreground font-medium">{part.brand || "--"}</td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-1.5">
-                          <span className={`font-bold px-2 py-0.5 rounded-md text-[10px] ${
+                          <span className={`font-bold px-2 py-0.5 rounded-md text-[10px] geist-mono ${
                             isLowStock 
-                              ? "bg-red-500/10 text-red-500 border border-red-500/20" 
-                              : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                              ? "bg-red-500/10 text-red-500" 
+                              : "bg-emerald-500/10 text-emerald-500"
                           }`}>
                             {part.quantity} un
                           </span>
@@ -540,7 +540,7 @@ export default function PartsPage() {
                                 type="button"
                                 onClick={() => handleSaveOverride(part.id)}
                                 disabled={actionLoading || !newCarName || !newOverridePrice}
-                                className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] rounded-md px-3 py-1.5 transition-colors border border-emerald-600/15 disabled:bg-muted disabled:text-muted-foreground"
+                                className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] rounded-md px-3 py-1.5 transition-colors border-0 disabled:bg-muted disabled:text-muted-foreground"
                               >
                                 Adicionar Preço
                               </Button>
@@ -741,14 +741,14 @@ export default function PartsPage() {
                   <Button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors"
+                    className="hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors border-0"
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
                     disabled={actionLoading}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border-0 flex items-center gap-1"
                   >
                     {actionLoading && <Loader2 className="size-3 animate-spin" />}
                     <span>Salvar Peça</span>

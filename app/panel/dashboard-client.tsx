@@ -130,7 +130,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
             </span>
             Painel de Controle
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
             Visão geral em tempo real de operações, pátio e receitas da oficina.
           </p>
         </div>
@@ -290,7 +290,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                 <Activity className="size-4 text-emerald-500" />
                 Status do Pátio
               </h3>
-              <span className="inline-flex items-center bg-emerald-500/10 text-emerald-500 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-[10px] font-bold">
+              <span className="inline-flex items-center bg-emerald-500/10 text-emerald-500 px-2.5 py-0.5 rounded-none border border-emerald-500/20 text-[10px] font-bold geist-mono">
                 {totalOrders} OS no total
               </span>
             </div>
@@ -354,7 +354,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
               </div>
               
               <Link href="/panel/inventory/parts">
-                <Button className="w-full mt-2 py-2 bg-red-500/10 hover:bg-red-500/15 text-red-500 dark:text-red-400 font-bold uppercase text-[9px] rounded-lg border border-red-500/20 transition-all active:scale-98">
+                <Button className="w-full mt-2 py-2 bg-red-500/10 hover:bg-red-500/15 text-red-500 dark:text-red-400 font-bold uppercase text-[9px] rounded-none border border-red-500/20 transition-all active:scale-98">
                   Ir para Estoque de Peças
                 </Button>
               </Link>
@@ -417,7 +417,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                         </span>
                         
                         <Link href="/panel/orders">
-                          <Button className="text-[9px] font-bold uppercase text-muted-foreground hover:text-foreground border border-border px-2.5 py-1 rounded-full transition-all bg-card hover:bg-muted/40">
+                          <Button className="text-[9px] font-bold uppercase text-muted-foreground hover:text-foreground border border-border px-2.5 py-1 rounded-none transition-all bg-card hover:bg-muted/40">
                             Acessar
                           </Button>
                         </Link>

@@ -93,19 +93,19 @@ export default function FinancePage() {
             </span>
             Fluxo de Caixa
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
             Controle de receitas recebidas de Ordens de Serviço faturadas e margens brutas.
           </p>
         </div>
 
         {/* Period Filter Buttons */}
-        <div className="flex gap-1 bg-card border border-border/50 p-1 rounded-full shadow-xs self-start md:self-auto">
+        <div className="flex gap-1 bg-card border border-border/50 p-1 rounded-none shadow-xs self-start md:self-auto">
           {[7, 15, 30, 90].map(days => (
             <button
               key={days}
               onClick={() => setPeriodDays(days)}
               className={cn(
-                "h-7 px-3 text-[10px] font-bold uppercase rounded-full transition-all cursor-pointer",
+                "h-7 px-3 text-[10px] font-bold uppercase rounded-none transition-all cursor-pointer",
                 periodDays === days 
                   ? "bg-foreground text-background shadow-xs" 
                   : "bg-transparent text-muted-foreground hover:text-foreground"

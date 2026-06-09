@@ -491,7 +491,7 @@ export default function OrdersPage() {
               Ordens de Serviço (O.S.)
             </h2>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
             Monitore triagens, gerencie aprovações de orçamentos, acompanhe a esteira de boxes e faturamento.
           </p>
         </div>
@@ -500,7 +500,7 @@ export default function OrdersPage() {
           {/* Quadro Kanban Button */}
           <Button
             onClick={() => router.push("/panel/orders/kanban")}
-            className="bg-purple-600/10 hover:bg-purple-600/20 text-purple-650 dark:text-purple-400 font-extrabold text-xs rounded-full px-4 py-2.5 transition-all border border-purple-600/20 flex items-center gap-1.5 shadow-sm cursor-pointer animate-pulse"
+            className="bg-purple-600/10 hover:bg-purple-600/20 text-purple-650 dark:text-purple-400 font-extrabold text-xs rounded-none px-4 py-2.5 transition-all border border-purple-600/20 flex items-center gap-1.5 shadow-sm cursor-pointer animate-pulse"
           >
             <Sparkles className="size-3.5" />
             <span>Quadro Kanban / Pátio</span>
@@ -509,7 +509,7 @@ export default function OrdersPage() {
           {/* Nova O.S. Button */}
           <Button
             onClick={() => router.push("/panel/orders/new")}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-full px-5 py-2.5 transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-none px-5 py-2.5 transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="size-4" />
             Nova O.S.
@@ -683,7 +683,7 @@ export default function OrdersPage() {
           </div>
           <div>
             <h3 className="text-xs font-bold uppercase text-foreground">Nenhuma ordem encontrada</h3>
-            <p className="text-xs text-muted-foreground mt-0.5 max-w-sm">
+            <p className="text-xs text-muted-foreground mt-0.5 max-w-sm geist-mono">
               Não existem ordens de serviço abertas que correspondam ao termo de busca ou ao filtro de status selecionado.
             </p>
           </div>

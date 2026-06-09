@@ -125,7 +125,7 @@ export default function WorkshopSettingsPage() {
             </span>
             Dados da Oficina
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
             Gerencie as informações da sua filial matriz. Estes dados serão exibidos nos cabeçalhos dos PDFs gerados.
           </p>
         </div>

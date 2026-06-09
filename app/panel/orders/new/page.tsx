@@ -852,7 +852,7 @@ function NewWorkOrderForm() {
             </span>
             {editId ? "Editar Ordem de Serviço" : "Nova Ordem de Serviço"}
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
             {editId 
               ? `Atualize a triagem de check-in, avarias externas, diagnóstico, mecânico e orçamento da O.S.`
               : "Abertura, triagem de check-in, visualização de avarias externas e orçamento integrado."

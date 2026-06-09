@@ -618,7 +618,7 @@ export default function KanbanPage() {
               Monitoramento de Rampa (Kanban)
             </h2>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5 ml-8">
+          <p className="text-xs text-muted-foreground mt-0.5 ml-8 geist-mono">
             Gerencie boxes de serviço em tempo real por rampa, otimize mecânicos e execute comandos em lote.
           </p>
         </div>
@@ -627,7 +627,7 @@ export default function KanbanPage() {
           {/* Perguntar à IA Button */}
           <Button
             onClick={() => setIsCommandBarOpen(true)}
-            className="bg-purple-650/10 hover:bg-purple-650/20 text-purple-600 dark:text-purple-400 font-extrabold text-xs rounded-full px-4 py-2.5 h-auto transition-all border border-purple-600/20 flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="bg-purple-650/10 hover:bg-purple-650/20 text-purple-600 dark:text-purple-400 font-extrabold text-xs rounded-none px-4 py-2.5 h-auto transition-all border border-purple-600/20 flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Sparkles className="size-3.5" />
             <span>Perguntar à IA</span>
@@ -639,7 +639,7 @@ export default function KanbanPage() {
           {/* Nova O.S. Button */}
           <Button
             onClick={() => router.push("/panel/orders/new")}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-full px-5 py-2.5 h-auto transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer border-0"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-none px-5 py-2.5 h-auto transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="size-4" />
             Nova O.S.

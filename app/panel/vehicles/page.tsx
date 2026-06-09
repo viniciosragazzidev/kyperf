@@ -524,14 +524,14 @@ export default function VehiclesPage() {
             </span>
             Cadastro de Veículos
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
             Gestão da frota de clientes com visualização de timeline e histórico completo de serviços.
           </p>
         </div>
 
         <Button
           onClick={openCreateModal}
-          className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-full px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
+          className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-none px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
         >
           <Plus className="size-3.5" />
           <span>Novo Veículo</span>
@@ -590,7 +590,7 @@ export default function VehiclesPage() {
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2.5">
-                        <span className="font-bold text-xs text-foreground uppercase tracking-tight bg-muted border border-border px-2 py-0.5 rounded-lg font-mono">
+                        <span className="font-bold text-xs text-foreground uppercase tracking-tight bg-muted border border-border px-2 py-0.5 rounded-none geist-mono font-mono">
                           {formatPlate(v.plate)}
                         </span>
                         <span className="font-bold text-xs text-foreground uppercase">
@@ -652,7 +652,7 @@ export default function VehiclesPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <span className="bg-muted text-foreground border border-border text-[10px] font-bold py-1 px-3 rounded-full font-mono">
+                  <span className="bg-muted text-foreground border border-border text-[10px] font-bold py-1 px-3 rounded-none geist-mono font-mono">
                     {formatPlate(selectedVehicle.plate)}
                   </span>
                 </div>
@@ -1052,14 +1052,14 @@ export default function VehiclesPage() {
                   <Button 
                     type="button" 
                     onClick={() => setModalOpen(false)}
-                    className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors"
+                    className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-none px-4 py-2 transition-colors"
                   >
                     Cancelar
                   </Button>
                   <Button 
                     type="submit"
                     disabled={submitting}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-none px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"
                   >
                     <span>{submitting ? "Gravando..." : "Salvar Veículo"}</span>
                   </Button>

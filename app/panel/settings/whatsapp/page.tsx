@@ -204,7 +204,7 @@ export default function WhatsappSettingsPage() {
             </span>
             Integração WhatsApp
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
             Conecte o WhatsApp da sua oficina para disparar orçamentos e ordens de serviço diretamente para os clientes.
           </p>
         </div>
