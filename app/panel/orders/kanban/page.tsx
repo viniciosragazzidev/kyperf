@@ -27,7 +27,8 @@ import {
   Printer,
   ChevronDown,
   AlertTriangle,
-  ChevronLeft
+  ChevronLeft,
+  Phone
 } from "lucide-react"
 import { 
   getWorkOrdersAction, 
@@ -1085,6 +1086,30 @@ export default function KanbanPage() {
                   >
                     <Printer className="size-4" />
                     Imprimir
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const phone = selectedOrderDetails?.customer?.phone || "";
+                      const cleanPhone = phone.replace(/\D/g, "");
+                      const formattedPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+                      
+                      const urlPublic = `${window.location.origin}/public/budget/${selectedOrderId}`;
+                      const accessCode = selectedOrderDetails?.budgetAccessCode || "";
+                      const customerName = selectedOrderDetails?.customer?.name || "Cliente";
+                      const osNum = String(selectedOrderDetails?.osNumber).padStart(4, '0');
+                      
+                      const message = `Olá, ${customerName}! Segue o link para visualizar e aprovar o orçamento da sua Ordem de Serviço *#${osNum}*:\n\n*Link:* ${urlPublic}\n*Código de Acesso:* *${accessCode}*\n\nSe tiver qualquer dúvida, estamos à disposição!`;
+                      const encodedMessage = encodeURIComponent(message);
+                      
+                      window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`, '_blank');
+                    }}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] rounded-lg p-2.5 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                    title="Enviar orçamento por WhatsApp"
+                  >
+                    <Phone className="size-4" />
+                    WhatsApp
                   </button>
 
                   <button
