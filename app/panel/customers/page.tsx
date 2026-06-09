@@ -21,8 +21,8 @@ import {
   updateCustomerAction, 
   deleteCustomerAction 
 } from "@/lib/actions/customers-actions"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "sonner"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -599,8 +599,8 @@ export default function CustomersPage() {
               </div>
 
               <form onSubmit={handleSaveCustomer} className="flex flex-col max-h-[85vh] overflow-hidden">
-                <ScrollArea className="flex-1 min-h-0 overflow-hidden max-h-[60vh]">
-                  <div className="p-5 space-y-3.5 pr-6 pb-12">
+                <ScrollArea className="flex-grow min-h-0 max-h-[60vh] w-full">
+                  <div className="p-5 space-y-3.5 pr-6 text-xs">
                     {/* 1. Dados Pessoais do Cliente */}
                     <div className="space-y-3">
                       <div className="space-y-1">
@@ -764,6 +764,7 @@ export default function CustomersPage() {
                         )}
                       </div>
                     )}
+                    <div className="h-6" />
                   </div>
                 </ScrollArea>
 
