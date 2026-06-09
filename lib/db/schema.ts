@@ -1,0 +1,283 @@
+import { 
+  pgTable, 
+  uuid, 
+  text, 
+  varchar, 
+  integer, 
+  numeric, 
+  timestamp, 
+  pgEnum,
+  boolean
+} from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+
+// ==========================================
+// ENUMS DE CONTROLE E ACESSO (RBAC & Estados)
+// ==========================================
+
+export const userRoleEnum = pgEnum('user_role', [
+  'OWNER',      // Dono da rede/oficina, acesso total a todas as unidades e faturamento global
+  'MANAGER',    // Gerente de uma unidade específica, controla estoque, financeiro local e OS
+  'RECEPTOR',   // Responsável pelo check-in, abertura de OS e contato via WhatsApp com cliente
+  'MECHANIC'    // Mecânico de pátio, focado em executar os serviços e atualizar status de rampa
+]);
+
+export const orderStatusEnum = pgEnum('order_status', [
+  'CHECK_IN',
+  'AWAITING_BUDGET',
+  'AWAITING_APPROVAL',
+  'AWAITING_PARTS',
+  'IN_PROGRESS',
+  'TESTING_WASHING',
+  'READY',
+  'DELIVERED'
+]);
+
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'PENDING',
+  'PAID',
+  'LATE'
+]);
+
+// ==========================================
+// CAMADA MULTI-TENANT E ESTRUTURA
+// ==========================================
+
+// 1. Tenants (A Conta Corporativa/Assinante do SaaS)
+export const tenants = pgTable('tenants', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(), // Ex: "AutoCenter Car"
+  slug: varchar('slug', { length: 100 }).unique().notNull(), // Para subdomínios ou identificação na URL
+  planStatus: text('plan_status').default('ACTIVE').notNull(), // Controle de bloqueio do SaaS
+  onboardingCompleted: boolean('onboarding_completed').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// 2. Branches (Unidades Físicas / Oficinas)
+export const branches = pgTable('branches', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(), // Ex: "Filial Nova Iguaçu Centro"
+  phone: varchar('phone', { length: 20 }),
+  address: text('address'),
+  cnpj: varchar('cnpj', { length: 18 }),
+  email: text('email'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// 3. Users (Usuários e Funcionários do Sistema)
+// Note: Integration with Better Auth will happen via these tables
+export const user = pgTable('user', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').unique().notNull(),
+  emailVerified: boolean('email_verified').notNull(),
+  image: text('image'),
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull(),
+  
+  // Custom multi-tenant fields
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
+  branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'set null' }),
+  role: userRoleEnum('role').default('MECHANIC').notNull(),
+  commissionRate: numeric('commission_rate', { precision: 5, scale: 2 }).default('0.00'),
+  isActive: integer('is_active').default(1).notNull(),
+});
+
+export const session = pgTable("session", {
+    id: text("id").primaryKey(),
+    expiresAt: timestamp("expires_at").notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id").notNull().references(() => user.id)
+});
+
+export const account = pgTable("account", {
+    id: text("id").primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id").notNull().references(() => user.id),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_expires_at"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull()
+});
+
+export const verification = pgTable("verification", {
+    id: text("id").primaryKey(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at"),
+    updatedAt: timestamp("updated_at")
+});
+
+// ==========================================
+// TABELAS OPERACIONAIS
+// ==========================================
+
+export const customers = pgTable('customers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  phone: varchar('phone', { length: 20 }).notNull(),
+  document: varchar('document', { length: 18 }), 
+  email: text('email'),
+  address: text('address'),
+  riskProfile: text('risk_profile').default('GOOD'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const vehicles = pgTable('vehicles', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'cascade' }).notNull(),
+  plate: varchar('plate', { length: 10 }).unique().notNull(),
+  brand: varchar('brand', { length: 50 }).notNull(),
+  model: varchar('model', { length: 100 }).notNull(),
+  year: integer('year'),
+  engine: varchar('engine', { length: 50 }),
+  mileage: integer('mileage'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const partsInventory = pgTable('parts_inventory', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'cascade' }).notNull(),
+  sku: varchar('sku', { length: 100 }),
+  name: text('name').notNull(),
+  brand: varchar('brand', { length: 50 }),
+  quantity: integer('quantity').default(0).notNull(),
+  minQuantity: integer('min_quantity').default(2).notNull(),
+  costPrice: numeric('cost_price', { precision: 10, scale: 2 }).notNull(),
+  salePrice: numeric('sale_price', { precision: 10, scale: 2 }).notNull(),
+  location: varchar('location', { length: 50 }),
+  compatibleCars: text('compatible_cars'),
+  dimension: varchar('dimension', { length: 100 }),
+  size: varchar('size', { length: 50 }),
+  weight: varchar('weight', { length: 50 }),
+});
+
+export const servicesCatalog = pgTable('services_catalog', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  estimatedTimeMinutes: integer('estimated_time_minutes').notNull(),
+  basePrice: numeric('base_price', { precision: 10, scale: 2 }).notNull(),
+});
+
+export const workOrders = pgTable('work_orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'cascade' }).notNull(),
+  osNumber: integer('os_number').generatedAlwaysAsIdentity(),
+  
+  customerId: uuid('customer_id').references(() => customers.id).notNull(),
+  vehicleId: uuid('vehicle_id').references(() => vehicles.id).notNull(),
+  mechanicId: text('mechanic_id').references(() => user.id), 
+  
+  status: orderStatusEnum('status').default('CHECK_IN').notNull(),
+  paymentStatus: paymentStatusEnum('payment_status').default('PENDING').notNull(),
+  
+  currentMileage: integer('current_mileage').notNull(),
+  allocatedBox: varchar('allocated_box', { length: 20 }),
+  
+  fuelLevel: varchar('fuel_level', { length: 20 }),
+  damages: text('damages'),
+  checklist: text('checklist'),
+  warranty: varchar('warranty', { length: 100 }),
+  discount: numeric('discount', { precision: 10, scale: 2 }).default('0.00'),
+  surcharge: numeric('surcharge', { precision: 10, scale: 2 }).default('0.00'),
+  paymentMethod: varchar('payment_method', { length: 50 }),
+
+  notes: text('notes'),
+  diagnostic: text('diagnostic'),
+  photoUrls: text('photo_urls').array(),
+  
+  statusChangedAt: timestamp('status_changed_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const workOrderItems = pgTable('work_order_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  workOrderId: uuid('work_order_id').references(() => workOrders.id, { onDelete: 'cascade' }).notNull(),
+  
+  type: varchar('type', { length: 10 }).notNull(), // 'PART' ou 'SERVICE'
+  partId: uuid('part_id').references(() => partsInventory.id),
+  serviceId: uuid('service_id').references(() => servicesCatalog.id),
+  customName: varchar('custom_name', { length: 255 }),
+  
+  quantity: integer('quantity').default(1).notNull(),
+  unitCostPrice: numeric('unit_cost_price', { precision: 10, scale: 2 }).notNull(),
+  unitSalePrice: numeric('unit_sale_price', { precision: 10, scale: 2 }).notNull(),
+  isApproved: integer('is_approved').default(0).notNull(),
+});
+
+export const servicePriceOverrides = pgTable('service_price_overrides', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  serviceId: uuid('service_id').references(() => servicesCatalog.id, { onDelete: 'cascade' }).notNull(),
+  carName: varchar('car_name', { length: 100 }).notNull(), // ex: "Civic"
+  price: numeric('price', { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const partPriceOverrides = pgTable('part_price_overrides', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  partId: uuid('part_id').references(() => partsInventory.id, { onDelete: 'cascade' }).notNull(),
+  carName: varchar('car_name', { length: 100 }).notNull(), // ex: "Corolla"
+  price: numeric('price', { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const serviceParts = pgTable('service_parts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  serviceId: uuid('service_id').references(() => servicesCatalog.id, { onDelete: 'cascade' }).notNull(),
+  partId: uuid('part_id').references(() => partsInventory.id, { onDelete: 'cascade' }).notNull(),
+  quantity: integer('quantity').default(1).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ==========================================
+// RELACIONAMENTOS (Drizzle Relations)
+// ==========================================
+
+export const tenantsRelations = relations(tenants, ({ many }) => ({
+  branches: many(branches),
+  users: many(user),
+}));
+
+export const branchesRelations = relations(branches, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [branches.tenantId], references: [tenants.id] }),
+  users: many(user),
+  workOrders: many(workOrders),
+}));
+
+export const usersRelations = relations(user, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [user.tenantId], references: [tenants.id] }),
+  branch: one(branches, { fields: [user.branchId], references: [branches.id] }),
+  workOrdersAsMechanic: many(workOrders),
+}));
+
+export const workOrdersRelations = relations(workOrders, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [workOrders.tenantId], references: [tenants.id] }),
+  branch: one(branches, { fields: [workOrders.branchId], references: [branches.id] }),
+  customer: one(customers, { fields: [workOrders.customerId], references: [customers.id] }),
+  vehicle: one(vehicles, { fields: [workOrders.vehicleId], references: [vehicles.id] }),
+  mechanic: one(user, { fields: [workOrders.mechanicId], references: [user.id] }),
+  items: many(workOrderItems),
+}));
