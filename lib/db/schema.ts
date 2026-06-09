@@ -7,7 +7,8 @@ import {
   numeric, 
   timestamp, 
   pgEnum,
-  boolean
+  boolean,
+  index
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -64,10 +65,11 @@ export const branches = pgTable('branches', {
   cnpj: varchar('cnpj', { length: 18 }),
   email: text('email'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('branches_tenant_idx').on(table.tenantId),
+]);
 
 // 3. Users (Usuários e Funcionários do Sistema)
-// Note: Integration with Better Auth will happen via these tables
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -83,7 +85,10 @@ export const user = pgTable('user', {
   role: userRoleEnum('role').default('MECHANIC').notNull(),
   commissionRate: numeric('commission_rate', { precision: 5, scale: 2 }).default('0.00'),
   isActive: integer('is_active').default(1).notNull(),
-});
+}, (table) => [
+  index('user_tenant_idx').on(table.tenantId),
+  index('user_branch_idx').on(table.branchId),
+]);
 
 export const session = pgTable("session", {
     id: text("id").primaryKey(),
@@ -94,7 +99,9 @@ export const session = pgTable("session", {
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
     userId: text("user_id").notNull().references(() => user.id)
-});
+}, (table) => [
+  index('session_user_idx').on(table.userId),
+]);
 
 export const account = pgTable("account", {
     id: text("id").primaryKey(),
@@ -110,7 +117,9 @@ export const account = pgTable("account", {
     password: text("password"),
     createdAt: timestamp("created_at").notNull(),
     updatedAt: timestamp("updated_at").notNull()
-});
+}, (table) => [
+  index('account_user_idx').on(table.userId),
+]);
 
 export const verification = pgTable("verification", {
     id: text("id").primaryKey(),
@@ -135,7 +144,9 @@ export const customers = pgTable('customers', {
   address: text('address'),
   riskProfile: text('risk_profile').default('GOOD'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('customers_tenant_idx').on(table.tenantId),
+]);
 
 export const vehicles = pgTable('vehicles', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -148,12 +159,30 @@ export const vehicles = pgTable('vehicles', {
   engine: varchar('engine', { length: 50 }),
   mileage: integer('mileage'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('vehicles_tenant_idx').on(table.tenantId),
+  index('vehicles_customer_idx').on(table.customerId),
+]);
+
+// 4. Fornecedores (Novidade)
+export const suppliers = pgTable('suppliers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  phone: varchar('phone', { length: 20 }),
+  email: text('email'),
+  cnpj: varchar('cnpj', { length: 18 }),
+  address: text('address'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  index('suppliers_tenant_idx').on(table.tenantId),
+]);
 
 export const partsInventory = pgTable('parts_inventory', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
   branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'cascade' }).notNull(),
+  supplierId: uuid('supplier_id').references(() => suppliers.id, { onDelete: 'set null' }),
   sku: varchar('sku', { length: 100 }),
   name: text('name').notNull(),
   brand: varchar('brand', { length: 50 }),
@@ -166,7 +195,11 @@ export const partsInventory = pgTable('parts_inventory', {
   dimension: varchar('dimension', { length: 100 }),
   size: varchar('size', { length: 50 }),
   weight: varchar('weight', { length: 50 }),
-});
+}, (table) => [
+  index('parts_tenant_idx').on(table.tenantId),
+  index('parts_branch_idx').on(table.branchId),
+  index('parts_supplier_idx').on(table.supplierId),
+]);
 
 export const servicesCatalog = pgTable('services_catalog', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -175,13 +208,15 @@ export const servicesCatalog = pgTable('services_catalog', {
   description: text('description'),
   estimatedTimeMinutes: integer('estimated_time_minutes').notNull(),
   basePrice: numeric('base_price', { precision: 10, scale: 2 }).notNull(),
-});
+}, (table) => [
+  index('services_tenant_idx').on(table.tenantId),
+]);
 
 export const workOrders = pgTable('work_orders', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
   branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'cascade' }).notNull(),
-  osNumber: integer('os_number').generatedAlwaysAsIdentity(),
+  osNumber: integer('os_number').notNull(), // Mudado de generatedAlwaysAsIdentity para controle de sequência por tenant
   
   customerId: uuid('customer_id').references(() => customers.id).notNull(),
   vehicleId: uuid('vehicle_id').references(() => vehicles.id).notNull(),
@@ -208,7 +243,14 @@ export const workOrders = pgTable('work_orders', {
   statusChangedAt: timestamp('status_changed_at').defaultNow().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('work_orders_tenant_idx').on(table.tenantId),
+  index('work_orders_branch_idx').on(table.branchId),
+  index('work_orders_customer_idx').on(table.customerId),
+  index('work_orders_vehicle_idx').on(table.vehicleId),
+  index('work_orders_mechanic_idx').on(table.mechanicId),
+  index('work_orders_status_idx').on(table.status),
+]);
 
 export const workOrderItems = pgTable('work_order_items', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -223,7 +265,11 @@ export const workOrderItems = pgTable('work_order_items', {
   unitCostPrice: numeric('unit_cost_price', { precision: 10, scale: 2 }).notNull(),
   unitSalePrice: numeric('unit_sale_price', { precision: 10, scale: 2 }).notNull(),
   isApproved: integer('is_approved').default(0).notNull(),
-});
+}, (table) => [
+  index('work_order_items_wo_idx').on(table.workOrderId),
+  index('work_order_items_part_idx').on(table.partId),
+  index('work_order_items_service_idx').on(table.serviceId),
+]);
 
 export const servicePriceOverrides = pgTable('service_price_overrides', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -232,7 +278,10 @@ export const servicePriceOverrides = pgTable('service_price_overrides', {
   carName: varchar('car_name', { length: 100 }).notNull(), // ex: "Civic"
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('service_overrides_tenant_idx').on(table.tenantId),
+  index('service_overrides_service_idx').on(table.serviceId),
+]);
 
 export const partPriceOverrides = pgTable('part_price_overrides', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -241,7 +290,10 @@ export const partPriceOverrides = pgTable('part_price_overrides', {
   carName: varchar('car_name', { length: 100 }).notNull(), // ex: "Corolla"
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('part_overrides_tenant_idx').on(table.tenantId),
+  index('part_overrides_part_idx').on(table.partId),
+]);
 
 export const serviceParts = pgTable('service_parts', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -250,7 +302,11 @@ export const serviceParts = pgTable('service_parts', {
   partId: uuid('part_id').references(() => partsInventory.id, { onDelete: 'cascade' }).notNull(),
   quantity: integer('quantity').default(1).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('service_parts_tenant_idx').on(table.tenantId),
+  index('service_parts_service_idx').on(table.serviceId),
+  index('service_parts_part_idx').on(table.partId),
+]);
 
 // ==========================================
 // RELACIONAMENTOS (Drizzle Relations)
@@ -259,12 +315,19 @@ export const serviceParts = pgTable('service_parts', {
 export const tenantsRelations = relations(tenants, ({ many }) => ({
   branches: many(branches),
   users: many(user),
+  customers: many(customers),
+  vehicles: many(vehicles),
+  partsInventory: many(partsInventory),
+  servicesCatalog: many(servicesCatalog),
+  workOrders: many(workOrders),
+  suppliers: many(suppliers),
 }));
 
 export const branchesRelations = relations(branches, ({ one, many }) => ({
   tenant: one(tenants, { fields: [branches.tenantId], references: [tenants.id] }),
   users: many(user),
   workOrders: many(workOrders),
+  partsInventory: many(partsInventory),
 }));
 
 export const usersRelations = relations(user, ({ one, many }) => ({
@@ -280,4 +343,59 @@ export const workOrdersRelations = relations(workOrders, ({ one, many }) => ({
   vehicle: one(vehicles, { fields: [workOrders.vehicleId], references: [vehicles.id] }),
   mechanic: one(user, { fields: [workOrders.mechanicId], references: [user.id] }),
   items: many(workOrderItems),
+}));
+
+export const customersRelations = relations(customers, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [customers.tenantId], references: [tenants.id] }),
+  vehicles: many(vehicles),
+  workOrders: many(workOrders),
+}));
+
+export const vehiclesRelations = relations(vehicles, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [vehicles.tenantId], references: [tenants.id] }),
+  customer: one(customers, { fields: [vehicles.customerId], references: [customers.id] }),
+  workOrders: many(workOrders),
+}));
+
+export const partsInventoryRelations = relations(partsInventory, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [partsInventory.tenantId], references: [tenants.id] }),
+  branch: one(branches, { fields: [partsInventory.branchId], references: [branches.id] }),
+  supplier: one(suppliers, { fields: [partsInventory.supplierId], references: [suppliers.id] }),
+  workOrderItems: many(workOrderItems),
+  serviceParts: many(serviceParts),
+  overrides: many(partPriceOverrides),
+}));
+
+export const servicesCatalogRelations = relations(servicesCatalog, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [servicesCatalog.tenantId], references: [tenants.id] }),
+  workOrderItems: many(workOrderItems),
+  serviceParts: many(serviceParts),
+  overrides: many(servicePriceOverrides),
+}));
+
+export const workOrderItemsRelations = relations(workOrderItems, ({ one }) => ({
+  workOrder: one(workOrders, { fields: [workOrderItems.workOrderId], references: [workOrders.id] }),
+  part: one(partsInventory, { fields: [workOrderItems.partId], references: [partsInventory.id] }),
+  service: one(servicesCatalog, { fields: [workOrderItems.serviceId], references: [servicesCatalog.id] }),
+}));
+
+export const suppliersRelations = relations(suppliers, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [suppliers.tenantId], references: [tenants.id] }),
+  parts: many(partsInventory),
+}));
+
+export const servicePriceOverridesRelations = relations(servicePriceOverrides, ({ one }) => ({
+  tenant: one(tenants, { fields: [servicePriceOverrides.tenantId], references: [tenants.id] }),
+  service: one(servicesCatalog, { fields: [servicePriceOverrides.serviceId], references: [servicesCatalog.id] }),
+}));
+
+export const partPriceOverridesRelations = relations(partPriceOverrides, ({ one }) => ({
+  tenant: one(tenants, { fields: [partPriceOverrides.tenantId], references: [tenants.id] }),
+  part: one(partsInventory, { fields: [partPriceOverrides.partId], references: [partsInventory.id] }),
+}));
+
+export const servicePartsRelations = relations(serviceParts, ({ one }) => ({
+  tenant: one(tenants, { fields: [serviceParts.tenantId], references: [tenants.id] }),
+  service: one(servicesCatalog, { fields: [serviceParts.serviceId], references: [servicesCatalog.id] }),
+  part: one(partsInventory, { fields: [serviceParts.partId], references: [partsInventory.id] }),
 }));

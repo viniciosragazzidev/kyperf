@@ -2,11 +2,10 @@ import { View, Text, StyleSheet } from "@react-pdf/renderer";
 import { COLORS, sharedStyles } from "./pdf-styles";
 
 interface PdfFooterProps {
-  status: string;
   showSignatureLine?: boolean;
-  validityDays?: number;
   signatureLabel?: string;
-  warrantyText?: string;
+  validityDays?: number;
+  noteText?: string;
 }
 
 const s = StyleSheet.create({
@@ -15,87 +14,109 @@ const s = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 40,
-    paddingBottom: 16,
+    paddingHorizontal: 48,
+    paddingBottom: 28,
     paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.gray200,
-    backgroundColor: COLORS.white,
+  },
+  noteBox: {
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 14,
+  },
+  noteText: {
+    fontFamily: "Helvetica",
+    fontSize: 8,
+    color: COLORS.gray500,
+    lineHeight: 1.6,
+  },
+  bottomRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  signCol: {
+    alignItems: "flex-end",
+    width: "45%",
+  },
+  signLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray400,
+    width: "100%",
+    marginBottom: 4,
+  },
+  signLabel: {
+    fontFamily: "Helvetica",
+    fontSize: 8,
+    color: COLORS.gray400,
+  },
+  signName: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 9,
+    color: COLORS.dark,
+    marginBottom: 2,
+  },
+  signNote: {
+    fontFamily: "Helvetica",
+    fontSize: 7,
+    color: COLORS.gray400,
+    fontStyle: "italic",
+    marginTop: 2,
   },
   pageNum: {
     fontFamily: "Helvetica",
     fontSize: 7,
     color: COLORS.gray400,
   },
-  validity: {
+  brand: {
     fontFamily: "Helvetica",
     fontSize: 7,
-    color: COLORS.gray400,
-    fontStyle: "italic",
-  },
-  signLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray400,
-    marginBottom: 4,
-    width: "55%",
-  },
-  signLabel: {
-    fontFamily: "Helvetica",
-    fontSize: 7.5,
-    color: COLORS.gray500,
-  },
-  warranty: {
-    fontFamily: "Helvetica",
-    fontSize: 7.5,
-    color: COLORS.gray600,
-    fontStyle: "italic",
-    marginBottom: 6,
-  },
-  autoManagerBrand: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 7,
-    color: COLORS.gray300,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
+    color: COLORS.gray200,
   },
 });
 
 export function PdfFooter({
-  status,
   showSignatureLine = false,
-  validityDays,
   signatureLabel = "Assinatura do Cliente",
-  warrantyText,
+  validityDays,
+  noteText,
 }: PdfFooterProps) {
   return (
     <View style={s.footer} fixed>
-      {warrantyText && (
-        <Text style={s.warranty}>Garantia: {warrantyText}</Text>
-      )}
-
-      {showSignatureLine && (
-        <View style={{ marginBottom: 10 }}>
-          <View style={s.signLine} />
-          <Text style={s.signLabel}>{signatureLabel}</Text>
+      {/* Note box */}
+      {(noteText || validityDays) && (
+        <View style={s.noteBox}>
+          <Text style={s.noteText}>
+            {noteText
+              ? noteText
+              : `Nota: Este orçamento possui validade de ${validityDays} dias a partir da data de emissão. Após esse período, os valores estão sujeitos a alteração.`}
+          </Text>
         </View>
       )}
 
-      <View style={sharedStyles.spaceBetween}>
-        <Text
-          style={s.pageNum}
-          render={({ pageNumber, totalPages }) =>
-            `Página ${pageNumber} de ${totalPages}`
-          }
-          fixed
-        />
-        <View style={{ alignItems: "flex-end" }}>
-          {validityDays && (
-            <Text style={s.validity}>
-              Orçamento válido por {validityDays} dias a partir da data de emissão.
-            </Text>
-          )}
-          <Text style={s.autoManagerBrand}>AutoManager PRO · Sistema de Gestão</Text>
+      {/* Bottom row: payment info left + signature right */}
+      <View style={s.bottomRow}>
+        {/* Page numbers */}
+        <View>
+          <Text
+            style={s.pageNum}
+            render={({ pageNumber, totalPages }) =>
+              `Página ${pageNumber} de ${totalPages}`
+            }
+            fixed
+          />
+          <Text style={s.brand}>KyperFix</Text>
         </View>
+
+        {/* Signature area */}
+        {showSignatureLine && (
+          <View style={s.signCol}>
+            <View style={s.signLine} />
+            <Text style={s.signLabel}>{signatureLabel}</Text>
+          </View>
+        )}
       </View>
     </View>
   );

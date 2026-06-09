@@ -2,32 +2,10 @@
 
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
+import { requireAuth } from "./auth-helper";
 
-// Helper para validar a sessão e retornar o usuário/tenant
-// Helper para validar a sessão e retornar o usuário
-async function getAuthenticatedUser() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session || !session.user) {
-    throw new Error("Não autorizado. Faça login novamente.");
-  }
-
-  const userId = session.user.id;
-  const dbUser = await db.query.user.findFirst({
-    where: (user, { eq }) => eq(user.id, userId),
-  });
-
-  if (!dbUser) {
-    throw new Error("Usuário não cadastrado.");
-  }
-
-  return dbUser;
-}
+const getAuthenticatedUser = requireAuth;
 
 // 1. Obter o estado atual do Onboarding
 export async function getOnboardingStateAction() {

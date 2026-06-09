@@ -25,87 +25,53 @@ interface Props {
   currentMileage?: number;
   mechanicName?: string | null;
   allocatedBox?: string | null;
-  accentColor?: string;
 }
 
 const s = StyleSheet.create({
-  sectionTitle: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    color: COLORS.gray400,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 8,
+  twoCol: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 40,
   },
   col: {
     flex: 1,
-    backgroundColor: COLORS.gray50,
-    borderRadius: 6,
-    padding: 12,
   },
-  fieldLabel: {
-    fontFamily: "Helvetica",
-    fontSize: 6.5,
-    color: COLORS.gray400,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 1,
-  },
-  fieldValue: {
+  nameText: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 9,
-    color: COLORS.gray800,
-    marginBottom: 6,
+    fontSize: 10,
+    color: COLORS.black,
+    marginBottom: 3,
   },
-  fieldValueSm: {
+  infoText: {
     fontFamily: "Helvetica",
-    fontSize: 8,
-    color: COLORS.gray700,
-    marginBottom: 5,
+    fontSize: 9,
+    color: COLORS.gray500,
+    marginBottom: 1.5,
+    lineHeight: 1.5,
   },
   plateBadge: {
-    backgroundColor: COLORS.gray800,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    alignSelf: "flex-start",
-    marginBottom: 6,
-  },
-  plateText: {
     fontFamily: "Helvetica-Bold",
     fontSize: 11,
-    color: COLORS.white,
-    letterSpacing: 2,
+    color: COLORS.black,
+    letterSpacing: 1.5,
+    marginBottom: 3,
+  },
+  vehicleModel: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 10,
+    color: COLORS.black,
+    marginBottom: 3,
   },
   metaRow: {
     flexDirection: "row",
-    gap: 8,
-    marginTop: 4,
-    paddingTop: 8,
+    gap: 24,
+    marginTop: 14,
+    paddingTop: 12,
     borderTopWidth: 0.5,
     borderTopColor: COLORS.gray200,
   },
-  metaItem: {
-    flex: 1,
-  },
-  mechBadge: {
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    alignSelf: "flex-start",
-    marginTop: 4,
-  },
+  metaBlock: {},
 });
-
-function Field({ label, value }: { label: string; value?: string | null }) {
-  if (!value) return null;
-  return (
-    <View style={{ marginBottom: 5 }}>
-      <Text style={s.fieldLabel}>{label}</Text>
-      <Text style={s.fieldValueSm}>{value}</Text>
-    </View>
-  );
-}
 
 export function PdfClientVehicleBlock({
   customer,
@@ -114,107 +80,78 @@ export function PdfClientVehicleBlock({
   currentMileage,
   mechanicName,
   allocatedBox,
-  accentColor = COLORS.emerald,
 }: Props) {
   return (
-    <View style={{ marginBottom: 16 }}>
-      <View style={[sharedStyles.row, { gap: 12 }]}>
-        {/* ── Cliente ── */}
+    <View style={{ marginBottom: 8 }}>
+      {/* Two-column: De (From) / Para (To - vehicle) */}
+      <View style={s.twoCol}>
+        {/* Client */}
         <View style={s.col}>
-          <Text style={s.sectionTitle}>Proprietário / Cliente</Text>
+          <Text style={sharedStyles.sectionLabel}>Cliente</Text>
           {customer ? (
             <>
-              <Text style={s.fieldValue}>{customer.name}</Text>
-              <Field label="Telefone" value={customer.phone} />
-              <Field label="CPF / CNPJ" value={customer.document} />
-              <Field label="E-mail" value={customer.email} />
-              <Field label="Endereço" value={customer.address} />
+              <Text style={s.nameText}>{customer.name}</Text>
+              {customer.address && <Text style={s.infoText}>{customer.address}</Text>}
+              {customer.document && <Text style={s.infoText}>CPF/CNPJ: {customer.document}</Text>}
+              {customer.email && <Text style={s.infoText}>{customer.email}</Text>}
+              {customer.phone && <Text style={s.infoText}>{customer.phone}</Text>}
             </>
           ) : (
-            <Text style={s.fieldValueSm}>Não informado</Text>
+            <Text style={s.infoText}>Não informado</Text>
           )}
         </View>
 
-        {/* ── Veículo ── */}
-        <View style={s.col}>
-          <Text style={s.sectionTitle}>Veículo</Text>
+        {/* Vehicle */}
+        <View style={[s.col, { alignItems: "flex-end" }]}>
+          <Text style={[sharedStyles.sectionLabel, { textAlign: "right" }]}>Veículo</Text>
           {vehicle ? (
             <>
-              <View style={s.plateBadge}>
-                <Text style={s.plateText}>{vehicle.plate}</Text>
-              </View>
-              <Text style={s.fieldValue}>
+              <Text style={[s.plateBadge, { textAlign: "right" }]}>{vehicle.plate}</Text>
+              <Text style={[s.vehicleModel, { textAlign: "right" }]}>
                 {vehicle.brand} {vehicle.model}
               </Text>
-              <Field label="Ano" value={vehicle.year ? String(vehicle.year) : null} />
-              <Field label="Motor" value={vehicle.engine} />
-              <View style={s.metaRow}>
-                <View style={s.metaItem}>
-                  <Text style={s.fieldLabel}>Km Atual</Text>
-                  <Text style={s.fieldValueSm}>
-                    {currentMileage
-                      ? `${currentMileage.toLocaleString("pt-BR")} km`
-                      : "—"}
-                  </Text>
-                </View>
-                {fuelLevel && (
-                  <View style={s.metaItem}>
-                    <Text style={s.fieldLabel}>Combustível</Text>
-                    <Text style={s.fieldValueSm}>{fuelLevel}</Text>
-                  </View>
-                )}
-              </View>
+              {vehicle.year && (
+                <Text style={[s.infoText, { textAlign: "right" }]}>Ano: {vehicle.year}</Text>
+              )}
+              {vehicle.engine && (
+                <Text style={[s.infoText, { textAlign: "right" }]}>{vehicle.engine}</Text>
+              )}
+              {currentMileage ? (
+                <Text style={[s.infoText, { textAlign: "right" }]}>
+                  {currentMileage.toLocaleString("pt-BR")} km
+                </Text>
+              ) : null}
+              {fuelLevel && (
+                <Text style={[s.infoText, { textAlign: "right" }]}>
+                  Combustível: {fuelLevel}
+                </Text>
+              )}
             </>
           ) : (
-            <Text style={s.fieldValueSm}>Não informado</Text>
+            <Text style={[s.infoText, { textAlign: "right" }]}>Não informado</Text>
           )}
         </View>
       </View>
 
-      {/* ── Mecânico / Box ── */}
+      {/* Mechanic / Box meta row */}
       {(mechanicName || allocatedBox) && (
-        <View
-          style={[
-            sharedStyles.row,
-            {
-              marginTop: 8,
-              gap: 12,
-              backgroundColor: COLORS.gray50,
-              borderRadius: 6,
-              padding: 10,
-            },
-          ]}
-        >
+        <View style={s.metaRow}>
           {mechanicName && (
-            <View style={{ flex: 1 }}>
-              <Text style={s.fieldLabel}>Mecânico Responsável</Text>
-              <View
-                style={[
-                  s.mechBadge,
-                  { backgroundColor: accentColor + "22" },
-                ]}
-              >
-                <Text
-                  style={[
-                    s.fieldValueSm,
-                    { color: accentColor, marginBottom: 0, fontFamily: "Helvetica-Bold" },
-                  ]}
-                >
-                  {mechanicName}
-                </Text>
-              </View>
+            <View style={s.metaBlock}>
+              <Text style={sharedStyles.sectionLabel}>Mecânico</Text>
+              <Text style={sharedStyles.metaValue}>{mechanicName}</Text>
             </View>
           )}
           {allocatedBox && (
-            <View style={{ flex: 1 }}>
-              <Text style={s.fieldLabel}>Box Alocado</Text>
-              <Text style={[s.fieldValueSm, { fontFamily: "Helvetica-Bold" }]}>
-                {allocatedBox}
-              </Text>
+            <View style={s.metaBlock}>
+              <Text style={sharedStyles.sectionLabel}>Box</Text>
+              <Text style={sharedStyles.metaValue}>{allocatedBox}</Text>
             </View>
           )}
         </View>
       )}
+
+      <View style={sharedStyles.divider} />
     </View>
   );
 }

@@ -2,19 +2,10 @@
 
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
+import { requireAuth } from "./auth-helper";
 
-async function getAuthenticatedUser() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) throw new Error("Não autorizado.");
-  const dbUser = await db.query.user.findFirst({
-    where: (u) => eq(u.id, session.user.id),
-  });
-  if (!dbUser) throw new Error("Usuário não cadastrado.");
-  return dbUser;
-}
+const getAuthenticatedUser = requireAuth;
 
 export async function getWorkOrderForPdfAction(id: string) {
   try {

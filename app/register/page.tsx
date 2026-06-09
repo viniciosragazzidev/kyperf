@@ -10,6 +10,7 @@ import Link from "next/link";
 import { WrenchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,20 +18,29 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { data, error } = await signUp.email({
-      email,
-      password,
-      name,
-    });
-    
-    if (!error) {
-      router.push("/panel");
+    setError(null);
+    try {
+      const { data, error: registerError } = await signUp.email({
+        email,
+        password,
+        name,
+      });
+
+      if (registerError) {
+        setError(registerError.message || "Erro ao registrar conta.");
+      } else {
+        router.push("/panel");
+      }
+    } catch (err: any) {
+      setError(err.message || "Ocorreu um erro interno ao criar conta.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -58,18 +68,28 @@ export default function RegisterPage() {
           <div className="flex aspect-square size-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 ring-1 ring-emerald-500/20">
             <HugeiconsIcon icon={WrenchIcon} strokeWidth={2} className="size-6" />
           </div>
-          
+
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight text-white font-heading">
               Nova Conta
             </h1>
             <p className="text-zinc-400 text-sm geist-mono">
-              Cadastre sua oficina no AutoManager PRO.
+              Cadastre sua oficina no KyperFix.
             </p>
           </div>
         </div>
 
         <form onSubmit={handleRegister} className="mt-10 space-y-6">
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3 bg-red-950/60 border border-red-500/20 text-red-400 text-xs geist-mono uppercase tracking-tighter rounded-lg flex items-center gap-2"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
+              <span>{error}</span>
+            </motion.div>
+          )}
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-zinc-300 ml-1 text-xs uppercase tracking-widest geist-mono">
@@ -100,7 +120,7 @@ export default function RegisterPage() {
                 className="h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-none border-x-0 border-t-0 border-b-2"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password" className="text-zinc-300 ml-1 text-xs uppercase tracking-widest geist-mono">
                 Senha de Acesso

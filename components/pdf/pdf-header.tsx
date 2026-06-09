@@ -15,122 +15,87 @@ interface PdfHeaderProps {
 }
 
 const s = StyleSheet.create({
-  band: {
-    height: 6,
-    width: "100%",
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 4,
   },
-  headerWrap: {
-    paddingHorizontal: 40,
-    paddingTop: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+  metaRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 32,
+    marginTop: 4,
   },
-  osNum: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 26,
-    letterSpacing: -0.5,
+  metaBlock: {
+    alignItems: "flex-end",
   },
-  docLabel: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    textTransform: "uppercase",
-    letterSpacing: 1.2,
-    marginTop: 2,
-  },
-  branchName: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 11,
-    color: COLORS.gray800,
-    marginBottom: 1,
-  },
-  branchDetail: {
-    fontFamily: "Helvetica",
-    fontSize: 7.5,
-    color: COLORS.gray500,
-    marginBottom: 1,
-  },
-  emissionLabel: {
-    fontFamily: "Helvetica",
-    fontSize: 7,
-    color: COLORS.gray400,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  emissionDate: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 9,
-    color: COLORS.gray700,
-    marginTop: 1,
+  accentBar: {
+    height: 3,
+    borderRadius: 1.5,
+    marginBottom: 20,
   },
 });
 
 export function PdfHeader({ osNumber, status, createdAt, branch }: PdfHeaderProps) {
-  const accentColor = STATUS_PDF_COLOR[status] ?? COLORS.gray500;
-  const docLabel = STATUS_PDF_LABEL[status] ?? "DOCUMENTO";
+  const accentColor = STATUS_PDF_COLOR[status] ?? COLORS.blue;
+  const docLabel = STATUS_PDF_LABEL[status] ?? "Documento";
   const dateStr = new Date(createdAt).toLocaleDateString("pt-BR", {
     day: "2-digit",
-    month: "long",
+    month: "short",
     year: "numeric",
   });
 
   return (
-    <>
-      {/* Top accent band */}
-      <View style={[s.band, { backgroundColor: accentColor }]} />
+    <View>
+      {/* Thin accent bar at top */}
+      <View style={[s.accentBar, { backgroundColor: accentColor }]} />
 
-      <View style={s.headerWrap}>
-        <View style={sharedStyles.spaceBetween}>
-          {/* Left: OS number + doc type */}
-          <View>
-            <Text style={[s.osNum, { color: accentColor }]}>
-              OS #{String(osNumber).padStart(4, "0")}
-            </Text>
-            <Text style={[s.docLabel, { color: accentColor }]}>{docLabel}</Text>
-          </View>
-
-          {/* Right: branch info */}
-          <View style={{ alignItems: "flex-end" }}>
-            {branch ? (
-              <>
-                <Text style={s.branchName}>{branch.name}</Text>
-                {branch.cnpj && (
-                  <Text style={s.branchDetail}>CNPJ: {branch.cnpj}</Text>
-                )}
-                {branch.phone && (
-                  <Text style={s.branchDetail}>{branch.phone}</Text>
-                )}
-                {branch.email && (
-                  <Text style={s.branchDetail}>{branch.email}</Text>
-                )}
-                {branch.address && (
-                  <Text style={s.branchDetail}>{branch.address}</Text>
-                )}
-              </>
-            ) : (
-              <Text style={s.branchName}>Oficina AutoManager</Text>
-            )}
-          </View>
+      {/* Title row: Doc name left, company right */}
+      <View style={s.headerRow}>
+        <View>
+          <Text style={sharedStyles.docTitle}>{docLabel}</Text>
+          <Text style={sharedStyles.docNumber}>
+            #{String(osNumber).padStart(5, "0")}
+          </Text>
         </View>
-
-        {/* Emission date row */}
-        <View style={[sharedStyles.spaceBetween, { marginTop: 10 }]}>
-          <View>
-            <Text style={s.emissionLabel}>Data de Emissão</Text>
-            <Text style={s.emissionDate}>{dateStr}</Text>
-          </View>
-          {/* Accent right line */}
-          <View
-            style={{
-              height: 28,
-              width: 4,
-              backgroundColor: accentColor,
-              borderRadius: 2,
-              opacity: 0.25,
-            }}
-          />
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={sharedStyles.companyName}>
+            {branch?.name ?? "KyperFix"}
+          </Text>
         </View>
       </View>
-    </>
+
+      <View style={sharedStyles.divider} />
+
+      {/* Meta row: dates + branch info */}
+      <View style={sharedStyles.spaceBetween}>
+        {/* Left: branch details */}
+        <View style={{ maxWidth: "55%" }}>
+          {branch?.cnpj && (
+            <Text style={sharedStyles.fieldRegular}>CNPJ: {branch.cnpj}</Text>
+          )}
+          {branch?.address && (
+            <Text style={sharedStyles.fieldRegular}>{branch.address}</Text>
+          )}
+          {branch?.phone && (
+            <Text style={sharedStyles.fieldRegular}>{branch.phone}</Text>
+          )}
+          {branch?.email && (
+            <Text style={sharedStyles.fieldRegular}>{branch.email}</Text>
+          )}
+        </View>
+
+        {/* Right: dates */}
+        <View style={s.metaRow}>
+          <View style={s.metaBlock}>
+            <Text style={sharedStyles.sectionLabel}>Data de Emissão</Text>
+            <Text style={sharedStyles.metaValue}>{dateStr}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={sharedStyles.divider} />
+    </View>
   );
 }

@@ -9,21 +9,32 @@ import FaultyTerminal from "@/components/ui/faulty-terminal";
 import Link from "next/link";
 import { WrenchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { motion } from "framer-motion";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await signIn.email({
-      email,
-      password,
-      callbackURL: "/panel",
-    });
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await signIn.email({
+        email,
+        password,
+        callbackURL: "/panel",
+      });
+      if (res?.error) {
+        setError(res.error.message || "Erro ao efetuar login. Verifique suas credenciais.");
+      }
+    } catch (err: any) {
+      setError(err.message || "Ocorreu um erro interno ao efetuar login.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,10 +62,10 @@ export default function LoginPage() {
           <div className="flex aspect-square size-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 ring-1 ring-emerald-500/20">
             <HugeiconsIcon icon={WrenchIcon} strokeWidth={2} className="size-6" />
           </div>
-          
+
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight text-white font-heading">
-              AutoManager PRO
+            <h1 className="text-3xl font-bold tracking-tight text-white geist-mono font-heading">
+              KyperFix
             </h1>
             <p className="text-zinc-400 text-sm geist-mono">
               Acesse sua oficina para gerenciar o pátio.
@@ -63,6 +74,16 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleLogin} className="mt-10 space-y-6">
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3 bg-red-950/60 border border-red-500/20 text-red-400 text-xs geist-mono uppercase tracking-tighter rounded-lg flex items-center gap-2"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
+              <span>{error}</span>
+            </motion.div>
+          )}
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-zinc-300 ml-1 text-xs uppercase tracking-widest geist-mono">
@@ -78,7 +99,7 @@ export default function LoginPage() {
                 className="h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-none border-x-0 border-t-0 border-b-2"
               />
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-zinc-300 ml-1 text-xs uppercase tracking-widest geist-mono">

@@ -2,31 +2,10 @@
 
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { eq, and } from "drizzle-orm";
+import { requireAuth } from "./auth-helper";
 
-// Helper para validar a sessão e retornar o usuário
-async function getAuthenticatedUser() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session || !session.user) {
-    throw new Error("Não autorizado. Faça login novamente.");
-  }
-
-  const userId = session.user.id;
-  const dbUser = await db.query.user.findFirst({
-    where: (user, { eq }) => eq(user.id, userId),
-  });
-
-  if (!dbUser) {
-    throw new Error("Usuário não cadastrado.");
-  }
-
-  return dbUser;
-}
+const getAuthenticatedUser = requireAuth;
 
 // 1. Obter serviços cadastrados com a contagem e lista de sobregravações e peças associadas
 export async function getServicesAction() {
@@ -289,3 +268,108 @@ export async function unlinkPartFromServiceAction(id: string) {
     return { success: false, error: error.message };
   }
 }
+
+interface FullServiceInput {
+  id?: string;
+  name: string;
+  description?: string;
+  estimatedTimeMinutes: number;
+  basePrice: string;
+  parts: Array<{ partId: string; quantity: number }>;
+  overrides: Array<{ carName: string; price: string }>;
+}
+
+export async function saveFullServiceAction(input: FullServiceInput) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user.tenantId) {
+      throw new Error("Usuário não possui empresa vinculada.");
+    }
+
+    const result = await db.transaction(async (tx) => {
+      let serviceId = input.id;
+
+      if (serviceId) {
+        // 1. Atualizar o serviço
+        await tx.update(schema.servicesCatalog)
+          .set({
+            name: input.name,
+            description: input.description || null,
+            estimatedTimeMinutes: input.estimatedTimeMinutes,
+            basePrice: input.basePrice,
+          })
+          .where(
+            and(
+              eq(schema.servicesCatalog.id, serviceId),
+              eq(schema.servicesCatalog.tenantId, user.tenantId!)
+            )
+          );
+
+        // 2. Limpar peças antigas vinculadas
+        await tx.delete(schema.serviceParts)
+          .where(
+            and(
+              eq(schema.serviceParts.serviceId, serviceId),
+              eq(schema.serviceParts.tenantId, user.tenantId!)
+            )
+          );
+
+        // 3. Limpar sobregravações antigas
+        await tx.delete(schema.servicePriceOverrides)
+          .where(
+            and(
+              eq(schema.servicePriceOverrides.serviceId, serviceId),
+              eq(schema.servicePriceOverrides.tenantId, user.tenantId!)
+            )
+          );
+      } else {
+        // Criar novo serviço
+        const [newService] = await tx.insert(schema.servicesCatalog)
+          .values({
+            tenantId: user.tenantId!,
+            name: input.name,
+            description: input.description || null,
+            estimatedTimeMinutes: input.estimatedTimeMinutes,
+            basePrice: input.basePrice,
+          })
+          .returning();
+
+        if (!newService) {
+          throw new Error("Erro ao criar o serviço.");
+        }
+        serviceId = newService.id;
+      }
+
+      // 4. Inserir peças vinculadas
+      if (input.parts && input.parts.length > 0) {
+        for (const p of input.parts) {
+          await tx.insert(schema.serviceParts).values({
+            tenantId: user.tenantId!,
+            serviceId: serviceId,
+            partId: p.partId,
+            quantity: p.quantity,
+          });
+        }
+      }
+
+      // 5. Inserir sobregravações
+      if (input.overrides && input.overrides.length > 0) {
+        for (const o of input.overrides) {
+          await tx.insert(schema.servicePriceOverrides).values({
+            tenantId: user.tenantId!,
+            serviceId: serviceId,
+            carName: o.carName,
+            price: o.price,
+          });
+        }
+      }
+
+      return { id: serviceId };
+    });
+
+    return { success: true, data: result };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+

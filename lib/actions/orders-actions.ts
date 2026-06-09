@@ -2,31 +2,10 @@
 
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { eq, and, or, like, desc } from "drizzle-orm";
+import { requireAuth, requireRole } from "./auth-helper";
 
-// Helper para validar a sessão e retornar o usuário logado
-async function getAuthenticatedUser() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session || !session.user) {
-    throw new Error("Não autorizado. Faça login novamente.");
-  }
-
-  const userId = session.user.id;
-  const dbUser = await db.query.user.findFirst({
-    where: (user, { eq }) => eq(user.id, userId),
-  });
-
-  if (!dbUser) {
-    throw new Error("Usuário não cadastrado.");
-  }
-
-  return dbUser;
-}
+const getAuthenticatedUser = requireAuth;
 
 // 1. Obter lista de mecânicos da oficina
 export async function getMechanicsAction() {
@@ -260,10 +239,18 @@ export async function createWorkOrderAction(input: CreateWorkOrderInput) {
         }
       }
 
+      // Calcular o próximo número da OS de forma isolada por tenant
+      const maxOrder = await tx.query.workOrders.findFirst({
+        where: (wo, { eq }) => eq(wo.tenantId, user.tenantId!),
+        orderBy: (wo, { desc }) => desc(wo.osNumber),
+      });
+      const nextOsNumber = (maxOrder?.osNumber || 0) + 1;
+
       // 3. Criar a Ordem de Serviço
       const [newOrder] = await tx.insert(schema.workOrders).values({
         tenantId: user.tenantId!,
         branchId: activeBranchId,
+        osNumber: nextOsNumber,
         customerId: finalCustomerId!,
         vehicleId: finalVehicleId!,
         mechanicId: input.mechanicId || null,
@@ -586,7 +573,8 @@ export async function getCurrentUserAction() {
 // 9. Deletar uma Ordem de Serviço
 export async function deleteWorkOrderAction(id: string) {
   try {
-    const user = await getAuthenticatedUser();
+    // Apenas OWNER e MANAGER podem deletar Ordens de Serviço
+    const user = await requireRole(['OWNER', 'MANAGER']);
     if (!user.tenantId) {
       throw new Error("Usuário não possui empresa vinculada.");
     }

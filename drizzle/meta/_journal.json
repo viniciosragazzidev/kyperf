@@ -8,6 +8,13 @@
       "when": 1780958911968,
       "tag": "0000_conscious_emma_frost",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780981723225,
+      "tag": "0001_light_dark_beast",
+      "breakpoints": true
     }
   ]
 }

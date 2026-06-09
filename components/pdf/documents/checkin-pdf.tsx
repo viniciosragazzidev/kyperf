@@ -4,7 +4,7 @@ import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { PdfHeader } from "../pdf-header";
 import { PdfFooter } from "../pdf-footer";
 import { PdfClientVehicleBlock } from "../pdf-client-vehicle-block";
-import { COLORS, STATUS_PDF_COLOR, sharedStyles } from "../pdf-styles";
+import { COLORS, sharedStyles } from "../pdf-styles";
 
 type OrderData = {
   osNumber: number;
@@ -24,38 +24,24 @@ type OrderData = {
 };
 
 const s = StyleSheet.create({
-  sectionTitle: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    color: COLORS.gray400,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 8,
-    paddingBottom: 4,
-    borderBottomWidth: 0.5,
-    borderBottomColor: COLORS.gray200,
-  },
-  checklistGrid: {
+  checkGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
-    marginBottom: 4,
+    gap: 8,
+    marginBottom: 14,
   },
   checkItem: {
     flexDirection: "row",
     alignItems: "center",
-    width: "22%",
-    backgroundColor: COLORS.gray50,
-    borderRadius: 4,
-    padding: 5,
-    gap: 4,
+    width: "23%",
+    gap: 5,
   },
   checkBox: {
     width: 12,
     height: 12,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: COLORS.gray300,
+    borderColor: COLORS.gray200,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -70,71 +56,67 @@ const s = StyleSheet.create({
   },
   checkLabel: {
     fontFamily: "Helvetica",
-    fontSize: 7.5,
+    fontSize: 8,
     color: COLORS.gray700,
   },
-  damagesBox: {
+  textBox: {
     borderWidth: 1,
     borderColor: COLORS.gray200,
     borderRadius: 4,
-    padding: 10,
-    minHeight: 48,
-    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 40,
+    marginBottom: 14,
   },
-  damagesText: {
+  textBoxContent: {
     fontFamily: "Helvetica",
-    fontSize: 8.5,
-    color: COLORS.gray700,
-    lineHeight: 1.5,
+    fontSize: 9,
+    color: COLORS.gray500,
+    lineHeight: 1.6,
   },
-  noteBox: {
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    borderRadius: 4,
-    padding: 10,
-    minHeight: 36,
-    marginBottom: 12,
+  signatureRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 40,
+    marginTop: 30,
+  },
+  signatureCol: {
+    flex: 1,
+  },
+  signatureLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray400,
+    marginBottom: 5,
+  },
+  signatureLabel: {
+    fontFamily: "Helvetica",
+    fontSize: 8,
+    color: COLORS.gray400,
   },
 });
 
 const CHECKLIST_ITEMS = [
-  "Estepe",
-  "Macaco",
-  "Chave de Roda",
-  "Triângulo",
-  "Manual",
-  "Extintor",
-  "Tapetes",
-  "Antena",
+  "Estepe", "Macaco", "Chave de Roda", "Triângulo",
+  "Manual", "Extintor", "Tapetes", "Antena",
 ];
 
-interface CheckItem {
-  label: string;
-  checked: boolean;
-}
-
-function parseChecklist(raw?: string | null): CheckItem[] {
+function parseChecklist(raw?: string | null) {
   if (!raw) return CHECKLIST_ITEMS.map((l) => ({ label: l, checked: false }));
   try {
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return CHECKLIST_ITEMS.map((label) => ({
-        label,
-        checked: parsed.includes(label),
-      }));
-    }
-  } catch {}
+    if (Array.isArray(parsed))
+      return CHECKLIST_ITEMS.map((label) => ({ label, checked: parsed.includes(label) }));
+  } catch { }
   return CHECKLIST_ITEMS.map((l) => ({ label: l, checked: false }));
 }
 
 export function CheckInPDF({ order }: { order: OrderData }) {
-  const accentColor = STATUS_PDF_COLOR[order.status] ?? COLORS.blue;
-  const checklistItems = parseChecklist(order.checklist);
+  const items = parseChecklist(order.checklist);
 
   return (
     <Document
-      title={`OS-${String(order.osNumber).padStart(4, "0")}-checkin`}
-      author="AutoManager PRO"
+      title={`OS-${String(order.osNumber).padStart(5, "0")}-checkin`}
+      author="KyperFix"
     >
       <Page size="A4" style={sharedStyles.page}>
         <PdfHeader
@@ -144,87 +126,74 @@ export function CheckInPDF({ order }: { order: OrderData }) {
           branch={order.branch}
         />
 
-        <View style={sharedStyles.body}>
-          {/* Client + Vehicle */}
-          <PdfClientVehicleBlock
-            customer={order.customer}
-            vehicle={order.vehicle}
-            fuelLevel={order.fuelLevel}
-            currentMileage={order.currentMileage}
-            mechanicName={order.mechanic?.name}
-            allocatedBox={order.allocatedBox}
-            accentColor={accentColor}
-          />
+        <PdfClientVehicleBlock
+          customer={order.customer}
+          vehicle={order.vehicle}
+          fuelLevel={order.fuelLevel}
+          currentMileage={order.currentMileage}
+          mechanicName={order.mechanic?.name}
+          allocatedBox={order.allocatedBox}
+        />
 
-          <View style={sharedStyles.divider} />
-
-          {/* Checklist */}
-          <View style={sharedStyles.card}>
-            <Text style={s.sectionTitle}>Checklist de Acessórios</Text>
-            <View style={s.checklistGrid}>
-              {checklistItems.map((item) => (
-                <View key={item.label} style={s.checkItem}>
-                  <View style={[s.checkBox, item.checked ? s.checkBoxFilled : {}]}>
-                    {item.checked && <Text style={s.checkMark}>✓</Text>}
-                  </View>
-                  <Text style={s.checkLabel}>{item.label}</Text>
-                </View>
-              ))}
+        {/* Checklist */}
+        <Text style={sharedStyles.sectionLabel}>Checklist de Acessórios</Text>
+        <View style={s.checkGrid}>
+          {items.map((item) => (
+            <View key={item.label} style={s.checkItem}>
+              <View style={[s.checkBox, item.checked ? s.checkBoxFilled : {}]}>
+                {item.checked && <Text style={s.checkMark}>✓</Text>}
+              </View>
+              <Text style={s.checkLabel}>{item.label}</Text>
             </View>
+          ))}
+        </View>
+
+        <View style={sharedStyles.dividerLight} />
+
+        {/* Damages */}
+        <Text style={sharedStyles.sectionLabel}>Avarias Registradas</Text>
+        <View style={s.textBox}>
+          <Text style={s.textBoxContent}>
+            {order.damages || "Nenhuma avaria registrada."}
+          </Text>
+        </View>
+
+        {/* Diagnostic */}
+        {order.diagnostic && (
+          <>
+            <Text style={sharedStyles.sectionLabel}>Diagnóstico Inicial</Text>
+            <View style={s.textBox}>
+              <Text style={s.textBoxContent}>{order.diagnostic}</Text>
+            </View>
+          </>
+        )}
+
+        {/* Notes */}
+        {order.notes && (
+          <>
+            <Text style={sharedStyles.sectionLabel}>Observações</Text>
+            <View style={s.textBox}>
+              <Text style={s.textBoxContent}>{order.notes}</Text>
+            </View>
+          </>
+        )}
+
+        {/* Two signatures */}
+        <View style={s.signatureRow}>
+          <View style={s.signatureCol}>
+            <View style={s.signatureLine} />
+            <Text style={s.signatureLabel}>Assinatura do Cliente</Text>
           </View>
-
-          {/* Damages */}
-          <View style={{ marginBottom: 12 }}>
-            <Text style={s.sectionTitle}>Avarias e Observações de Entrada</Text>
-            <View style={s.damagesBox}>
-              <Text style={s.damagesText}>
-                {order.damages || "Nenhuma avaria registrada."}
-              </Text>
-            </View>
-          </View>
-
-          {/* Diagnostic */}
-          {order.diagnostic && (
-            <View style={{ marginBottom: 12 }}>
-              <Text style={s.sectionTitle}>Diagnóstico Inicial</Text>
-              <View style={s.noteBox}>
-                <Text style={s.damagesText}>{order.diagnostic}</Text>
-              </View>
-            </View>
-          )}
-
-          {/* Signature */}
-          <View style={{ marginTop: 24 }}>
-            <View style={{ flexDirection: "row", gap: 40 }}>
-              <View style={{ flex: 1 }}>
-                <View
-                  style={{
-                    borderBottomWidth: 1,
-                    borderBottomColor: COLORS.gray400,
-                    marginBottom: 4,
-                  }}
-                />
-                <Text style={{ fontSize: 7.5, color: COLORS.gray500, fontFamily: "Helvetica" }}>
-                  Assinatura do Cliente — Confirmo as informações acima
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <View
-                  style={{
-                    borderBottomWidth: 1,
-                    borderBottomColor: COLORS.gray400,
-                    marginBottom: 4,
-                  }}
-                />
-                <Text style={{ fontSize: 7.5, color: COLORS.gray500, fontFamily: "Helvetica" }}>
-                  Assinatura do Receptor / Responsável
-                </Text>
-              </View>
-            </View>
+          <View style={s.signatureCol}>
+            <View style={s.signatureLine} />
+            <Text style={s.signatureLabel}>Responsável / Receptor</Text>
           </View>
         </View>
 
-        <PdfFooter status={order.status} />
+        <PdfFooter
+          noteText="O cliente declara que as informações acima conferem com o estado do veículo no momento da entrada na oficina."
+          showSignatureLine={false}
+        />
       </Page>
     </Document>
   );

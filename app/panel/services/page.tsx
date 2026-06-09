@@ -1,156 +1,119 @@
 "use client"
 
-import React, { useState, useEffect, Fragment } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Wrench, 
-  Plus, 
-  Search, 
-  Trash2, 
-  Edit2, 
-  ChevronDown, 
-  ChevronUp, 
-  Loader2, 
-  Sparkles, 
-  Car, 
-  Check,
-  AlertCircle,
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Plus,
+  Wrench,
   Package,
+  Search,
+  Check,
   Info,
-  X
+  Trash2,
+  Edit3,
+  Clock,
+  DollarSign,
+  Car,
+  Activity,
+  AlertTriangle,
+  Loader2
 } from "lucide-react"
-import { 
-  getServicesAction, 
-  createServiceAction, 
-  updateServiceAction, 
-  deleteServiceAction, 
-  saveServiceOverrideAction, 
-  deleteServiceOverrideAction,
-  linkPartToServiceAction,
-  unlinkPartFromServiceAction
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+
+// Import Server Actions
+import {
+  getServicesAction,
+  saveFullServiceAction,
+  deleteServiceAction
 } from "@/lib/actions/services-actions"
-import { 
-  getPartsAction, 
-  createPartAction 
-} from "@/lib/actions/parts-actions"
+import { getPartsAction } from "@/lib/actions/parts-actions"
 
-const springConfig = { type: "spring" as const, stiffness: 300, damping: 28 }
-
-interface Override {
+interface DBPart {
   id: string
-  serviceId: string
+  name: string
+  sku: string | null
+  salePrice: string
+}
+
+interface SelectedPart {
+  id: string
+  name: string
+  sku: string | null
+  price: number
+  quantity: number
+}
+
+interface PriceOverride {
   carName: string
   price: string
 }
 
-interface LinkedPart {
-  id: string
-  serviceId: string
-  partId: string
-  quantity: number
-  partName: string
-  partBrand: string | null
-  partSku: string | null
-  partSalePrice: string
-}
-
-interface Service {
+interface ServiceItem {
   id: string
   name: string
   description: string | null
   estimatedTimeMinutes: number
   basePrice: string
-  overridesCount: number
-  overrides: Override[]
-  parts: LinkedPart[]
-}
-
-interface PartFromInventory {
-  id: string
-  name: string
-  brand: string | null
-  salePrice: string
-}
-
-// Helpers para Formatação de Moeda
-const formatCurrency = (val: string | number) => {
-  const num = typeof val === "string" ? parseFloat(val) : val
-  return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-}
-
-const formatCurrencyInput = (value: string) => {
-  const clean = value.replace(/\D/g, "")
-  if (!clean) return ""
-  const numberValue = parseInt(clean, 10) / 100
-  return numberValue.toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })
-}
-
-const parseCurrencyToFloatString = (value: string) => {
-  if (!value) return "0.00"
-  const clean = value.replace(/\./g, "").replace(",", ".")
-  return parseFloat(clean).toFixed(2)
+  parts: Array<{
+    id: string
+    partId: string
+    partName: string
+    partSku: string | null
+    partSalePrice: string
+    quantity: number
+  }>
+  overrides: Array<{
+    id: string
+    carName: string
+    price: string
+  }>
 }
 
 export default function ServicesPage() {
-  const [services, setServices] = useState<Service[]>([])
-  const [allParts, setAllParts] = useState<PartFromInventory[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
-  const [successMessage, setSuccessMessage] = useState("")
+  const [services, setServices] = useState<ServiceItem[]>([])
+  const [availableParts, setAvailableParts] = useState<DBPart[]>([])
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
-  // Estado para expandir os preços e peças do serviço
-  const [expandedServiceId, setExpandedServiceId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<"prices" | "parts">("prices")
+  // Form State
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null)
+  const [serviceName, setServiceName] = useState("")
+  const [description, setDescription] = useState("")
+  const [basePrice, setBasePrice] = useState("")
+  const [estimatedTime, setEstimatedTime] = useState("")
+  const [selectedParts, setSelectedParts] = useState<SelectedPart[]>([])
+  const [overrides, setOverrides] = useState<PriceOverride[]>([])
 
-  // Estado para o Modal de Criação / Edição do Serviço
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingService, setEditingService] = useState<Service | null>(null)
-  const [formName, setFormName] = useState("")
-  const [formDescription, setFormDescription] = useState("")
-  const [formTime, setFormTime] = useState("45")
-  const [formPrice, setFormPrice] = useState("")
-
-  // Estado para adicionar preço diferenciado por carro
-  const [newCarName, setNewCarName] = useState("")
+  // Search part autocomplete
+  const [partSearchQuery, setPartSearchQuery] = useState("")
+  const [newOverrideCarName, setNewOverrideCarName] = useState("")
   const [newOverridePrice, setNewOverridePrice] = useState("")
 
-  // Estado para associar peça existente
-  const [selectedPartId, setSelectedPartId] = useState("")
-  const [partLinkQty, setPartLinkQty] = useState(1)
-
-  // Estado para cadastrar nova peça inline na hora
-  const [showNewPartInline, setShowNewPartInline] = useState(false)
-  const [inlinePartName, setInlinePartName] = useState("")
-  const [inlinePartBrand, setInlinePartBrand] = useState("")
-  const [inlinePartSku, setInlinePartSku] = useState("")
-  const [inlinePartQty, setInlinePartQty] = useState("5")
-  const [inlinePartMinQty, setInlinePartMinQty] = useState("2")
-  const [inlinePartCost, setInlinePartCost] = useState("")
-  const [inlinePartSale, setInlinePartSale] = useState("")
-  const [inlineLinkQty, setInlineLinkQty] = useState(1)
-
-  // Carrega serviços e peças cadastrados
+  // Load Initial Data
   const loadData = async () => {
-    setIsLoading(true)
-    const [resServices, resParts] = await Promise.all([
-      getServicesAction(),
-      getPartsAction()
-    ])
-    setIsLoading(false)
+    setLoading(true)
+    try {
+      const [servicesRes, partsRes] = await Promise.all([
+        getServicesAction(),
+        getPartsAction()
+      ])
 
-    if (resServices.success && resServices.data) {
-      setServices(resServices.data as Service[])
-    } else {
-      setErrorMessage(resServices.error || "Não foi possível carregar os serviços.")
-    }
-
-    if (resParts.success && resParts.data) {
-      setAllParts(resParts.data as PartFromInventory[])
+      if (servicesRes.success && servicesRes.data) {
+        setServices(servicesRes.data as unknown as ServiceItem[])
+      }
+      if (partsRes.success && partsRes.data) {
+        setAvailableParts(partsRes.data as unknown as DBPart[])
+      }
+    } catch (err) {
+      console.error("Erro ao carregar dados do catálogo:", err)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -158,221 +121,172 @@ export default function ServicesPage() {
     loadData()
   }, [])
 
-  // Limpa mensagens temporárias
-  useEffect(() => {
-    if (successMessage || errorMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage("")
-        setErrorMessage("")
-      }, 5000)
-      return () => clearTimeout(timer)
-    }
-  }, [successMessage, errorMessage])
-
-  // Abre modal de criação
-  const handleOpenCreateModal = () => {
-    setEditingService(null)
-    setFormName("")
-    setFormDescription("")
-    setFormTime("45")
-    setFormPrice("")
-    setIsModalOpen(true)
-  }
-
-  // Abre modal de edição
-  const handleOpenEditModal = (service: Service) => {
-    setEditingService(service)
-    setFormName(service.name)
-    setFormDescription(service.description || "")
-    setFormTime(service.estimatedTimeMinutes.toString())
-    const formattedPrice = parseFloat(service.basePrice).toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+  // Add Part to Selected
+  const addPart = (part: DBPart) => {
+    setSelectedParts(prev => {
+      const existing = prev.find(p => p.id === part.id)
+      if (existing) {
+        return prev.map(p => p.id === part.id ? { ...p, quantity: p.quantity + 1 } : p)
+      }
+      return [...prev, {
+        id: part.id,
+        name: part.name,
+        sku: part.sku,
+        price: parseFloat(part.salePrice) || 0,
+        quantity: 1
+      }]
     })
-    setFormPrice(formattedPrice)
-    setIsModalOpen(true)
+    setPartSearchQuery("")
   }
 
-  // Envio do formulário do serviço (Criar / Editar)
-  const handleSaveService = async (e: React.FormEvent) => {
+  const removePart = (id: string) => {
+    setSelectedParts(prev => prev.filter(p => p.id !== id))
+  }
+
+  const updateQuantity = (id: string, delta: number) => {
+    setSelectedParts(prev => prev.map(p => {
+      if (p.id === id) {
+        const newQty = Math.max(1, p.quantity + delta)
+        return { ...p, quantity: newQty }
+      }
+      return p
+    }))
+  }
+
+  // Add Price Override
+  const addPriceOverride = () => {
+    if (!newOverrideCarName || !newOverridePrice) return
+    setOverrides(prev => [
+      ...prev,
+      {
+        carName: newOverrideCarName.trim(),
+        price: parseFloat(newOverridePrice).toFixed(2)
+      }
+    ])
+    setNewOverrideCarName("")
+    setNewOverridePrice("")
+  }
+
+  const removePriceOverride = (index: number) => {
+    setOverrides(prev => prev.filter((_, i) => i !== index))
+  }
+
+  // Select Service for Editing
+  const handleSelectService = (service: ServiceItem) => {
+    setSelectedServiceId(service.id)
+    setServiceName(service.name)
+    setDescription(service.description || "")
+    setBasePrice(parseFloat(service.basePrice).toFixed(2))
+    setEstimatedTime(String(service.estimatedTimeMinutes))
+
+    // Map parts
+    setSelectedParts(service.parts.map(p => ({
+      id: p.partId,
+      name: p.partName,
+      sku: p.partSku,
+      price: parseFloat(p.partSalePrice) || 0,
+      quantity: p.quantity
+    })))
+
+    // Map overrides
+    setOverrides(service.overrides.map(o => ({
+      carName: o.carName,
+      price: parseFloat(o.price).toFixed(2)
+    })))
+  }
+
+  // Reset Form
+  const resetForm = () => {
+    setSelectedServiceId(null)
+    setServiceName("")
+    setDescription("")
+    setBasePrice("")
+    setEstimatedTime("")
+    setSelectedParts([])
+    setOverrides([])
+    setPartSearchQuery("")
+    setNewOverrideCarName("")
+    setNewOverridePrice("")
+  }
+
+  // Delete Service
+  const handleDeleteService = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!confirm("Tem certeza que deseja deletar este serviço do catálogo?")) return
+    try {
+      const res = await deleteServiceAction(id)
+      if (res.success) {
+        setServices(prev => prev.filter(s => s.id !== id))
+        if (selectedServiceId === id) resetForm()
+      } else {
+        alert("Erro ao deletar serviço: " + res.error)
+      }
+    } catch (err: any) {
+      alert("Erro interno: " + err.message)
+    }
+  }
+
+  // Submit Form
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formName || !formPrice) return
-
-    setActionLoading(true)
-    const timeNum = parseInt(formTime, 10) || 0
-    const cleanPrice = parseCurrencyToFloatString(formPrice)
-
-    let res
-    if (editingService) {
-      res = await updateServiceAction({
-        id: editingService.id,
-        name: formName,
-        description: formDescription || undefined,
-        estimatedTimeMinutes: timeNum,
-        basePrice: cleanPrice
-      })
-    } else {
-      res = await createServiceAction({
-        name: formName,
-        description: formDescription || undefined,
-        estimatedTimeMinutes: timeNum,
-        basePrice: cleanPrice
-      })
+    if (!serviceName || !basePrice || !estimatedTime) {
+      alert("Por favor, preencha os campos obrigatórios.")
+      return
     }
-    setActionLoading(false)
 
-    if (res.success) {
-      setSuccessMessage(editingService ? "Serviço editado com sucesso!" : "Novo serviço criado com sucesso!")
-      setIsModalOpen(false)
-      loadData()
-    } else {
-      setErrorMessage(res.error || "Não foi possível salvar o serviço.")
-    }
-  }
+    setSubmitting(true)
+    try {
+      const input = {
+        id: selectedServiceId || undefined,
+        name: serviceName,
+        description: description || undefined,
+        estimatedTimeMinutes: parseInt(estimatedTime, 10),
+        basePrice: parseFloat(basePrice).toFixed(2),
+        parts: selectedParts.map(p => ({
+          partId: p.id,
+          quantity: p.quantity
+        })),
+        overrides: overrides.map(o => ({
+          carName: o.carName,
+          price: o.price
+        }))
+      }
 
-  // Deletar um serviço
-  const handleDeleteService = async (id: string) => {
-    if (!confirm("Deseja realmente excluir este serviço e todos os seus preços diferenciados e vínculos de peças?")) return
+      const res = await saveFullServiceAction(input)
 
-    setActionLoading(true)
-    const res = await deleteServiceAction(id)
-    setActionLoading(false)
-
-    if (res.success) {
-      setSuccessMessage("Serviço removido com sucesso!")
-      if (expandedServiceId === id) setExpandedServiceId(null)
-      loadData()
-    } else {
-      setErrorMessage(res.error || "Erro ao deletar o serviço.")
-    }
-  }
-
-  // Salvar uma sobregravação de preço por veículo
-  const handleSaveOverride = async (serviceId: string) => {
-    if (!newCarName || !newOverridePrice) return
-
-    setActionLoading(true)
-    const cleanPrice = parseCurrencyToFloatString(newOverridePrice)
-    const res = await saveServiceOverrideAction({
-      serviceId,
-      carName: newCarName.trim(),
-      price: cleanPrice
-    })
-    setActionLoading(false)
-
-    if (res.success) {
-      setNewCarName("")
-      setNewOverridePrice("")
-      setSuccessMessage("Preço customizado salvo com sucesso!")
-      loadData()
-    } else {
-      setErrorMessage(res.error || "Erro ao salvar o preço diferenciado por carro.")
-    }
-  }
-
-  // Excluir uma sobregravação
-  const handleDeleteOverride = async (overrideId: string) => {
-    setActionLoading(true)
-    const res = await deleteServiceOverrideAction(overrideId)
-    setActionLoading(false)
-
-    if (res.success) {
-      setSuccessMessage("Preço customizado removido!")
-      loadData()
-    } else {
-      setErrorMessage(res.error || "Erro ao remover o preço diferenciado.")
-    }
-  }
-
-  // Vincular peça existente
-  const handleLinkPart = async (serviceId: string) => {
-    if (!selectedPartId || partLinkQty < 1) return
-
-    setActionLoading(true)
-    const res = await linkPartToServiceAction(serviceId, selectedPartId, partLinkQty)
-    setActionLoading(false)
-
-    if (res.success) {
-      setSelectedPartId("")
-      setPartLinkQty(1)
-      setSuccessMessage("Peça vinculada ao serviço com sucesso!")
-      loadData()
-    } else {
-      setErrorMessage(res.error || "Erro ao vincular peça.")
-    }
-  }
-
-  // Desvincular peça
-  const handleUnlinkPart = async (linkId: string) => {
-    setActionLoading(true)
-    const res = await unlinkPartFromServiceAction(linkId)
-    setActionLoading(false)
-
-    if (res.success) {
-      setSuccessMessage("Peça desvinculada do serviço.")
-      loadData()
-    } else {
-      setErrorMessage(res.error || "Erro ao desvincular peça.")
-    }
-  }
-
-  // Cadastrar nova peça "na hora" e vincular
-  const handleCreateAndLinkPart = async (serviceId: string) => {
-    if (!inlinePartName || !inlinePartCost || !inlinePartSale || inlineLinkQty < 1) return
-
-    setActionLoading(true)
-    const cleanCost = parseCurrencyToFloatString(inlinePartCost)
-    const cleanSale = parseCurrencyToFloatString(inlinePartSale)
-    const qtyVal = parseInt(inlinePartQty, 10) || 0
-    const minQtyVal = parseInt(inlinePartMinQty, 10) || 2
-
-    // 1. Cadastra no estoque
-    const resPart = await createPartAction({
-      name: inlinePartName,
-      brand: inlinePartBrand || undefined,
-      sku: inlinePartSku || undefined,
-      quantity: qtyVal,
-      minQuantity: minQtyVal,
-      costPrice: cleanCost,
-      salePrice: cleanSale
-    })
-
-    if (resPart.success && resPart.data) {
-      // 2. Vincula a nova peça criada ao serviço
-      const newPartId = resPart.data.id
-      const resLink = await linkPartToServiceAction(serviceId, newPartId, inlineLinkQty)
-      
-      if (resLink.success) {
-        setSuccessMessage("Nova peça cadastrada no estoque e vinculada a este serviço!")
-        // Limpa form inline
-        setInlinePartName("")
-        setInlinePartBrand("")
-        setInlinePartSku("")
-        setInlinePartQty("5")
-        setInlinePartMinQty("2")
-        setInlinePartCost("")
-        setInlinePartSale("")
-        setInlineLinkQty(1)
-        setShowNewPartInline(false)
+      if (res.success) {
+        alert("Catálogo atualizado com sucesso!")
+        resetForm()
         loadData()
       } else {
-        setErrorMessage(resLink.error || "A peça foi criada no estoque, mas falhou ao vincular ao serviço.")
-        loadData()
+        alert("Erro ao salvar serviço: " + res.error)
       }
-    } else {
-      setErrorMessage(resPart.error || "Não foi possível criar a nova peça no estoque.")
+    } catch (err: any) {
+      alert("Erro interno ao enviar formulário: " + err.message)
+    } finally {
+      setSubmitting(false)
     }
-    setActionLoading(false)
   }
 
-  // Filtra serviços
+  const totalPartsPrice = selectedParts.reduce((acc, p) => acc + (p.price * p.quantity), 0)
+  const totalServicePrice = (parseFloat(basePrice) || 0) + totalPartsPrice
+
+  // Filtered lists
   const filteredServices = services.filter(s =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase())
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (s.description && s.description.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
+  const filteredPartsAutocomplete = partSearchQuery.trim().length > 0
+    ? availableParts.filter(p =>
+      p.name.toLowerCase().includes(partSearchQuery.toLowerCase()) ||
+      (p.sku && p.sku.toLowerCase().includes(partSearchQuery.toLowerCase()))
+    ).slice(0, 5)
+    : []
+
   return (
-    <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans">
-      
+    <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans space-y-6">
+
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -380,543 +294,366 @@ export default function ServicesPage() {
             <span className="bg-emerald-500/10 text-emerald-500 p-1.5 rounded-lg border border-emerald-500/20">
               <Wrench className="size-4.5" />
             </span>
-            Gestão de Serviços
+            Catálogo de Serviços
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Cadastre serviços, adicione descrições detalhadas, customize preços por carro e gerencie peças integradas ao serviço.
+            Defina precificação técnica de serviços, autopeças associadas e sobregravações personalizadas por veículo.
           </p>
         </div>
-        
-        <button
-          onClick={handleOpenCreateModal}
-          className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-full px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
-        >
-          <Plus className="size-3.5" />
-          <span>Cadastrar Serviço</span>
-        </button>
       </div>
 
-      {/* Alertas */}
-      {successMessage && (
-        <div className="mb-4 p-2.5 bg-emerald-500/10 text-emerald-500 rounded-lg border border-emerald-500/20 text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
-          <Check className="size-3.5" />
-          <span>{successMessage}</span>
-        </div>
-      )}
-      {errorMessage && (
-        <div className="mb-4 p-2.5 bg-red-500/10 text-red-500 rounded-lg border border-red-500/20 text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
-          <AlertCircle className="size-3.5" />
-          <span>{errorMessage}</span>
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-      {/* Caixa de Busca */}
-      <div className="mb-4 max-w-md relative">
-        <span className="absolute left-2.5 top-2.5 text-muted-foreground">
-          <Search className="size-3.5" />
-        </span>
-        <input
-          type="text"
-          placeholder="Buscar serviços..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full text-xs border border-border rounded-lg pl-8 pr-3 py-2 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
-        />
-      </div>
-
-      {/* Card da Tabela de Serviços (Jeet Style) */}
-      <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] border border-border/50 overflow-hidden text-card-foreground">
-        {isLoading ? (
-          <div className="p-16 flex flex-col items-center justify-center gap-2">
-            <Loader2 className="size-6 text-emerald-500 animate-spin" />
-            <span className="text-xs text-muted-foreground font-medium">Carregando catálogo de serviços...</span>
-          </div>
-        ) : filteredServices.length === 0 ? (
-          <div className="p-16 text-center text-xs text-muted-foreground">
-            Nenhum serviço encontrado.
-          </div>
-        ) : (
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-muted/50 border-b border-border/50 text-[9px] uppercase font-bold text-muted-foreground tracking-wider">
-                <th className="px-4 py-3">Serviço</th>
-                <th className="px-4 py-3">Descrição</th>
-                <th className="px-4 py-3">Tempo Estimado</th>
-                <th className="px-4 py-3">Preço Base</th>
-                <th className="px-4 py-3 text-center">Gestão Integrada</th>
-                <th className="px-4 py-3 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredServices.map((service) => {
-                const isExpanded = expandedServiceId === service.id
-                return (
-                  <Fragment key={service.id}>
-                    <tr className="border-b border-dashed border-border/60 hover:bg-muted/30 transition-colors text-xs font-semibold text-foreground">
-                      <td className="px-4 py-3 font-bold">{service.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground font-normal max-w-[180px] truncate" title={service.description || ""}>
-                        {service.description || "--"}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground font-medium">{service.estimatedTimeMinutes} min</td>
-                      <td className="px-4 py-3">{formatCurrency(service.basePrice)}</td>
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => {
-                              setActiveTab("prices")
-                              setExpandedServiceId(isExpanded && activeTab === "prices" ? null : service.id)
-                            }}
-                            className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full border transition-all ${
-                              service.overridesCount > 0
-                                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/15"
-                                : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
-                            }`}
-                          >
-                            <Car className="size-2.5" />
-                            <span>{service.overridesCount} veíc.</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setActiveTab("parts")
-                              setExpandedServiceId(isExpanded && activeTab === "parts" ? null : service.id)
-                            }}
-                            className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full border transition-all ${
-                              service.parts.length > 0
-                                ? "bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/15"
-                                : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
-                            }`}
-                          >
-                            <Package className="size-2.5" />
-                            <span>{service.parts.length} peças</span>
-                          </button>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="inline-flex items-center gap-1.5">
-                          <button
-                            onClick={() => handleOpenEditModal(service)}
-                            className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-md border border-transparent hover:border-border transition-all"
-                            title="Editar serviço"
-                          >
-                            <Edit2 className="size-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteService(service.id)}
-                            className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-md border border-transparent hover:border-red-500/20 transition-all"
-                            title="Excluir serviço"
-                          >
-                            <Trash2 className="size-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    
-                    {/* Linha Expandida (Overrides por Carro OU Peças Utilizadas) */}
-                    {isExpanded && (
-                      <tr>
-                        <td colSpan={6} className="bg-muted/20 border-b border-dashed border-border/60 px-6 py-4">
-                          <motion.div
-                            initial={{ opacity: 0, y: -8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -8 }}
-                            transition={springConfig}
-                            className="space-y-4"
-                          >
-                            
-                            {/* Seletor de Abas Interno */}
-                            <div className="flex border-b border-border/40 gap-4 text-xs font-semibold pb-1.5">
-                              <button
-                                onClick={() => setActiveTab("prices")}
-                                className={`pb-1 transition-all border-b-2 ${
-                                  activeTab === "prices"
-                                    ? "text-emerald-500 border-emerald-500 font-bold"
-                                    : "text-muted-foreground border-transparent hover:text-foreground"
-                                }`}
-                              >
-                                Preços por Veículo ({service.overridesCount})
-                              </button>
-                              <button
-                                onClick={() => setActiveTab("parts")}
-                                className={`pb-1 transition-all border-b-2 ${
-                                  activeTab === "parts"
-                                    ? "text-emerald-500 border-emerald-500 font-bold"
-                                    : "text-muted-foreground border-transparent hover:text-foreground"
-                                }`}
-                              >
-                                Peças Usadas ({service.parts.length})
-                              </button>
-                            </div>
-
-                            {/* ABA 1: PREÇOS POR VEÍCULO */}
-                            {activeTab === "prices" && (
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-1.5 text-foreground font-semibold text-[11px]">
-                                  <Sparkles className="size-3.5 text-emerald-500" />
-                                  <h3>Preços Diferenciados por Carro: <span className="underline">{service.name}</span></h3>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                                  {service.overrides.length === 0 ? (
-                                    <p className="text-[10px] text-muted-foreground font-medium col-span-full">
-                                      Este serviço utiliza o preço base em todos os veículos. Defina um valor customizado abaixo.
-                                    </p>
-                                  ) : (
-                                    service.overrides.map(override => (
-                                      <div
-                                        key={override.id}
-                                        className="bg-card border border-border/50 rounded-lg p-2 flex items-center justify-between text-xs"
-                                      >
-                                        <div className="flex flex-col">
-                                          <span className="font-semibold text-foreground text-[11px]">{override.carName}</span>
-                                          <span className="text-[10px] text-emerald-500 font-bold">{formatCurrency(override.price)}</span>
-                                        </div>
-                                        <button
-                                          onClick={() => handleDeleteOverride(override.id)}
-                                          disabled={actionLoading}
-                                          className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-md transition-colors"
-                                        >
-                                          <Trash2 className="size-3" />
-                                        </button>
-                                      </div>
-                                    ))
-                                  )}
-                                </div>
-
-                                <div className="flex flex-wrap gap-2 items-end pt-2 border-t border-dashed border-border/40">
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Veículo / Modelo</label>
-                                    <input
-                                      type="text"
-                                      placeholder="Ex: Civic"
-                                      value={newCarName}
-                                      onChange={(e) => setNewCarName(e.target.value)}
-                                      className="text-[11px] border border-border rounded-md px-2.5 py-1 bg-card focus:outline-hidden focus:ring-1 focus:ring-emerald-500 font-medium text-foreground w-[160px]"
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Valor Diferenciado (R$)</label>
-                                    <input
-                                      type="text"
-                                      placeholder="Ex: 150,00"
-                                      value={newOverridePrice}
-                                      onChange={(e) => setNewOverridePrice(formatCurrencyInput(e.target.value))}
-                                      className="text-[11px] border border-border rounded-md px-2.5 py-1 bg-card focus:outline-hidden focus:ring-1 focus:ring-emerald-500 font-medium text-foreground w-[130px]"
-                                    />
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSaveOverride(service.id)}
-                                    disabled={actionLoading || !newCarName || !newOverridePrice}
-                                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] rounded-md px-3 py-1.5 transition-colors border border-emerald-600/15 disabled:bg-muted disabled:text-muted-foreground"
-                                  >
-                                    Adicionar Valor
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ABA 2: PEÇAS UTILIZADAS */}
-                            {activeTab === "parts" && (
-                              <div className="space-y-4">
-                                <div className="flex items-center justify-between gap-4">
-                                  <div className="flex items-center gap-1.5 text-foreground font-semibold text-[11px]">
-                                    <Package className="size-3.5 text-blue-500" />
-                                    <h3>Peças Vinculadas ao Serviço: <span className="underline">{service.name}</span></h3>
-                                  </div>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowNewPartInline(!showNewPartInline)}
-                                    className="text-[10px] font-bold text-emerald-500 hover:underline flex items-center gap-1"
-                                  >
-                                    {showNewPartInline ? "Cancelar Cadastro" : "Cadastrar Nova Peça na Hora"}
-                                  </button>
-                                </div>
-
-                                {/* Form Inline para cadastrar nova peça na hora */}
-                                {showNewPartInline && (
-                                  <div className="bg-card border border-emerald-500/20 rounded-xl p-3.5 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-1">
-                                    <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 uppercase tracking-wider">
-                                      <Sparkles className="size-3.5" />
-                                      <span>Nova Peça no Estoque & Vínculo Direto</span>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                                      <div className="space-y-0.5">
-                                        <label className="text-[9px] text-muted-foreground font-medium">Nome da Peça</label>
-                                        <input
-                                          type="text"
-                                          placeholder="Ex: Óleo Selènia 5W30"
-                                          value={inlinePartName}
-                                          onChange={(e) => setInlinePartName(e.target.value)}
-                                          className="w-full text-xs border border-border rounded-md px-2 py-1 bg-muted/10 focus:bg-card focus:outline-hidden font-medium text-foreground"
-                                        />
-                                      </div>
-                                      <div className="space-y-0.5">
-                                        <label className="text-[9px] text-muted-foreground font-medium">Marca (Opcional)</label>
-                                        <input
-                                          type="text"
-                                          placeholder="Ex: Petronas"
-                                          value={inlinePartBrand}
-                                          onChange={(e) => setInlinePartBrand(e.target.value)}
-                                          className="w-full text-xs border border-border rounded-md px-2 py-1 bg-muted/10 focus:bg-card focus:outline-hidden font-medium text-foreground"
-                                        />
-                                      </div>
-                                      <div className="space-y-0.5">
-                                        <label className="text-[9px] text-muted-foreground font-medium">Código SKU (Opcional)</label>
-                                        <input
-                                          type="text"
-                                          placeholder="Ex: OLE-5W30"
-                                          value={inlinePartSku}
-                                          onChange={(e) => setInlinePartSku(e.target.value)}
-                                          className="w-full text-xs border border-border rounded-md px-2 py-1 bg-muted/10 focus:bg-card focus:outline-hidden font-medium text-foreground font-mono"
-                                        />
-                                      </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                                      <div className="space-y-0.5">
-                                        <label className="text-[9px] text-muted-foreground font-medium">Preço de Custo (R$)</label>
-                                        <input
-                                          type="text"
-                                          placeholder="Ex: 35,00"
-                                          value={inlinePartCost}
-                                          onChange={(e) => setInlinePartCost(formatCurrencyInput(e.target.value))}
-                                          className="w-full text-xs border border-border rounded-md px-2 py-1 bg-muted/10 focus:bg-card focus:outline-hidden font-medium text-foreground"
-                                        />
-                                      </div>
-                                      <div className="space-y-0.5">
-                                        <label className="text-[9px] text-muted-foreground font-medium">Preço de Venda (R$)</label>
-                                        <input
-                                          type="text"
-                                          placeholder="Ex: 55,00"
-                                          value={inlinePartSale}
-                                          onChange={(e) => setInlinePartSale(formatCurrencyInput(e.target.value))}
-                                          className="w-full text-xs border border-border rounded-md px-2 py-1 bg-muted/10 focus:bg-card focus:outline-hidden font-medium text-foreground"
-                                        />
-                                      </div>
-                                      <div className="space-y-0.5">
-                                        <label className="text-[9px] text-muted-foreground font-medium">Estoque Inicial</label>
-                                        <input
-                                          type="number"
-                                          value={inlinePartQty}
-                                          onChange={(e) => setInlinePartQty(e.target.value)}
-                                          className="w-full text-xs border border-border rounded-md px-2 py-1 bg-muted/10 focus:bg-card focus:outline-hidden font-medium text-foreground"
-                                        />
-                                      </div>
-                                      <div className="space-y-0.5">
-                                        <label className="text-[9px] text-muted-foreground font-medium">Qtd Usada no Serviço</label>
-                                        <input
-                                          type="number"
-                                          min="1"
-                                          value={inlineLinkQty}
-                                          onChange={(e) => setInlineLinkQty(parseInt(e.target.value, 10) || 1)}
-                                          className="w-full text-xs border border-emerald-500/40 rounded-md px-2 py-1 bg-card focus:outline-hidden font-bold text-foreground"
-                                        />
-                                      </div>
-                                    </div>
-
-                                    <div className="flex justify-end gap-1.5">
-                                      <button
-                                        type="button"
-                                        onClick={() => setShowNewPartInline(false)}
-                                        className="text-[10px] font-semibold text-muted-foreground border border-border px-3 py-1.5 rounded-full hover:bg-muted transition-colors"
-                                      >
-                                        Cancelar
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleCreateAndLinkPart(service.id)}
-                                        disabled={actionLoading || !inlinePartName || !inlinePartCost || !inlinePartSale}
-                                        className="text-[10px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 px-4 py-1.5 rounded-full transition-colors border border-emerald-600/10 disabled:bg-muted disabled:text-muted-foreground"
-                                      >
-                                        Salvar e Vincular
-                                      </button>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Lista de peças vinculadas */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                                  {service.parts.length === 0 ? (
-                                    <p className="text-[10px] text-muted-foreground font-medium col-span-full">
-                                      Nenhuma peça associada a este serviço. Associe peças abaixo.
-                                    </p>
-                                  ) : (
-                                    service.parts.map(p => (
-                                      <div
-                                        key={p.id}
-                                        className="bg-card border border-border/50 rounded-lg p-2 flex items-center justify-between text-xs"
-                                      >
-                                        <div className="flex flex-col">
-                                          <span className="font-semibold text-foreground text-[11px]">{p.partName}</span>
-                                          <span className="text-[10px] text-muted-foreground font-normal">
-                                            {p.partBrand ? `${p.partBrand} • ` : ""}Qtd: <span className="font-bold text-foreground">{p.quantity} un</span>
-                                          </span>
-                                        </div>
-                                        <button
-                                          onClick={() => handleUnlinkPart(p.id)}
-                                          disabled={actionLoading}
-                                          className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-md transition-colors"
-                                          title="Remover peça"
-                                        >
-                                          <Trash2 className="size-3.5" />
-                                        </button>
-                                      </div>
-                                    ))
-                                  )}
-                                </div>
-
-                                {/* Form Inline para associar peça existente */}
-                                <div className="flex flex-wrap gap-2 items-end pt-2 border-t border-dashed border-border/40">
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Peça em Estoque</label>
-                                    <select
-                                      value={selectedPartId}
-                                      onChange={(e) => setSelectedPartId(e.target.value)}
-                                      className="text-[11px] border border-border rounded-md px-2 py-1 bg-card focus:outline-hidden focus:ring-1 focus:ring-emerald-500 font-medium text-foreground w-[220px]"
-                                    >
-                                      <option value="">-- Selecione a peça --</option>
-                                      {allParts.map(part => (
-                                        <option key={part.id} value={part.id}>
-                                          {part.name} {part.brand ? `(${part.brand})` : ""} - {formatCurrency(part.salePrice)}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Quantidade Utilizada</label>
-                                    <input
-                                      type="number"
-                                      min="1"
-                                      value={partLinkQty}
-                                      onChange={(e) => setPartLinkQty(parseInt(e.target.value, 10) || 1)}
-                                      className="text-[11px] border border-border rounded-md px-2 py-1 bg-card focus:outline-hidden focus:ring-1 focus:ring-emerald-500 font-medium text-foreground w-[85px]"
-                                    />
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleLinkPart(service.id)}
-                                    disabled={actionLoading || !selectedPartId}
-                                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] rounded-md px-3.5 py-1.5 transition-colors border border-emerald-600/15 disabled:bg-muted disabled:text-muted-foreground"
-                                  >
-                                    Vincular Peça
-                                  </button>
-                                </div>
-
-                              </div>
-                            )}
-
-                          </motion.div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Modal de Cadastro/Edição de Serviço */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={springConfig}
-              className="bg-card w-full max-w-sm rounded-3xl shadow-xl border border-border overflow-hidden"
-            >
-              <div className="px-5 py-4 border-b border-dashed border-border flex items-center justify-between">
-                <h2 className="font-bold text-sm text-foreground flex items-center gap-1.5">
-                  <Wrench className="size-4 text-emerald-500" />
-                  {editingService ? "Editar Serviço" : "Novo Serviço"}
-                </h2>
+        {/* Left Section: List of Services - 5 Columns */}
+        <section className="lg:col-span-5 space-y-6">
+          <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] border border-border/50 overflow-hidden text-card-foreground p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3.5 border-b border-dashed border-border">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+                <Wrench className="size-4 text-emerald-500" />
+                Procedimentos
+              </h3>
+              {selectedServiceId && (
                 <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-muted-foreground hover:text-foreground text-xs font-semibold"
+                  onClick={resetForm}
+                  className="border border-border hover:bg-muted text-muted-foreground font-semibold text-[10px] rounded-full px-3 py-1 transition-colors"
                 >
-                  Fechar
+                  Novo Procedimento
+                </button>
+              )}
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+              <input
+                placeholder="BUSCAR NO CATÁLOGO..."
+                className="w-full text-xs border border-border rounded-lg pl-8 pr-3 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {/* List */}
+            {loading ? (
+              <div className="text-center py-12 text-muted-foreground text-xs font-medium">
+                Carregando catálogo...
+              </div>
+            ) : filteredServices.length > 0 ? (
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1 no-scrollbar">
+                {filteredServices.map(service => (
+                  <div
+                    key={service.id}
+                    onClick={() => handleSelectService(service)}
+                    className={cn(
+                      "p-3 border transition-all cursor-pointer rounded-2xl flex items-center justify-between",
+                      selectedServiceId === service.id
+                        ? "bg-emerald-500/5 border-emerald-500/35 shadow-xs"
+                        : "bg-muted/10 border-border/40 hover:bg-muted/20"
+                    )}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-foreground uppercase tracking-tight line-clamp-1">
+                          {service.name}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2.5 text-[9px] text-muted-foreground font-medium">
+                        <span className="flex items-center gap-1">
+                          <Clock className="size-3" />
+                          {service.estimatedTimeMinutes} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Package className="size-3" />
+                          {service.parts.length} peças
+                        </span>
+                        {service.overrides.length > 0 && (
+                          <span className="text-amber-500 font-bold">
+                            {service.overrides.length} exceções
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="text-right flex items-center gap-3">
+                      <span className="text-xs font-black text-emerald-500 font-mono">
+                        R$ {parseFloat(service.basePrice).toFixed(2)}
+                      </span>
+                      <button
+                        onClick={(e) => handleDeleteService(service.id, e)}
+                        className="text-muted-foreground hover:text-red-500 p-1 rounded hover:bg-red-500/10 transition-all"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 border border-dashed border-border rounded-2xl">
+                <p className="text-xs text-muted-foreground italic uppercase">
+                  Nenhum serviço localizado.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Right Section: Creation/Editing Form - 7 Columns */}
+        <section className="lg:col-span-7 space-y-6">
+          <form onSubmit={handleSubmit} className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] border border-border/50 overflow-hidden text-card-foreground p-5 space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground pb-3.5 border-b border-dashed border-border flex items-center gap-2">
+              <Edit3 className="size-4 text-emerald-500" />
+              {selectedServiceId ? "Editar Registro" : "Cadastrar Novo Procedimento"}
+            </h3>
+
+            {/* Basic Info */}
+            <div className="grid gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Nome do Procedimento *</label>
+                <input
+                  id="service-name"
+                  placeholder="EX: TROCA DE PASTILHAS DE FREIO DIANTEIRAS"
+                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground placeholder-muted-foreground/50 uppercase"
+                  required
+                  value={serviceName}
+                  onChange={(e) => setServiceName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Detalhamento Técnico / Escopo</label>
+                <textarea
+                  id="description"
+                  placeholder="Descreva o passo-a-passo técnico ou escopo deste serviço..."
+                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 min-h-[80px] resize-none"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Preço de Mão de Obra Base *</label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1.5 text-muted-foreground text-[10px] font-bold">R$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="w-full text-xs border border-border rounded-lg pl-7 pr-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-emerald-500 placeholder-muted-foreground/50 font-mono"
+                      placeholder="0.00"
+                      required
+                      value={basePrice}
+                      onChange={(e) => setBasePrice(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tempo Estimado (Minutos) *</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      className="w-full text-xs border border-border rounded-lg pl-2.5 pr-8 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
+                      placeholder="60"
+                      required
+                      value={estimatedTime}
+                      onChange={(e) => setEstimatedTime(e.target.value)}
+                    />
+                    <span className="absolute right-2.5 top-1.5 text-muted-foreground text-[9px] font-bold">MIN</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Linked Parts Block */}
+            <div className="bg-muted/20 border border-border/50 rounded-2xl p-4 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+                <Package className="size-4 text-emerald-500" />
+                Vínculo Automático de Peças
+              </h4>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Adicione as peças que são sempre gastas na execução deste serviço. Elas serão lançadas automaticamente na abertura da OS.
+              </p>
+
+              {/* Autocomplete Search input */}
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+                <input
+                  placeholder="DIGITE SKU OU NOME PARA BUSCAR NO ESTOQUE..."
+                  className="w-full text-xs border border-border rounded-lg pl-8 pr-3 py-1.5 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                  value={partSearchQuery}
+                  onChange={(e) => setPartSearchQuery(e.target.value)}
+                />
+
+                {/* Autocomplete dropdown overlay */}
+                {filteredPartsAutocomplete.length > 0 && (
+                  <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-xl divide-y divide-border overflow-hidden">
+                    {filteredPartsAutocomplete.map(part => (
+                      <div
+                        key={part.id}
+                        onClick={() => addPart(part)}
+                        className="p-2.5 hover:bg-muted cursor-pointer flex items-center justify-between text-xs"
+                      >
+                        <div className="grid">
+                          <span className="font-bold text-foreground uppercase text-[11px]">{part.name}</span>
+                          <span className="text-[9px] text-muted-foreground font-mono">SKU: {part.sku || "N/A"}</span>
+                        </div>
+                        <span className="text-emerald-500 font-extrabold font-mono">R$ {parseFloat(part.salePrice).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Selected parts list */}
+              {selectedParts.length > 0 ? (
+                <div className="space-y-2.5 border-t border-border/50 pt-3">
+                  {selectedParts.map(part => (
+                    <div
+                      key={part.id}
+                      className="flex items-center justify-between border-b border-dashed border-border/50 pb-2.5 text-xs"
+                    >
+                      <div className="grid">
+                        <span className="font-bold uppercase text-foreground">{part.name}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">SKU: {part.sku || "N/A"} · R$ {part.price.toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 bg-muted/40 rounded-lg px-2 py-0.5 border border-border">
+                          <button type="button" onClick={() => updateQuantity(part.id, -1)} className="hover:text-emerald-500 text-sm font-bold w-4">-</button>
+                          <span className="text-xs font-bold w-4 text-center">{part.quantity}</span>
+                          <button type="button" onClick={() => updateQuantity(part.id, 1)} className="hover:text-emerald-500 text-sm font-bold w-4">+</button>
+                        </div>
+                        <button type="button" onClick={() => removePart(part.id)} className="text-muted-foreground hover:text-red-550 transition-colors">
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 text-center border border-dashed border-border rounded-xl">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest italic">Aguardando inserção de peças...</p>
+                </div>
+              )}
+            </div>
+
+            {/* Overrides Block */}
+            <div className="bg-muted/20 border border-border/50 rounded-2xl p-4 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+                <Car className="size-4 text-emerald-500" />
+                Sobregravações por Carro
+              </h4>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Precisa cobrar preços diferentes para veículos específicos? Defina aqui as exceções.
+              </p>
+
+              {/* Add override inputs */}
+              <div className="grid grid-cols-2 gap-3 items-center align-middle">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-muted-foreground uppercase font-bold">Veículo (Modelo/Marca)</label>
+                  <input
+                    placeholder="EX: HONDA CIVIC"
+                    className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-card focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                    value={newOverrideCarName}
+                    onChange={(e) => setNewOverrideCarName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1 flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="text-[10px] text-muted-foreground uppercase font-bold">Preço de Mão de Obra</label>
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-1.5 text-muted-foreground text-[10px] font-bold">R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full text-xs border border-border rounded-lg pl-7 pr-2.5 py-1.5 bg-card focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-amber-500 placeholder-muted-foreground/50 font-mono"
+                        value={newOverridePrice}
+                        onChange={(e) => setNewOverridePrice(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addPriceOverride}
+                    className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-lg px-3 py-1.5 transition-colors bg-card"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Overrides list */}
+              {overrides.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-2">
+                  {overrides.map((ov, index) => (
+                    <div
+                      key={index}
+                      className="p-2.5 bg-card border border-border/50 rounded-xl flex items-center justify-between text-xs"
+                    >
+                      <div className="grid">
+                        <span className="font-bold text-foreground uppercase text-[11px]">{ov.carName}</span>
+                        <span className="text-[9px] text-muted-foreground">Mão de Obra Especial</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-amber-500 font-mono">R$ {parseFloat(ov.price).toFixed(2)}</span>
+                        <button type="button" onClick={() => removePriceOverride(index)} className="text-muted-foreground hover:text-red-500 transition-colors">
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            {/* Totals & Submit */}
+            <div className="space-y-4 pt-4 border-t border-dashed border-border">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">SUBTOTAL MÃO DE OBRA:</span>
+                <span className="text-foreground font-bold font-mono">R$ {(parseFloat(basePrice) || 0).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">SUBTOTAL AUTOPEÇAS VINCULADAS:</span>
+                <span className="text-foreground font-bold font-mono">R$ {totalPartsPrice.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center pt-2.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-foreground">Valor Estimado Total:</span>
+                <span className="text-xl font-black text-emerald-500 tracking-tight font-mono">R$ {totalServicePrice.toFixed(2)}</span>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                {selectedServiceId && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="flex-1 h-10 border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors"
+                  >
+                    Cancelar Edição
+                  </button>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 h-10 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border border-emerald-600/10 flex items-center justify-center gap-1"
+                >
+                  {submitting && <Loader2 className="size-3 animate-spin" />}
+                  <span>{selectedServiceId ? "Salvar Alterações" : "Efetivar Registro"}</span>
                 </button>
               </div>
 
-              <form onSubmit={handleSaveService} className="p-5 space-y-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-medium text-muted-foreground">Nome do Serviço</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: Troca de Óleo"
-                    value={formName}
-                    onChange={(e) => setFormName(e.target.value)}
-                    className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-medium text-muted-foreground">Descrição do Serviço (Opcional)</label>
-                  <textarea
-                    placeholder="Ex: Realizar troca de óleo lubrificante do motor e substituição do respectivo filtro."
-                    value={formDescription}
-                    onChange={(e) => setFormDescription(e.target.value)}
-                    rows={2}
-                    className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-medium text-muted-foreground">Tempo Estimado (min)</label>
-                    <input
-                      type="number"
-                      required
-                      min="1"
-                      placeholder="Ex: 45"
-                      value={formTime}
-                      onChange={(e) => setFormTime(e.target.value)}
-                      className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-medium text-muted-foreground">Preço Base (R$)</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ex: 120,00"
-                      value={formPrice}
-                      onChange={(e) => setFormPrice(formatCurrencyInput(e.target.value))}
-                      className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-2 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={actionLoading}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"
-                  >
-                    {actionLoading && <Loader2 className="size-3 animate-spin" />}
-                    <span>Salvar</span>
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              <div className="p-3 bg-muted/20 text-muted-foreground rounded-2xl border border-border/50 text-[10px] flex items-start gap-2 leading-relaxed">
+                <Info className="size-4 text-muted-foreground shrink-0 mt-0.5" />
+                <p>
+                  O sistema aplicará o preço atual de venda das autopeças no estoque no momento do cadastro. Alterações futuras no inventário não alteram retrospectivamente as OSs abertas.
+                </p>
+              </div>
+            </div>
+          </form>
+        </section>
+      </div>
 
     </div>
   )
 }
+

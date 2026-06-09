@@ -1,30 +1,27 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
-// ─── Color Palette ───────────────────────────────────────────────────────────
+// ─── Clean Invoice Colour Palette ─────────────────────────────────────────────
 export const COLORS = {
-  // Brand
-  emerald:     "#10B981",
-  emeraldDark: "#059669",
-  blue:        "#3B82F6",
-  amber:       "#F59E0B",
-  indigo:      "#6366F1",
-  pink:        "#EC4899",
-  red:         "#EF4444",
-  // Neutrals
-  white:       "#FFFFFF",
-  gray50:      "#F9FAFB",
-  gray100:     "#F3F4F6",
-  gray200:     "#E5E7EB",
-  gray300:     "#D1D5DB",
-  gray400:     "#9CA3AF",
-  gray500:     "#6B7280",
-  gray600:     "#4B5563",
-  gray700:     "#374151",
-  gray800:     "#1F2937",
-  gray900:     "#111827",
+  black:     "#111111",
+  dark:      "#222222",
+  gray700:   "#444444",
+  gray500:   "#666666",
+  gray400:   "#888888",
+  gray200:   "#CCCCCC",
+  gray100:   "#F0F0F0",
+  gray50:    "#F7F7F7",
+  white:     "#FFFFFF",
+
+  // Status accent colours (kept for header accent stripe)
+  blue:      "#2563EB",
+  amber:     "#D97706",
+  indigo:    "#4F46E5",
+  pink:      "#DB2777",
+  emerald:   "#059669",
+  red:       "#DC2626",
 };
 
-// ─── Status → document colour mapping ────────────────────────────────────────
+// ─── Status → accent colour ────────────────────────────────────────────────────
 export const STATUS_PDF_COLOR: Record<string, string> = {
   CHECK_IN:           COLORS.blue,
   AWAITING_BUDGET:    COLORS.amber,
@@ -37,135 +34,93 @@ export const STATUS_PDF_COLOR: Record<string, string> = {
 };
 
 export const STATUS_PDF_LABEL: Record<string, string> = {
-  CHECK_IN:           "FICHA DE CHECK-IN",
-  AWAITING_BUDGET:    "ORÇAMENTO DETALHADO",
-  AWAITING_APPROVAL:  "ORÇAMENTO — AGUARDANDO APROVAÇÃO",
-  AWAITING_PARTS:     "ORDEM DE SERVIÇO INTERNA",
-  IN_PROGRESS:        "ORDEM DE SERVIÇO INTERNA",
-  TESTING_WASHING:    "NOTA DE CONCLUSÃO",
-  READY:              "NOTA DE CONCLUSÃO",
-  DELIVERED:          "NOTA DE ENTREGA",
+  CHECK_IN:           "Ficha de Check-in",
+  AWAITING_BUDGET:    "Orçamento",
+  AWAITING_APPROVAL:  "Orçamento",
+  AWAITING_PARTS:     "Ordem de Serviço",
+  IN_PROGRESS:        "Ordem de Serviço",
+  TESTING_WASHING:    "Nota de Conclusão",
+  READY:              "Nota de Conclusão",
+  DELIVERED:          "Nota de Entrega",
 };
 
-// ─── Shared Styles ────────────────────────────────────────────────────────────
+// ─── Shared Styles ─────────────────────────────────────────────────────────────
 export const sharedStyles = StyleSheet.create({
   page: {
     backgroundColor: COLORS.white,
     fontFamily: "Helvetica",
-    paddingTop: 0,
-    paddingBottom: 60,
-    paddingHorizontal: 0,
+    paddingTop: 48,
+    paddingBottom: 72,
+    paddingHorizontal: 48,
   },
-  // Page background accent strip (top)
-  headerBand: {
-    height: 8,
-    width: "100%",
+
+  // ── Typography ──────────────────────────────────────────────────────────────
+  docTitle: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 28,
+    color: COLORS.black,
+    letterSpacing: -0.5,
   },
-  // White content area with side padding
-  body: {
-    paddingHorizontal: 40,
-    paddingTop: 20,
-    flex: 1,
+  docNumber: {
+    fontFamily: "Helvetica",
+    fontSize: 11,
+    color: COLORS.gray400,
+    marginTop: 4,
   },
-  // ── Typography ──────────────────────────────────────
-  h1: {
+  companyName: {
     fontFamily: "Helvetica-Bold",
     fontSize: 20,
-    color: COLORS.gray900,
-    marginBottom: 2,
+    color: COLORS.black,
+    letterSpacing: -0.3,
+    textAlign: "right",
   },
-  h2: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 13,
-    color: COLORS.gray800,
-    marginBottom: 6,
-  },
-  h3: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 10,
-    color: COLORS.gray700,
-    marginBottom: 4,
-  },
-  label: {
+  sectionLabel: {
     fontFamily: "Helvetica",
-    fontSize: 7,
+    fontSize: 8,
     color: COLORS.gray400,
     textTransform: "uppercase",
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
+    marginBottom: 3,
+  },
+  fieldBold: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 9.5,
+    color: COLORS.black,
     marginBottom: 2,
   },
-  value: {
+  fieldRegular: {
     fontFamily: "Helvetica",
     fontSize: 9,
-    color: COLORS.gray800,
-  },
-  valueBold: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 9,
-    color: COLORS.gray900,
-  },
-  small: {
-    fontFamily: "Helvetica",
-    fontSize: 7.5,
     color: COLORS.gray500,
+    marginBottom: 1.5,
+    lineHeight: 1.5,
   },
-  // ── Layout ────────────────────────────────────────
+  metaValue: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 10,
+    color: COLORS.black,
+  },
+
+  // ── Layout ──────────────────────────────────────────────────────────────────
   row: {
     flexDirection: "row",
-  },
-  col: {
-    flexDirection: "column",
   },
   spaceBetween: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   flex1: { flex: 1 },
-  // ── Divider ───────────────────────────────────────
+
+  // ── Dividers ─────────────────────────────────────────────────────────────────
   divider: {
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray200,
-    marginVertical: 12,
+    marginVertical: 16,
   },
   dividerLight: {
     borderBottomWidth: 0.5,
     borderBottomColor: COLORS.gray100,
-    marginVertical: 8,
-  },
-  // ── Section card ─────────────────────────────────
-  card: {
-    backgroundColor: COLORS.gray50,
-    borderRadius: 6,
-    padding: 12,
-    marginBottom: 12,
-  },
-  cardBordered: {
-    backgroundColor: COLORS.white,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    padding: 12,
-    marginBottom: 12,
-  },
-  // ── Badge ─────────────────────────────────────────
-  badge: {
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  badgeText: {
-    fontSize: 7,
-    fontFamily: "Helvetica-Bold",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  // ── Signature line ────────────────────────────────
-  signatureLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray400,
-    marginTop: 24,
-    marginBottom: 4,
-    width: "60%",
+    marginVertical: 10,
   },
 });

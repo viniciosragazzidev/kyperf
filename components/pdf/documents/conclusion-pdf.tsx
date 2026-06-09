@@ -5,7 +5,7 @@ import { PdfHeader } from "../pdf-header";
 import { PdfFooter } from "../pdf-footer";
 import { PdfClientVehicleBlock } from "../pdf-client-vehicle-block";
 import { PdfItemsTable, PdfItem } from "../pdf-items-table";
-import { COLORS, STATUS_PDF_COLOR, sharedStyles } from "../pdf-styles";
+import { COLORS, sharedStyles } from "../pdf-styles";
 
 type OrderData = {
   osNumber: number;
@@ -27,77 +27,51 @@ type OrderData = {
 };
 
 const s = StyleSheet.create({
-  sectionTitle: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    color: COLORS.gray400,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 8,
-    paddingBottom: 4,
-    borderBottomWidth: 0.5,
-    borderBottomColor: COLORS.gray200,
-  },
-  infoBox: {
+  textBox: {
     borderWidth: 1,
     borderColor: COLORS.gray200,
     borderRadius: 4,
-    padding: 10,
-    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     minHeight: 36,
-  },
-  infoText: {
-    fontFamily: "Helvetica",
-    fontSize: 8.5,
-    color: COLORS.gray700,
-    lineHeight: 1.5,
-  },
-  readyBanner: {
-    borderRadius: 6,
-    padding: 12,
     marginBottom: 14,
   },
-  readyTitle: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 11,
-    marginBottom: 2,
-  },
-  readySubtitle: {
+  textBoxContent: {
     fontFamily: "Helvetica",
-    fontSize: 8,
-    lineHeight: 1.5,
+    fontSize: 9,
+    color: COLORS.gray500,
+    lineHeight: 1.6,
   },
-  warrantyCard: {
-    borderRadius: 6,
+  warrantyBox: {
     borderWidth: 1,
-    padding: 12,
-    marginBottom: 12,
+    borderColor: COLORS.gray200,
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 14,
   },
   warrantyTitle: {
     fontFamily: "Helvetica-Bold",
     fontSize: 9,
+    color: COLORS.black,
     marginBottom: 4,
-  },
-  warrantyText: {
-    fontFamily: "Helvetica",
-    fontSize: 8.5,
-    lineHeight: 1.5,
   },
   instructionRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 8,
-    marginBottom: 5,
+    gap: 6,
+    marginBottom: 4,
   },
   bullet: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 10,
-    lineHeight: 1.1,
+    fontFamily: "Helvetica",
+    fontSize: 9,
+    color: COLORS.gray400,
+    lineHeight: 1.5,
   },
   instructionText: {
     fontFamily: "Helvetica",
-    fontSize: 8,
-    color: COLORS.gray700,
+    fontSize: 8.5,
+    color: COLORS.gray500,
     lineHeight: 1.5,
     flex: 1,
   },
@@ -111,12 +85,10 @@ const POST_SERVICE_INSTRUCTIONS = [
 ];
 
 export function ConclusionPDF({ order }: { order: OrderData }) {
-  const accentColor = STATUS_PDF_COLOR[order.status] ?? COLORS.pink;
-
   return (
     <Document
-      title={`OS-${String(order.osNumber).padStart(4, "0")}-conclusao`}
-      author="AutoManager PRO"
+      title={`OS-${String(order.osNumber).padStart(5, "0")}-conclusao`}
+      author="KyperFix"
     >
       <Page size="A4" style={sharedStyles.page}>
         <PdfHeader
@@ -126,88 +98,53 @@ export function ConclusionPDF({ order }: { order: OrderData }) {
           branch={order.branch}
         />
 
-        <View style={sharedStyles.body}>
-          {/* Ready banner */}
-          <View
-            style={[
-              s.readyBanner,
-              { backgroundColor: accentColor + "18", borderWidth: 1, borderColor: accentColor + "40" },
-            ]}
-          >
-            <Text style={[s.readyTitle, { color: accentColor }]}>
-              ✓ Serviços Concluídos
-            </Text>
-            <Text style={[s.readySubtitle, { color: accentColor }]}>
-              O veículo teve todos os serviços executados e está aguardando retirada pelo cliente.
-            </Text>
+        <PdfClientVehicleBlock
+          customer={order.customer}
+          vehicle={order.vehicle}
+          fuelLevel={order.fuelLevel}
+          currentMileage={order.currentMileage}
+          mechanicName={order.mechanic?.name}
+          allocatedBox={order.allocatedBox}
+        />
+
+        {/* Executed items */}
+        <PdfItemsTable
+          items={order.items}
+          discount={order.discount}
+          surcharge={order.surcharge}
+          approvedOnly
+        />
+
+        {/* Warranty */}
+        {order.warranty && (
+          <View style={s.warrantyBox}>
+            <Text style={s.warrantyTitle}>Garantia dos Serviços</Text>
+            <Text style={s.textBoxContent}>{order.warranty}</Text>
           </View>
+        )}
 
-          {/* Client + Vehicle */}
-          <PdfClientVehicleBlock
-            customer={order.customer}
-            vehicle={order.vehicle}
-            fuelLevel={order.fuelLevel}
-            currentMileage={order.currentMileage}
-            mechanicName={order.mechanic?.name}
-            allocatedBox={order.allocatedBox}
-            accentColor={accentColor}
-          />
-
-          <View style={sharedStyles.divider} />
-
-          {/* Items executed */}
-          <Text style={s.sectionTitle}>Serviços e Peças Executados</Text>
-          <PdfItemsTable
-            items={order.items}
-            discount={order.discount}
-            surcharge={order.surcharge}
-            accentColor={accentColor}
-            approvedOnly
-          />
-
-          {/* Warranty */}
-          {order.warranty && (
-            <View
-              style={[
-                s.warrantyCard,
-                { borderColor: accentColor + "60", backgroundColor: accentColor + "08" },
-              ]}
-            >
-              <Text style={[s.warrantyTitle, { color: accentColor }]}>
-                🛡 Garantia dos Serviços
-              </Text>
-              <Text style={[s.warrantyText, { color: COLORS.gray700 }]}>
-                {order.warranty}
-              </Text>
+        {/* Post-service instructions */}
+        <Text style={sharedStyles.sectionLabel}>Instruções Pós-Serviço</Text>
+        <View style={s.textBox}>
+          {POST_SERVICE_INSTRUCTIONS.map((inst, i) => (
+            <View key={i} style={s.instructionRow}>
+              <Text style={s.bullet}>•</Text>
+              <Text style={s.instructionText}>{inst}</Text>
             </View>
-          )}
-
-          {/* Post-service instructions */}
-          <View style={sharedStyles.card}>
-            <Text style={s.sectionTitle}>Instruções Pós-Serviço</Text>
-            {POST_SERVICE_INSTRUCTIONS.map((inst, i) => (
-              <View key={i} style={s.instructionRow}>
-                <Text style={[s.bullet, { color: accentColor }]}>·</Text>
-                <Text style={s.instructionText}>{inst}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Notes */}
-          {order.notes && (
-            <View style={{ marginBottom: 12 }}>
-              <Text style={s.sectionTitle}>Observações Adicionais</Text>
-              <View style={s.infoBox}>
-                <Text style={s.infoText}>{order.notes}</Text>
-              </View>
-            </View>
-          )}
+          ))}
         </View>
 
-        <PdfFooter
-          status={order.status}
-          warrantyText={order.warranty || undefined}
-        />
+        {/* Notes */}
+        {order.notes && (
+          <>
+            <Text style={sharedStyles.sectionLabel}>Observações</Text>
+            <View style={s.textBox}>
+              <Text style={s.textBoxContent}>{order.notes}</Text>
+            </View>
+          </>
+        )}
+
+        <PdfFooter showSignatureLine signatureLabel="Assinatura do Cliente" />
       </Page>
     </Document>
   );

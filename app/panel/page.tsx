@@ -1,12 +1,14 @@
-export default function PanelPage() {
+import { getDashboardDataAction } from "@/lib/actions/dashboard-actions";
+import DashboardClient from "./dashboard-client";
+
+export default async function PanelPage() {
+  const result = await getDashboardDataAction();
+  const initialData = (result.success && result.data) ? result.data : null;
+  
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-        <div className="aspect-video rounded-xl bg-muted/30" />
-        <div className="aspect-video rounded-xl bg-muted/30" />
-        <div className="aspect-video rounded-xl bg-muted/30" />
-      </div>
-      <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/30 md:min-h-min" />
-    </div>
-  )
+    <DashboardClient 
+      initialData={initialData} 
+      error={result.error} 
+    />
+  );
 }

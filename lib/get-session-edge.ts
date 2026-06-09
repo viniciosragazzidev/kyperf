@@ -7,7 +7,7 @@ export const getSession = async () => {
         const res = await fetch(`${process.env.BETTER_AUTH_URL || 'http://localhost:3000'}/api/auth/get-session`, {
             headers: {
                 // Pass cookies for session identification
-                cookie: (await import("next/headers")).cookies().toString()
+                cookie: (await (await import("next/headers")).cookies()).toString()
             }
         });
         if (!res.ok) return null;

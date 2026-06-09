@@ -5,52 +5,52 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PDFDownloadLink, PDFViewer, type DocumentProps } from "@react-pdf/renderer";
 import { Printer, Download, Scissors, Eye, X } from "lucide-react";
 import { getWorkOrderForPdfAction } from "@/lib/actions/pdf-actions";
-import { CheckInPDF }    from "./documents/checkin-pdf";
-import { BudgetPDF }     from "./documents/budget-pdf";
-import { WorkOrderPDF }  from "./documents/workorder-pdf";
+import { CheckInPDF } from "./documents/checkin-pdf";
+import { BudgetPDF } from "./documents/budget-pdf";
+import { WorkOrderPDF } from "./documents/workorder-pdf";
 import { ConclusionPDF } from "./documents/conclusion-pdf";
-import { DeliveryPDF }   from "./documents/delivery-pdf";
+import { DeliveryPDF } from "./documents/delivery-pdf";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const STATUS_DOC_LABELS: Record<string, string> = {
-  CHECK_IN:           "Ficha de Check-in",
-  AWAITING_BUDGET:    "Orçamento",
-  AWAITING_APPROVAL:  "Orçamento",
-  AWAITING_PARTS:     "O.S. Interna",
-  IN_PROGRESS:        "O.S. Interna",
-  TESTING_WASHING:    "Nota de Conclusão",
-  READY:              "Nota de Conclusão",
-  DELIVERED:          "Nota de Entrega",
+  CHECK_IN: "Ficha de Check-in",
+  AWAITING_BUDGET: "Orçamento",
+  AWAITING_APPROVAL: "Orçamento",
+  AWAITING_PARTS: "O.S. Interna",
+  IN_PROGRESS: "O.S. Interna",
+  TESTING_WASHING: "Nota de Conclusão",
+  READY: "Nota de Conclusão",
+  DELIVERED: "Nota de Entrega",
 };
 
 const STATUS_ACCENT: Record<string, string> = {
-  CHECK_IN:           "#3B82F6",
-  AWAITING_BUDGET:    "#F59E0B",
-  AWAITING_APPROVAL:  "#F59E0B",
-  AWAITING_PARTS:     "#6366F1",
-  IN_PROGRESS:        "#6366F1",
-  TESTING_WASHING:    "#EC4899",
-  READY:              "#10B981",
-  DELIVERED:          "#10B981",
+  CHECK_IN: "#3B82F6",
+  AWAITING_BUDGET: "#F59E0B",
+  AWAITING_APPROVAL: "#F59E0B",
+  AWAITING_PARTS: "#6366F1",
+  IN_PROGRESS: "#6366F1",
+  TESTING_WASHING: "#EC4899",
+  READY: "#10B981",
+  DELIVERED: "#10B981",
 };
 
 const STATUS_FILE_SUFFIX: Record<string, string> = {
-  CHECK_IN:           "checkin",
-  AWAITING_BUDGET:    "orcamento",
-  AWAITING_APPROVAL:  "orcamento",
-  AWAITING_PARTS:     "os",
-  IN_PROGRESS:        "os",
-  TESTING_WASHING:    "conclusao",
-  READY:              "conclusao",
-  DELIVERED:          "entrega",
+  CHECK_IN: "checkin",
+  AWAITING_BUDGET: "orcamento",
+  AWAITING_APPROVAL: "orcamento",
+  AWAITING_PARTS: "os",
+  IN_PROGRESS: "os",
+  TESTING_WASHING: "conclusao",
+  READY: "conclusao",
+  DELIVERED: "entrega",
 };
 
 // ─── Receipt lines builder ─────────────────────────────────────────────────────
 function buildReceiptLines(order: any): string[] {
   const lines: string[] = [];
   const branch = order.branch;
-  lines.push(branch?.name?.toUpperCase() ?? "OFICINA AUTOMANAGER");
-  if (branch?.cnpj)    lines.push(`CNPJ: ${branch.cnpj}`);
+  lines.push(branch?.name?.toUpperCase() ?? "OFICINA KYPERFIX");
+  if (branch?.cnpj) lines.push(`CNPJ: ${branch.cnpj}`);
   if (branch?.address) lines.push(branch.address);
   lines.push("─────────────────────────────");
   lines.push(`OS #${String(order.osNumber).padStart(4, "0")}`);
@@ -85,7 +85,7 @@ function buildReceiptLines(order: any): string[] {
   }
   lines.push("─────────────────────────────");
   lines.push("OBRIGADO PELA PREFERÊNCIA!");
-  lines.push("AutoManager PRO");
+  lines.push("KyperFix - Sistema de Gestão para Oficinas");
   return lines;
 }
 
@@ -191,18 +191,18 @@ export function ThermalPrinterCard({
   osNumber: number;
   status: string;
 }) {
-  const [printState, setPrintState]       = useState<PrintState>("idle");
-  const [orderData, setOrderData]         = useState<any>(null);
-  const [receiptLines, setReceiptLines]   = useState<string[]>([]);
-  const [visibleLines, setVisibleLines]   = useState(0);
+  const [printState, setPrintState] = useState<PrintState>("idle");
+  const [orderData, setOrderData] = useState<any>(null);
+  const [receiptLines, setReceiptLines] = useState<string[]>([]);
+  const [visibleLines, setVisibleLines] = useState(0);
   const [printProgress, setPrintProgress] = useState(0);
-  const [error, setError]                 = useState<string | null>(null);
-  const [showPreview, setShowPreview]     = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
-  const accent     = STATUS_ACCENT[status]      ?? "#10B981";
-  const docLabel   = STATUS_DOC_LABELS[status]  ?? "Documento";
+  const accent = STATUS_ACCENT[status] ?? "#10B981";
+  const docLabel = STATUS_DOC_LABELS[status] ?? "Documento";
   const fileSuffix = STATUS_FILE_SUFFIX[status] ?? "os";
-  const fileName   = `OS-${String(osNumber).padStart(4, "0")}-${fileSuffix}.pdf`;
+  const fileName = `OS-${String(osNumber).padStart(4, "0")}-${fileSuffix}.pdf`;
   const doc = orderData ? resolvePDFDocument(status, orderData) : null;
 
   // ── Start animation ──────────────────────────────────────────────────────
@@ -409,7 +409,7 @@ export function ThermalPrinterCard({
 
                     <div className="px-3 pb-1">
                       {receiptLines.slice(0, visibleLines).map((line, i) => {
-                        const isSep    = line.startsWith("─");
+                        const isSep = line.startsWith("─");
                         const isHeader = !isSep && line === line.toUpperCase()
                           && !line.includes("R$") && !line.includes("#")
                           && !line.includes("CNPJ") && !line.includes("OS #");
@@ -495,8 +495,8 @@ export function ThermalPrinterCard({
                 {printState === "idle"
                   ? "Toque em imprimir para gerar o documento"
                   : printState === "loading"
-                  ? "Carregando dados…"
-                  : "Gerando documento…"}
+                    ? "Carregando dados…"
+                    : "Gerando documento…"}
               </p>
             )}
           </div>
