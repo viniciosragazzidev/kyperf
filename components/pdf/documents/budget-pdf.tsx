@@ -1,6 +1,4 @@
-"use client";
-
-import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, Text, StyleSheet, Image } from "@react-pdf/renderer";
 import { PdfHeader } from "../pdf-header";
 import { PdfFooter } from "../pdf-footer";
 import { PdfClientVehicleBlock } from "../pdf-client-vehicle-block";
@@ -18,6 +16,8 @@ type OrderData = {
   notes?: string | null;
   diagnostic?: string | null;
   allocatedBox?: string | null;
+  budgetAccessCode?: string | null;
+  qrCodeUrl?: string | null;
   customer: { name: string; phone?: string | null; document?: string | null; email?: string | null; address?: string | null } | null;
   vehicle: { brand: string; model: string; plate: string; year?: number | null; engine?: string | null } | null;
   mechanic: { name: string } | null;
@@ -40,6 +40,45 @@ const s = StyleSheet.create({
     fontSize: 9,
     color: COLORS.gray500,
     lineHeight: 1.6,
+  },
+  qrContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginTop: 15,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray200,
+    borderStyle: "dashed",
+    gap: 12,
+  },
+  qrTextContainer: {
+    flex: 1,
+    alignItems: "flex-end",
+  },
+  qrTitle: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 8,
+    color: COLORS.gray700,
+    textAlign: "right",
+    marginBottom: 2,
+  },
+  qrSubtitle: {
+    fontFamily: "Helvetica",
+    fontSize: 7,
+    color: COLORS.gray500,
+    textAlign: "right",
+    marginBottom: 4,
+  },
+  qrCodeText: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 9,
+    color: COLORS.emerald,
+    textAlign: "right",
+  },
+  qrImage: {
+    width: 60,
+    height: 60,
   },
 });
 
@@ -92,6 +131,18 @@ export function BudgetPDF({ order }: { order: OrderData }) {
               <Text style={s.textBoxContent}>{order.notes}</Text>
             </View>
           </>
+        )}
+
+        {/* QR Code de aprovação pública */}
+        {order.qrCodeUrl && (
+          <View style={s.qrContainer}>
+            <View style={s.qrTextContainer}>
+              <Text style={s.qrTitle}>APROVAÇÃO ONLINE RÁPIDA</Text>
+              <Text style={s.qrSubtitle}>Escaneie o QR Code ao lado para ver e aprovar os itens do seu orçamento online.</Text>
+              <Text style={s.qrCodeText}>CÓDIGO DE ACESSO: {order.budgetAccessCode}</Text>
+            </View>
+            <Image src={order.qrCodeUrl} style={s.qrImage} />
+          </View>
         )}
 
         <PdfFooter

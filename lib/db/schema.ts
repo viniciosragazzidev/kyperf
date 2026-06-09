@@ -235,6 +235,7 @@ export const workOrders = pgTable('work_orders', {
   discount: numeric('discount', { precision: 10, scale: 2 }).default('0.00'),
   surcharge: numeric('surcharge', { precision: 10, scale: 2 }).default('0.00'),
   paymentMethod: varchar('payment_method', { length: 50 }),
+  budgetAccessCode: varchar('budget_access_code', { length: 10 }),
 
   notes: text('notes'),
   diagnostic: text('diagnostic'),

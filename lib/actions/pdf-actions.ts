@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "./auth-helper";
+import QRCode from "qrcode";
 
 const getAuthenticatedUser = requireAuth;
 
@@ -17,6 +18,31 @@ export async function getWorkOrderForPdfAction(id: string) {
         and(eq(wo.id, id), eq(wo.tenantId, user.tenantId!)),
     });
     if (!order) throw new Error("OS não encontrada.");
+
+    let budgetAccessCode = order.budgetAccessCode;
+    if (!budgetAccessCode) {
+      const numbers = "0123456789";
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      let numPart = "";
+      let letPart = "";
+      for (let i = 0; i < 3; i++) {
+        numPart += numbers.charAt(Math.floor(Math.random() * numbers.length));
+        letPart += letters.charAt(Math.floor(Math.random() * letters.length));
+      }
+      budgetAccessCode = `${numPart}${letPart}`;
+      await db.update(schema.workOrders)
+        .set({ budgetAccessCode })
+        .where(eq(schema.workOrders.id, order.id));
+    }
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://kyperfixy.vercel.app";
+    const qrUrl = `${appUrl}/public/budget/${order.id}`;
+    let qrCodeUrl = "";
+    try {
+      qrCodeUrl = await QRCode.toDataURL(qrUrl);
+    } catch (qrErr) {
+      console.error("Erro ao gerar QR Code:", qrErr);
+    }
 
     const [customer, vehicle, branch, tenant] = await Promise.all([
       db.query.customers.findFirst({ where: (c) => eq(c.id, order.customerId) }),
@@ -61,6 +87,8 @@ export async function getWorkOrderForPdfAction(id: string) {
       success: true,
       data: {
         ...order,
+        budgetAccessCode,
+        qrCodeUrl,
         customer: customer || null,
         vehicle: vehicle || null,
         mechanic: mechanic || null,

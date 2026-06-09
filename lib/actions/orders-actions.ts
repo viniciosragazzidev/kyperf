@@ -148,6 +148,18 @@ interface CreateWorkOrderInput {
   items?: WorkOrderItemInput[];
 }
 
+function generateAccessCode(): string {
+  const numbers = "0123456789";
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let numPart = "";
+  let letPart = "";
+  for (let i = 0; i < 3; i++) {
+    numPart += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    letPart += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  return `${numPart}${letPart}`;
+}
+
 export async function createWorkOrderAction(input: CreateWorkOrderInput) {
   try {
     const user = await getAuthenticatedUser();
@@ -246,6 +258,9 @@ export async function createWorkOrderAction(input: CreateWorkOrderInput) {
       });
       const nextOsNumber = (maxOrder?.osNumber || 0) + 1;
 
+      // Gerar código de acesso público (3 números + 3 letras)
+      const budgetAccessCode = generateAccessCode();
+
       // 3. Criar a Ordem de Serviço
       const [newOrder] = await tx.insert(schema.workOrders).values({
         tenantId: user.tenantId!,
@@ -265,6 +280,7 @@ export async function createWorkOrderAction(input: CreateWorkOrderInput) {
         discount: input.discount || '0.00',
         surcharge: input.surcharge || '0.00',
         paymentMethod: input.paymentMethod || null,
+        budgetAccessCode,
         notes: input.notes || null,
         diagnostic: input.diagnostic || null,
         photoUrls: input.photoUrls || [],
