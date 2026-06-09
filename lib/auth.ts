@@ -17,6 +17,10 @@ const getBaseURL = () => {
 
 export const auth = betterAuth({
     baseURL: getBaseURL(),
+    trustedOrigins: [
+        "https://kyperff.vercel.app",
+        "https://*.vercel.app"
+    ],
     database: drizzleAdapter(db, {
         provider: "pg",
         schema: {
