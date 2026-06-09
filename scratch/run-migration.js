@@ -1,48 +1,47 @@
-const fs = require('fs');
-const path = require('path');
-const { Client } = require('pg');
+const { Pool } = require('pg');
+require('dotenv').config();
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const sqlQueries = [
+  `DO $$ BEGIN
+    CREATE TYPE work_status AS ENUM ('AVAILABLE', 'BUSY', 'AWAY');
+  EXCEPTION
+    WHEN duplicate_object THEN null;
+  END $$;`,
+  `ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "phone" varchar(20);`,
+  `ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "specialties" text[];`,
+  `ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "work_status" "work_status" DEFAULT 'AVAILABLE' NOT NULL;`,
+  `CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
+    id SERIAL PRIMARY KEY,
+    hash text NOT NULL,
+    created_at bigint
+  );`,
+  `INSERT INTO "__drizzle_migrations" (hash, created_at) VALUES ('0003_mysterious_triathlon', ${Date.now()});`
+];
 
 async function run() {
-  const dbUrl = process.env.DATABASE_URL || "postgresql://postgres.ejvgpdqgwpafkkkqysax:17761132763Ra%40@aws-1-us-east-1.pooler.supabase.com:6543/postgres";
-  console.log("Connecting to database:", dbUrl.split('@')[1]); // Log host only for safety
-
-  const client = new Client({
-    connectionString: dbUrl,
-  });
-
+  console.log("Connecting to database...");
+  const client = await pool.connect();
   try {
-    await client.connect();
-    console.log("Connected successfully!");
+    console.log("Beginning transaction...");
+    await client.query('BEGIN');
 
-    const migrationPath = path.join(__dirname, '../drizzle/0001_light_dark_beast.sql');
-    const sqlContent = fs.readFileSync(migrationPath, 'utf8');
-
-    // Split statements by drizzle's delimiter
-    const statements = sqlContent
-      .split('--> statement-breakpoint')
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
-
-    console.log(`Found ${statements.length} statements to apply.`);
-
-    for (let i = 0; i < statements.length; i++) {
-      const stmt = statements[i];
-      console.log(`\n[${i + 1}/${statements.length}] Applying: ${stmt.substring(0, 80)}...`);
-      try {
-        await client.query(stmt);
-        console.log("✅ Success!");
-      } catch (err) {
-        console.error("❌ FAILED!");
-        console.error("Statement:", stmt);
-        console.error("Error Message:", err.message);
-        console.error("Error Detail:", err.detail || 'None');
-        break; // Stop on first error
-      }
+    for (const sql of sqlQueries) {
+      console.log(`Executing: ${sql}`);
+      await client.query(sql);
     }
+
+    await client.query('COMMIT');
+    console.log("Migration executed successfully!");
   } catch (err) {
-    console.error("Database connection error:", err.message);
+    await client.query('ROLLBACK');
+    console.error("Migration failed, rolled back.", err);
   } finally {
-    await client.end();
+    client.release();
+    await pool.end();
   }
 }
 

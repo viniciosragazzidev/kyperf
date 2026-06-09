@@ -23,6 +23,12 @@ export const userRoleEnum = pgEnum('user_role', [
   'MECHANIC'    // Mecânico de pátio, focado em executar os serviços e atualizar status de rampa
 ]);
 
+export const workStatusEnum = pgEnum('work_status', [
+  'AVAILABLE',  // Disponível no pátio
+  'BUSY',       // Executando serviço (carro na rampa)
+  'AWAY'        // Ausente / Intervalo / Almoço
+]);
+
 export const orderStatusEnum = pgEnum('order_status', [
   'CHECK_IN',
   'AWAITING_BUDGET',
@@ -85,6 +91,9 @@ export const user = pgTable('user', {
   role: userRoleEnum('role').default('MECHANIC').notNull(),
   commissionRate: numeric('commission_rate', { precision: 5, scale: 2 }).default('0.00'),
   isActive: integer('is_active').default(1).notNull(),
+  phone: varchar('phone', { length: 20 }),
+  specialties: text('specialties').array(),
+  workStatus: workStatusEnum('work_status').default('AVAILABLE').notNull(),
 }, (table) => [
   index('user_tenant_idx').on(table.tenantId),
   index('user_branch_idx').on(table.branchId),

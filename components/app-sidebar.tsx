@@ -100,6 +100,21 @@ const data = {
         },
       ],
     },
+    {
+      title: "Equipe & Oficina",
+      url: "/panel/employees",
+      icon: <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} />,
+      items: [
+        {
+          title: "Colaboradores",
+          url: "/panel/employees",
+        },
+        {
+          title: "Carga de Trabalho",
+          url: "/panel/employees/workload",
+        },
+      ],
+    },
   ],
   navConfig: [
     {
