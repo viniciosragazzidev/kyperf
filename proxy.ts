@@ -21,9 +21,7 @@ export async function proxy(request: NextRequest) {
       };
       
       const res = await fetch(`${getBaseUrl()}/api/onboarding/status`, {
-        headers: {
-          cookie: request.headers.get("cookie") || "",
-        },
+        headers: new Headers(request.headers),
       });
 
       if (res.ok) {
