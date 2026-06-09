@@ -1,36 +1,40 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const sessionToken = request.cookies.get("better-auth.session_token")?.value || 
-                       request.cookies.get("__secure-better-auth.session_token")?.value;
+  const sessionCookie = request.cookies.getAll().find((c) =>
+    c.name.endsWith("better-auth.session_token")
+  );
+  const sessionToken = sessionCookie?.value;
 
   let isAuthenticated = false;
   let onboardingCompleted = false;
 
   if (sessionToken) {
     try {
-      const session = await auth.api.getSession({
-        headers: request.headers,
+      const dbSession = await db.query.session.findFirst({
+        where: (s, { eq }) => eq(s.token, sessionToken),
       });
 
-      if (session && session.user) {
-        isAuthenticated = true;
-        const userId = session.user.id;
+      if (dbSession && dbSession.expiresAt > new Date()) {
+        const userId = dbSession.userId;
 
         const dbUser = await db.query.user.findFirst({
           where: (u, { eq }) => eq(u.id, userId),
         });
 
-        if (dbUser && dbUser.tenantId) {
-          const tenant = await db.query.tenants.findFirst({
-            where: (t, { eq }) => eq(t.id, dbUser.tenantId!),
-          });
-          onboardingCompleted = !!tenant?.onboardingCompleted;
+        if (dbUser) {
+          isAuthenticated = true;
+
+          if (dbUser.tenantId) {
+            const tenant = await db.query.tenants.findFirst({
+              where: (t, { eq }) => eq(t.id, dbUser.tenantId!),
+            });
+            onboardingCompleted = !!tenant?.onboardingCompleted;
+          }
         }
       }
     } catch (err) {
@@ -80,4 +84,5 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.svg$).*)',
   ],
 }
+
 
