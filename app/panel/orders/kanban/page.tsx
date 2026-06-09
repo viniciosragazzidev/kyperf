@@ -40,6 +40,10 @@ import {
 import { sendDirectWhatsappAction } from "@/lib/actions/whatsapp-actions"
 import { toast } from "sonner"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 const springConfig = { type: "spring" as const, stiffness: 300, damping: 28 }
 
@@ -461,13 +465,13 @@ export default function KanbanPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shrink-0">
         <div>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               onClick={() => router.push("/panel/orders")}
-              className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors border border-border/40 bg-card mr-1"
+              className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors border border-border/40 bg-card mr-1 h-auto"
               title="Voltar para Histórico"
             >
               <ChevronLeft className="size-4" />
-            </button>
+            </Button>
             <span className="bg-purple-500/10 text-purple-500 p-1.5 rounded-lg border border-purple-500/20">
               <Sparkles className="size-5" />
             </span>
@@ -482,25 +486,25 @@ export default function KanbanPage() {
 
         <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
           {/* Perguntar à IA Button */}
-          <button
+          <Button
             onClick={() => setIsCommandBarOpen(true)}
-            className="bg-purple-650/10 hover:bg-purple-650/20 text-purple-600 dark:text-purple-400 font-extrabold text-xs rounded-full px-4 py-2.5 transition-all border border-purple-600/20 flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="bg-purple-650/10 hover:bg-purple-650/20 text-purple-600 dark:text-purple-400 font-extrabold text-xs rounded-full px-4 py-2.5 h-auto transition-all border border-purple-600/20 flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Sparkles className="size-3.5" />
             <span>Perguntar à IA</span>
             <kbd className="hidden sm:inline-flex items-center gap-0.5 bg-purple-600/20 px-1.5 py-0.5 rounded text-[8px] font-mono leading-none tracking-normal uppercase">
               Ctrl+K
             </kbd>
-          </button>
+          </Button>
 
           {/* Nova O.S. Button */}
-          <button
+          <Button
             onClick={() => router.push("/panel/orders/new")}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-full px-5 py-2.5 transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-full px-5 py-2.5 h-auto transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer border-0"
           >
             <Plus className="size-4" />
             Nova O.S.
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -526,7 +530,7 @@ export default function KanbanPage() {
             <span className="absolute left-3 top-3 text-muted-foreground">
               <Search className="size-4" />
             </span>
-            <input
+            <Input
               type="text"
               placeholder="Pesquise por OS, placa, modelo, cliente..."
               value={searchTerm}
@@ -534,12 +538,12 @@ export default function KanbanPage() {
               className="w-full text-xs border border-border rounded-xl pl-9 pr-4 py-2.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground placeholder:text-muted-foreground"
             />
             {searchTerm && (
-              <button
+              <Button
                 onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-3.5 text-muted-foreground hover:text-foreground text-[10px] font-bold"
+                className="absolute right-3 top-3.5 text-muted-foreground hover:text-foreground text-[10px] font-bold h-auto p-0 bg-transparent hover:bg-transparent border-0 shadow-none"
               >
                 Limpar
-              </button>
+              </Button>
             )}
           </div>
 
@@ -565,12 +569,12 @@ export default function KanbanPage() {
             const active = statusFilter === tab.key
             const count = getCountForStatus(tab.key)
             return (
-              <button
+              <Button
                 key={tab.key}
                 onClick={() => setStatusFilter(tab.key)}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all shrink-0 flex items-center gap-1.5 relative ${
+                className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all shrink-0 flex items-center gap-1.5 relative h-auto border-0 shadow-none ${
                   active 
-                    ? "bg-foreground text-background scale-102" 
+                    ? "bg-foreground text-background scale-102 hover:bg-foreground/90" 
                     : "bg-muted/30 hover:bg-muted/60 text-muted-foreground"
                 }`}
               >
@@ -589,7 +593,7 @@ export default function KanbanPage() {
                     transition={springConfig}
                   />
                 )}
-              </button>
+              </Button>
             )
           })}
         </div>
@@ -742,12 +746,12 @@ export default function KanbanPage() {
                     ABERTURA: {selectedOrderDetails?.createdAt ? new Date(selectedOrderDetails.createdAt).toLocaleDateString('pt-BR') : ""}
                   </span>
                 </div>
-                <button
+                <Button
                   onClick={() => setIsDrawerOpen(false)}
-                  className="p-1.5 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-all"
+                  className="p-1.5 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-all h-auto p-0 bg-transparent hover:bg-transparent border-0 shadow-none"
                 >
                   <X className="size-4.5" />
-                </button>
+                </Button>
               </div>
 
               {/* Corpo Principal (Scrollable) */}
@@ -768,7 +772,7 @@ export default function KanbanPage() {
                       </h4>
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase">Etapa do Fluxo</label>
+                          <Label className="text-[9px] font-bold text-muted-foreground uppercase">Etapa do Fluxo</Label>
                           <select
                             value={editStatus}
                             onChange={(e) => setEditStatus(e.target.value)}
@@ -786,7 +790,7 @@ export default function KanbanPage() {
                         </div>
                         
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase">Mecânico Alocado</label>
+                          <Label className="text-[9px] font-bold text-muted-foreground uppercase">Mecânico Alocado</Label>
                           <select
                             value={editMechanicId}
                             onChange={(e) => setEditMechanicId(e.target.value)}
@@ -802,7 +806,7 @@ export default function KanbanPage() {
 
                       <div className="grid grid-cols-2 gap-3 text-xs pt-1.5">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase">Status Financeiro</label>
+                          <Label className="text-[9px] font-bold text-muted-foreground uppercase">Status Financeiro</Label>
                           <select
                             value={editPaymentStatus}
                             onChange={(e) => setEditPaymentStatus(e.target.value)}
@@ -815,8 +819,8 @@ export default function KanbanPage() {
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase">Box Alocado</label>
-                          <input
+                          <Label className="text-[9px] font-bold text-muted-foreground uppercase">Box Alocado</Label>
+                          <Input
                             type="text"
                             placeholder="Ex: Elevador 2"
                             value={editAllocatedBox}
@@ -874,8 +878,8 @@ export default function KanbanPage() {
                     {/* Notas do Triador / Diagnóstico */}
                     <div className="space-y-4">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-muted-foreground uppercase">Diagnóstico Inicial (Reclamação do Cliente)</label>
-                        <textarea
+                        <Label className="text-[9px] font-bold text-muted-foreground uppercase">Diagnóstico Inicial (Reclamação do Cliente)</Label>
+                        <Textarea
                           placeholder="Digite o diagnóstico inicial..."
                           value={editDiagnostic}
                           onChange={(e) => setEditDiagnostic(e.target.value)}
@@ -885,8 +889,8 @@ export default function KanbanPage() {
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-muted-foreground uppercase">Observações Internas</label>
-                        <textarea
+                        <Label className="text-[9px] font-bold text-muted-foreground uppercase">Observações Internas</Label>
+                        <Textarea
                           placeholder="Digite observações internas..."
                           value={editNotes}
                           onChange={(e) => setEditNotes(e.target.value)}
@@ -942,13 +946,13 @@ export default function KanbanPage() {
                             Peças e Serviços Orçados
                           </h4>
                           {drawerItems.some(i => i.isApproved === 0) && (
-                            <button
+                            <Button
                               type="button"
                               onClick={handleApproveAllDrawerItems}
-                              className="text-[8.5px] bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full transition-all active:scale-95 shadow-xs"
+                              className="text-[8.5px] bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full transition-all active:scale-95 shadow-xs h-auto border-0"
                             >
                               ✓ Aprovar Todo Orçamento
-                            </button>
+                            </Button>
                           )}
                         </div>
                         <span className="text-[9px] text-muted-foreground font-bold">
@@ -998,30 +1002,30 @@ export default function KanbanPage() {
                                   
                                   {/* Toggles de Aprovação Rápidos */}
                                   <div className="inline-flex rounded-lg overflow-hidden border border-border/40 text-[9px] font-extrabold shrink-0">
-                                    <button
+                                    <Button
                                       type="button"
                                       onClick={() => handleUpdateDrawerItemApproval(item.id, 0)}
-                                      className={`px-2 py-1 flex items-center justify-center transition-all ${item.isApproved === 0 ? 'bg-amber-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
+                                      className={`px-2 py-1 flex items-center justify-center transition-all rounded-none h-auto border-0 ${item.isApproved === 0 ? 'bg-amber-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
                                       title="Pendente"
                                     >
                                       <Clock className="size-3" />
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                       type="button"
                                       onClick={() => handleUpdateDrawerItemApproval(item.id, 1)}
-                                      className={`px-2 py-1 flex items-center justify-center transition-all ${item.isApproved === 1 ? 'bg-emerald-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
+                                      className={`px-2 py-1 flex items-center justify-center transition-all rounded-none h-auto border-0 ${item.isApproved === 1 ? 'bg-emerald-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
                                       title="Aprovado"
                                     >
                                       <Check className="size-3" />
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                       type="button"
                                       onClick={() => handleUpdateDrawerItemApproval(item.id, 2)}
-                                      className={`px-2 py-1 flex items-center justify-center transition-all ${item.isApproved === 2 ? 'bg-red-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
+                                      className={`px-2 py-1 flex items-center justify-center transition-all rounded-none h-auto border-0 ${item.isApproved === 2 ? 'bg-red-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
                                       title="Recusado"
                                     >
                                       <X className="size-3" />
-                                    </button>
+                                    </Button>
                                   </div>
                                 </div>
                               </div>
@@ -1079,19 +1083,19 @@ export default function KanbanPage() {
               {/* Footer Drawer */}
               <div className="p-4 border-t border-border flex items-center justify-between gap-3 bg-muted/10">
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       window.print()
                     }}
-                    className="bg-muted hover:bg-muted/80 text-foreground font-bold text-[10px] rounded-lg p-2.5 transition-all flex items-center gap-1.5"
+                    className="bg-muted hover:bg-muted/80 text-foreground font-bold text-[10px] rounded-lg p-2.5 h-auto transition-all flex items-center gap-1.5 border-0 shadow-none"
                     title="Imprimir O.S."
                   >
                     <Printer className="size-4" />
                     Imprimir
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     disabled={sendingWhatsapp}
                     onClick={async () => {
@@ -1124,7 +1128,7 @@ export default function KanbanPage() {
                         setSendingWhatsapp(false);
                       }
                     }}
-                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg p-2.5 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg p-2.5 h-auto transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-0"
                     title="Enviar orçamento por WhatsApp"
                   >
                     {sendingWhatsapp ? (
@@ -1133,34 +1137,34 @@ export default function KanbanPage() {
                       <Phone className="size-4" />
                     )}
                     {sendingWhatsapp ? "Enviando..." : "WhatsApp"}
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       router.push(`/panel/orders/new?id=${selectedOrderId}`)
                     }}
-                    className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 font-bold text-[10px] rounded-lg p-2.5 transition-all flex items-center gap-1.5"
+                    className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 font-bold text-[10px] rounded-lg p-2.5 h-auto transition-all flex items-center gap-1.5 border-0 shadow-none"
                     title="Editar O.S. Completa"
                   >
                     <Edit2 className="size-4" />
                     Editar O.S.
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setIsDrawerOpen(false)}
-                    className="bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-lg px-4 py-2.5 transition-all"
+                    className="bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-lg px-4 py-2.5 h-auto transition-all border-0 shadow-none"
                   >
                     Fechar
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     disabled={isSavingDetails || isLoadingDetails}
                     onClick={handleSaveQuickEdits}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-lg px-5 py-2.5 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50"
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-lg px-5 py-2.5 h-auto transition-all flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50 border-0"
                   >
                     {isSavingDetails ? (
                       <>
@@ -1173,7 +1177,7 @@ export default function KanbanPage() {
                         <span>Salvar</span>
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -1200,18 +1204,18 @@ export default function KanbanPage() {
                 Você tem certeza absoluta que deseja excluir esta Ordem de Serviço? Esta ação é irreversível e excluirá permanentemente todos os registros de itens e triagem associados.
               </p>
               <div className="flex items-center justify-end gap-2 pt-2">
-                <button
+                <Button
                   type="button"
                   onClick={() => setOrderToDelete(null)}
-                  className="bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-lg px-4 py-2 transition-all"
+                  className="bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-lg px-4 py-2 h-auto transition-all border-0 shadow-none"
                 >
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   disabled={isDeleting}
                   onClick={handleDeleteOrder}
-                  className="bg-red-500 hover:bg-red-600 text-white font-extrabold text-xs rounded-lg px-4 py-2 transition-all flex items-center gap-1 shadow-md disabled:opacity-50"
+                  className="bg-red-500 hover:bg-red-600 text-white font-extrabold text-xs rounded-lg px-4 py-2 h-auto transition-all flex items-center gap-1 shadow-md disabled:opacity-50 border-0"
                 >
                   {isDeleting ? (
                     <>
@@ -1221,7 +1225,7 @@ export default function KanbanPage() {
                   ) : (
                     <span>Sim, Excluir</span>
                   )}
-                </button>
+                </Button>
               </div>
             </motion.div>
           </div>
@@ -1258,7 +1262,7 @@ export default function KanbanPage() {
               {/* Header Input */}
               <div className="p-4 border-b border-zinc-800 flex items-center gap-3 relative">
                 <Sparkles className="size-5 text-purple-400 shrink-0 animate-pulse" />
-                <input
+                <Input
                   type="text"
                   placeholder="Pergunte à IA ou selecione um comando..."
                   value={commandQuery}
@@ -1269,16 +1273,16 @@ export default function KanbanPage() {
                     }
                   }}
                   disabled={isCommandProcessing}
-                  className="w-full bg-transparent border-0 outline-hidden text-sm text-zinc-100 placeholder-zinc-500 focus:ring-0 pl-0 pr-10"
+                  className="w-full bg-transparent border-0 outline-hidden text-sm text-zinc-100 placeholder-zinc-500 focus:ring-0 pl-0 pr-10 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                   autoFocus
                 />
                 {commandQuery && !isCommandProcessing && (
-                  <button
+                  <Button
                     onClick={() => setCommandQuery("")}
-                    className="absolute right-6 text-[10px] font-bold text-zinc-500 hover:text-zinc-350 cursor-pointer"
+                    className="absolute right-6 text-[10px] font-bold text-zinc-500 hover:text-zinc-350 cursor-pointer h-auto p-0 bg-transparent hover:bg-transparent border-0 shadow-none"
                   >
                     Limpar
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -1339,21 +1343,21 @@ export default function KanbanPage() {
                           cmd: "Mover todos os carros prontos e testados para entregues."
                         }
                       ].map((item, idx) => (
-                        <button
+                        <Button
                           key={idx}
                           type="button"
                           onClick={() => {
                             setCommandQuery(item.cmd)
                             handleRunAICommand(item.cmd)
                           }}
-                          className="w-full text-left p-3.5 bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-850 hover:border-zinc-800 rounded-2xl transition-all flex items-center justify-between group cursor-pointer"
+                          className="w-full text-left p-3.5 bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-850 hover:border-zinc-800 rounded-2xl h-auto transition-all flex items-center justify-between group cursor-pointer shadow-none"
                         >
                           <div className="space-y-1 pr-4">
                             <span className="text-xs font-bold text-zinc-200 group-hover:text-purple-400 transition-colors block">{item.title}</span>
                             <span className="text-[10px] text-zinc-500 font-medium block">{item.subtitle}</span>
                           </div>
                           <ArrowRight className="size-4 text-zinc-650 group-hover:text-purple-400 transition-colors shrink-0" />
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -1368,18 +1372,18 @@ export default function KanbanPage() {
 
                 {commandResult ? (
                   <div className="flex items-center gap-2 ml-auto">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => {
                         setCommandResult(null)
                         setCommandQuery("")
                       }}
-                      className="bg-zinc-850 hover:bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl px-4 py-2 transition-all cursor-pointer"
+                      className="bg-zinc-850 hover:bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl px-4 py-2 h-auto transition-all cursor-pointer border-0 shadow-none"
                     >
                       Voltar
-                    </button>
+                    </Button>
                     {commandResult.logs.length > 0 && (
-                      <button
+                      <Button
                         type="button"
                         onClick={async () => {
                           setIsCommandProcessing(true)
@@ -1390,25 +1394,25 @@ export default function KanbanPage() {
                           setCommandQuery("")
                           setSuccessMessage("Ações da IA executadas com sucesso no banco de dados!")
                         }}
-                        className="bg-purple-650 hover:bg-purple-750 text-white font-extrabold text-xs rounded-xl px-5 py-2 transition-all flex items-center gap-1 shadow-md active:scale-95 cursor-pointer"
+                        className="bg-purple-650 hover:bg-purple-750 text-white font-extrabold text-xs rounded-xl px-5 py-2 h-auto transition-all flex items-center gap-1 shadow-md active:scale-95 cursor-pointer border-0"
                       >
                         <Check className="size-3.5" />
                         <span>Confirmar Execução</span>
-                      </button>
+                      </Button>
                     )}
                   </div>
                 ) : (
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       setIsCommandBarOpen(false)
                       setCommandResult(null)
                       setCommandQuery("")
                     }}
-                    className="bg-zinc-850 hover:bg-zinc-800 text-zinc-350 font-bold text-xs rounded-xl px-4 py-2.5 transition-all ml-auto cursor-pointer"
+                    className="bg-zinc-850 hover:bg-zinc-800 text-zinc-350 font-bold text-xs rounded-xl px-4 py-2.5 h-auto transition-all ml-auto cursor-pointer border-0 shadow-none"
                   >
                     Fechar
-                  </button>
+                  </Button>
                 )}
               </div>
             </motion.div>

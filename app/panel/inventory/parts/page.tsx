@@ -26,6 +26,11 @@ import {
   deletePartOverrideAction 
 } from "@/lib/actions/parts-actions"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { toast } from "sonner"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 const springConfig = { type: "spring" as const, stiffness: 300, damping: 28 }
 
@@ -83,6 +88,10 @@ export default function PartsPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
+
+  // Confirm Dialog states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [partIdToDelete, setPartIdToDelete] = useState<string | null>(null)
 
   // Estado para expandir os preços customizados por carro da peça
   const [expandedPartId, setExpandedPartId] = useState<string | null>(null)
@@ -228,20 +237,26 @@ export default function PartsPage() {
   }
 
   // Deletar peça do estoque
-  const handleDeletePart = async (id: string) => {
-    if (!confirm("Deseja realmente excluir esta peça e todos os seus valores por carro do estoque?")) return
+  const handleDeletePartClick = (id: string) => {
+    setPartIdToDelete(id)
+    setDeleteConfirmOpen(true)
+  }
 
+  const handleConfirmDeletePart = async () => {
+    if (!partIdToDelete) return
+    setDeleteConfirmOpen(false)
     setActionLoading(true)
-    const res = await deletePartAction(id)
+    const res = await deletePartAction(partIdToDelete)
     setActionLoading(false)
 
     if (res.success) {
-      setSuccessMessage("Peça removida do estoque!")
-      if (expandedPartId === id) setExpandedPartId(null)
+      toast.success("Peça removida do estoque!")
+      if (expandedPartId === partIdToDelete) setExpandedPartId(null)
       loadParts()
     } else {
-      setErrorMessage(res.error || "Erro ao deletar a peça.")
+      toast.error(res.error || "Erro ao deletar a peça.")
     }
+    setPartIdToDelete(null)
   }
 
   // Salvar sobregravação de preço por veículo
@@ -305,13 +320,13 @@ export default function PartsPage() {
           </p>
         </div>
         
-        <button
+        <Button
           onClick={handleOpenCreateModal}
           className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-full px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
         >
           <Plus className="size-3.5" />
           <span>Adicionar Peça</span>
-        </button>
+        </Button>
       </div>
 
       {/* Alertas */}
@@ -333,12 +348,12 @@ export default function PartsPage() {
         <span className="absolute left-2.5 top-2.5 text-muted-foreground">
           <Search className="size-3.5" />
         </span>
-        <input
+        <Input
           type="text"
           placeholder="Buscar por nome, marca ou compatibilidade..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full text-xs border border-border rounded-lg pl-8 pr-3 py-2 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+          className="w-full text-xs pl-8 pr-3 py-2 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
         />
       </div>
 
@@ -401,7 +416,7 @@ export default function PartsPage() {
                         {part.compatibleCars || "Geral / Universal"}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <button
+                        <Button
                           onClick={() => setExpandedPartId(isExpanded ? null : part.id)}
                           className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
                             part.overridesCount > 0
@@ -412,24 +427,24 @@ export default function PartsPage() {
                           <Car className="size-3" />
                           <span>{part.overridesCount} {part.overridesCount === 1 ? "carro" : "carros"}</span>
                           {isExpanded ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
-                        </button>
+                        </Button>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="inline-flex items-center gap-1.5">
-                          <button
+                          <Button
                             onClick={() => handleOpenEditModal(part)}
                             className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-md border border-transparent hover:border-border transition-all"
                             title="Editar peça"
                           >
                             <Edit2 className="size-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeletePart(part.id)}
+                          </Button>
+                          <Button
+                            onClick={() => handleDeletePartClick(part.id)}
                             className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-md border border-transparent hover:border-red-500/20 transition-all"
                             title="Excluir peça"
                           >
                             <Trash2 className="size-3.5" />
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -486,14 +501,14 @@ export default function PartsPage() {
                                       <span className="font-semibold text-foreground text-[11px]">{override.carName}</span>
                                       <span className="text-[10px] text-emerald-500 font-bold">{formatCurrency(override.price)}</span>
                                     </div>
-                                    <button
+                                    <Button
                                       onClick={() => handleDeleteOverride(override.id)}
                                       disabled={actionLoading}
                                       className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-md transition-colors"
                                       title="Remover preço diferenciado"
                                     >
                                       <Trash2 className="size-3" />
-                                    </button>
+                                    </Button>
                                   </div>
                                 ))
                               )}
@@ -502,33 +517,33 @@ export default function PartsPage() {
                             {/* Form para adicionar override */}
                             <div className="flex flex-wrap gap-2 items-end pt-2 border-t border-dashed border-border/40">
                               <div className="space-y-1">
-                                <label className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Veículo Compatível</label>
-                                <input
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Veículo Compatível</Label>
+                                <Input
                                   type="text"
                                   placeholder="Ex: Civic Touring"
                                   value={newCarName}
                                   onChange={(e) => setNewCarName(e.target.value)}
-                                  className="text-[11px] border border-border rounded-md px-2.5 py-1 bg-card focus:outline-hidden focus:ring-1 focus:ring-emerald-500 font-medium text-foreground w-[160px]"
+                                  className="text-[11px] rounded-md px-2.5 py-1 bg-card focus:outline-hidden focus:ring-1 focus:ring-emerald-500 font-medium text-foreground w-[160px]"
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Preço Customizado (R$)</label>
-                                <input
+                                <Label className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Preço Customizado (R$)</Label>
+                                <Input
                                   type="text"
                                   placeholder="Ex: 220,00"
                                   value={newOverridePrice}
                                   onChange={(e) => setNewOverridePrice(formatCurrencyInput(e.target.value))}
-                                  className="text-[11px] border border-border rounded-md px-2.5 py-1 bg-card focus:outline-hidden focus:ring-1 focus:ring-emerald-500 font-medium text-foreground w-[130px]"
+                                  className="text-[11px] rounded-md px-2.5 py-1 bg-card focus:outline-hidden focus:ring-1 focus:ring-emerald-500 font-medium text-foreground w-[130px]"
                                 />
                               </div>
-                              <button
+                              <Button
                                 type="button"
                                 onClick={() => handleSaveOverride(part.id)}
                                 disabled={actionLoading || !newCarName || !newOverridePrice}
                                 className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] rounded-md px-3 py-1.5 transition-colors border border-emerald-600/15 disabled:bg-muted disabled:text-muted-foreground"
                               >
                                 Adicionar Preço
-                              </button>
+                              </Button>
                             </div>
                           </motion.div>
                         </td>
@@ -556,14 +571,14 @@ export default function PartsPage() {
               <div className="px-5 py-4 border-b border-dashed border-border flex items-center justify-between">
                 <h2 className="font-bold text-sm text-foreground flex items-center gap-1.5">
                   <Package className="size-4 text-emerald-500" />
-                  {editingPart ? "Editar Peça no Estoque" : "Cadastrar Nova Peça"}
+                  {editingPart ? "Editar Peça" : "Adicionar Peça"}
                 </h2>
-                <button
+                <Button
                   onClick={() => setIsModalOpen(false)}
                   className="text-muted-foreground hover:text-foreground text-xs font-semibold"
                 >
                   Fechar
-                </button>
+                </Button>
               </div>
 
               <form onSubmit={handleSavePart} className="flex flex-col max-h-[80vh]">
@@ -572,24 +587,24 @@ export default function PartsPage() {
                     {/* 1. Nome, Marca e SKU */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="space-y-1 md:col-span-2">
-                        <label className="text-[10px] font-medium text-muted-foreground">Nome da Peça</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Nome da Peça</Label>
+                        <Input
                           type="text"
                           required
                           placeholder="Ex: Pastilha de Freio Dianteira"
                           value={formName}
                           onChange={(e) => setFormName(e.target.value)}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">Marca</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Marca</Label>
+                        <Input
                           type="text"
                           placeholder="Ex: Bosch"
                           value={formBrand}
                           onChange={(e) => setFormBrand(e.target.value)}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
                     </div>
@@ -597,37 +612,37 @@ export default function PartsPage() {
                     {/* 2. SKU, Qtd e Estoque Mínimo */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">Código SKU</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Código SKU</Label>
+                        <Input
                           type="text"
                           placeholder="Ex: PST-BOS-123"
                           value={formSku}
                           onChange={(e) => setFormSku(e.target.value)}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">Quantidade Atual</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Quantidade Atual</Label>
+                        <Input
                           type="number"
                           required
                           min="0"
                           placeholder="Ex: 10"
                           value={formQty}
                           onChange={(e) => setFormQty(e.target.value)}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">Estoque Mínimo</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Estoque Mínimo</Label>
+                        <Input
                           type="number"
                           required
                           min="0"
                           placeholder="Ex: 2"
                           value={formMinQty}
                           onChange={(e) => setFormMinQty(e.target.value)}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
                     </div>
@@ -635,35 +650,35 @@ export default function PartsPage() {
                     {/* 3. Preços e Localização */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">Preço de Custo (R$)</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Preço de Custo (R$)</Label>
+                        <Input
                           type="text"
                           required
                           placeholder="Ex: 45,00"
                           value={formCostPrice}
                           onChange={(e) => setFormCostPrice(formatCurrencyInput(e.target.value))}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">Preço de Venda Base (R$)</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Preço de Venda Base (R$)</Label>
+                        <Input
                           type="text"
                           required
                           placeholder="Ex: 89,90"
                           value={formSalePrice}
                           onChange={(e) => setFormSalePrice(formatCurrencyInput(e.target.value))}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">Prateleira / Corredor</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Prateleira / Corredor</Label>
+                        <Input
                           type="text"
                           placeholder="Ex: A-3"
                           value={formLocation}
                           onChange={(e) => setFormLocation(e.target.value)}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
                     </div>
@@ -677,45 +692,45 @@ export default function PartsPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-medium text-muted-foreground">Dimensões (LxAxP)</label>
-                          <input
+                          <Label className="text-[10px] font-medium text-muted-foreground">Dimensões (LxAxP)</Label>
+                          <Input
                             type="text"
                             placeholder="Ex: 15x8x4 cm"
                             value={formDimension}
                             onChange={(e) => setFormDimension(e.target.value)}
-                            className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                            className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-medium text-muted-foreground">Tamanho</label>
-                          <input
+                          <Label className="text-[10px] font-medium text-muted-foreground">Tamanho</Label>
+                          <Input
                             type="text"
                             placeholder="Ex: Aro 16, M, Padrão"
                             value={formSize}
                             onChange={(e) => setFormSize(e.target.value)}
-                            className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                            className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-medium text-muted-foreground">Peso</label>
-                          <input
+                          <Label className="text-[10px] font-medium text-muted-foreground">Peso</Label>
+                          <Input
                             type="text"
                             placeholder="Ex: 850g, 1.2kg"
                             value={formWeight}
                             onChange={(e) => setFormWeight(e.target.value)}
-                            className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                            className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">Modelos Compatíveis (Texto descritivo)</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Modelos Compatíveis (Texto descritivo)</Label>
+                        <Input
                           type="text"
                           placeholder="Ex: Civic 2012 a 2016, City 2015+"
                           value={formCompatibleCars}
                           onChange={(e) => setFormCompatibleCars(e.target.value)}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
                     </div>
@@ -723,27 +738,40 @@ export default function PartsPage() {
                 </ScrollArea>
 
                 <div className="p-5 pt-3.5 flex justify-end gap-2 border-t border-dashed border-border/80 bg-card">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
                     className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors"
                   >
                     Cancelar
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
                     disabled={actionLoading}
                     className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"
                   >
                     {actionLoading && <Loader2 className="size-3 animate-spin" />}
                     <span>Salvar Peça</span>
-                  </button>
+                  </Button>
                 </div>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        title="Excluir Peça"
+        message="Deseja realmente excluir esta peça e todos os seus valores por carro do estoque?"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={handleConfirmDeletePart}
+        onCancel={() => {
+          setDeleteConfirmOpen(false)
+          setPartIdToDelete(null)
+        }}
+      />
 
     </div>
   )

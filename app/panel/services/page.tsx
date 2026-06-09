@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { toast } from "sonner"
 import {
   Plus,
   Wrench,
@@ -94,6 +96,10 @@ export default function ServicesPage() {
   const [partSearchQuery, setPartSearchQuery] = useState("")
   const [newOverrideCarName, setNewOverrideCarName] = useState("")
   const [newOverridePrice, setNewOverridePrice] = useState("")
+
+  // Confirm Dialog states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [serviceIdToDelete, setServiceIdToDelete] = useState<string | null>(null)
 
   // Load Initial Data
   const loadData = async () => {
@@ -210,19 +216,28 @@ export default function ServicesPage() {
   }
 
   // Delete Service
-  const handleDeleteService = async (id: string, e: React.MouseEvent) => {
+  const handleDeleteServiceClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!confirm("Tem certeza que deseja deletar este serviço do catálogo?")) return
+    setServiceIdToDelete(id)
+    setDeleteConfirmOpen(true)
+  }
+
+  const handleConfirmDeleteService = async () => {
+    if (!serviceIdToDelete) return
+    setDeleteConfirmOpen(false)
     try {
-      const res = await deleteServiceAction(id)
+      const res = await deleteServiceAction(serviceIdToDelete)
       if (res.success) {
-        setServices(prev => prev.filter(s => s.id !== id))
-        if (selectedServiceId === id) resetForm()
+        setServices(prev => prev.filter(s => s.id !== serviceIdToDelete))
+        if (selectedServiceId === serviceIdToDelete) resetForm()
+        toast.success("Serviço excluído com sucesso!")
       } else {
-        alert("Erro ao deletar serviço: " + res.error)
+        toast.error("Erro ao deletar serviço: " + res.error)
       }
     } catch (err: any) {
-      alert("Erro interno: " + err.message)
+      toast.error("Erro interno: " + err.message)
+    } finally {
+      setServiceIdToDelete(null)
     }
   }
 
@@ -230,7 +245,7 @@ export default function ServicesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!serviceName || !basePrice || !estimatedTime) {
-      alert("Por favor, preencha os campos obrigatórios.")
+      toast.warning("Por favor, preencha os campos obrigatórios.")
       return
     }
 
@@ -255,14 +270,14 @@ export default function ServicesPage() {
       const res = await saveFullServiceAction(input)
 
       if (res.success) {
-        alert("Catálogo atualizado com sucesso!")
+        toast.success("Catálogo atualizado com sucesso!")
         resetForm()
         loadData()
       } else {
-        alert("Erro ao salvar serviço: " + res.error)
+        toast.error("Erro ao salvar serviço: " + res.error)
       }
     } catch (err: any) {
-      alert("Erro interno ao enviar formulário: " + err.message)
+      toast.error("Erro interno ao enviar formulário: " + err.message)
     } finally {
       setSubmitting(false)
     }
@@ -313,21 +328,21 @@ export default function ServicesPage() {
                 Procedimentos
               </h3>
               {selectedServiceId && (
-                <button
+                <Button
                   onClick={resetForm}
                   className="border border-border hover:bg-muted text-muted-foreground font-semibold text-[10px] rounded-full px-3 py-1 transition-colors"
                 >
                   Novo Procedimento
-                </button>
+                </Button>
               )}
             </div>
 
             {/* Search Bar */}
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-              <input
+              <Input
                 placeholder="BUSCAR NO CATÁLOGO..."
-                className="w-full text-xs border border-border rounded-lg pl-8 pr-3 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -378,12 +393,12 @@ export default function ServicesPage() {
                       <span className="text-xs font-black text-emerald-500 font-mono">
                         R$ {parseFloat(service.basePrice).toFixed(2)}
                       </span>
-                      <button
-                        onClick={(e) => handleDeleteService(service.id, e)}
+                      <Button
+                        onClick={(e) => handleDeleteServiceClick(service.id, e)}
                         className="text-muted-foreground hover:text-red-500 p-1 rounded hover:bg-red-500/10 transition-all"
                       >
                         <Trash2 className="size-3.5" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -409,11 +424,11 @@ export default function ServicesPage() {
             {/* Basic Info */}
             <div className="grid gap-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Nome do Procedimento *</label>
-                <input
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Nome do Procedimento *</Label>
+                <Input
                   id="service-name"
                   placeholder="EX: TROCA DE PASTILHAS DE FREIO DIANTEIRAS"
-                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground placeholder-muted-foreground/50 uppercase"
+                  className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground placeholder-muted-foreground/50 uppercase"
                   required
                   value={serviceName}
                   onChange={(e) => setServiceName(e.target.value)}
@@ -421,11 +436,11 @@ export default function ServicesPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Detalhamento Técnico / Escopo</label>
-                <textarea
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Detalhamento Técnico / Escopo</Label>
+                <Textarea
                   id="description"
                   placeholder="Descreva o passo-a-passo técnico ou escopo deste serviço..."
-                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 min-h-[80px] resize-none"
+                  className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 min-h-[80px] resize-none"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
@@ -433,13 +448,13 @@ export default function ServicesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Preço de Mão de Obra Base *</label>
+                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Preço de Mão de Obra Base *</Label>
                   <div className="relative">
                     <span className="absolute left-2.5 top-1.5 text-muted-foreground text-[10px] font-bold">R$</span>
-                    <input
+                    <Input
                       type="number"
                       step="0.01"
-                      className="w-full text-xs border border-border rounded-lg pl-7 pr-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-emerald-500 placeholder-muted-foreground/50 font-mono"
+                      className="w-full text-xs pl-7 pr-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-emerald-500 placeholder-muted-foreground/50 font-mono"
                       placeholder="0.00"
                       required
                       value={basePrice}
@@ -448,11 +463,11 @@ export default function ServicesPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tempo Estimado (Minutos) *</label>
+                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tempo Estimado (Minutos) *</Label>
                   <div className="relative">
-                    <input
+                    <Input
                       type="number"
-                      className="w-full text-xs border border-border rounded-lg pl-2.5 pr-8 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
+                      className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
                       placeholder="60"
                       required
                       value={estimatedTime}
@@ -477,9 +492,9 @@ export default function ServicesPage() {
               {/* Autocomplete Search input */}
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-                <input
+                <Input
                   placeholder="DIGITE SKU OU NOME PARA BUSCAR NO ESTOQUE..."
-                  className="w-full text-xs border border-border rounded-lg pl-8 pr-3 py-1.5 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                  className="w-full text-xs pl-8 pr-3 py-1.5 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                   value={partSearchQuery}
                   onChange={(e) => setPartSearchQuery(e.target.value)}
                 />
@@ -518,13 +533,13 @@ export default function ServicesPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 bg-muted/40 rounded-lg px-2 py-0.5 border border-border">
-                          <button type="button" onClick={() => updateQuantity(part.id, -1)} className="hover:text-emerald-500 text-sm font-bold w-4">-</button>
+                          <Button type="button" onClick={() => updateQuantity(part.id, -1)} className="hover:text-emerald-500 text-sm font-bold w-4">-</Button>
                           <span className="text-xs font-bold w-4 text-center">{part.quantity}</span>
-                          <button type="button" onClick={() => updateQuantity(part.id, 1)} className="hover:text-emerald-500 text-sm font-bold w-4">+</button>
+                          <Button type="button" onClick={() => updateQuantity(part.id, 1)} className="hover:text-emerald-500 text-sm font-bold w-4">+</Button>
                         </div>
-                        <button type="button" onClick={() => removePart(part.id)} className="text-muted-foreground hover:text-red-550 transition-colors">
+                        <Button type="button" onClick={() => removePart(part.id)} className="text-muted-foreground hover:text-red-550 transition-colors">
                           <Trash2 className="size-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -549,36 +564,36 @@ export default function ServicesPage() {
               {/* Add override inputs */}
               <div className="grid grid-cols-2 gap-3 items-center align-middle">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-muted-foreground uppercase font-bold">Veículo (Modelo/Marca)</label>
-                  <input
+                  <Label className="text-[10px] text-muted-foreground uppercase font-bold">Veículo (Modelo/Marca)</Label>
+                  <Input
                     placeholder="EX: HONDA CIVIC"
-                    className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-card focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                    className="w-full text-xs bg-card focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                     value={newOverrideCarName}
                     onChange={(e) => setNewOverrideCarName(e.target.value)}
                   />
                 </div>
                 <div className="space-y-1 flex gap-2 items-end">
                   <div className="flex-1">
-                    <label className="text-[10px] text-muted-foreground uppercase font-bold">Preço de Mão de Obra</label>
+                    <Label className="text-[10px] text-muted-foreground uppercase font-bold">Preço de Mão de Obra</Label>
                     <div className="relative">
                       <span className="absolute left-2.5 top-1.5 text-muted-foreground text-[10px] font-bold">R$</span>
-                      <input
+                      <Input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
-                        className="w-full text-xs border border-border rounded-lg pl-7 pr-2.5 py-1.5 bg-card focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-amber-500 placeholder-muted-foreground/50 font-mono"
+                        className="w-full text-xs bg-card focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-amber-500 placeholder-muted-foreground/50 font-mono"
                         value={newOverridePrice}
                         onChange={(e) => setNewOverridePrice(e.target.value)}
                       />
                     </div>
                   </div>
-                  <button
+                  <Button
                     type="button"
                     onClick={addPriceOverride}
                     className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-lg px-3 py-1.5 transition-colors bg-card"
                   >
                     Add
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -596,9 +611,9 @@ export default function ServicesPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="font-black text-amber-500 font-mono">R$ {parseFloat(ov.price).toFixed(2)}</span>
-                        <button type="button" onClick={() => removePriceOverride(index)} className="text-muted-foreground hover:text-red-500 transition-colors">
+                        <Button type="button" onClick={() => removePriceOverride(index)} className="text-muted-foreground hover:text-red-500 transition-colors">
                           <Trash2 className="size-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -623,23 +638,23 @@ export default function ServicesPage() {
 
               <div className="flex gap-2 pt-2">
                 {selectedServiceId && (
-                  <button
+                  <Button
                     type="button"
                     onClick={resetForm}
                     className="flex-1 h-10 border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors"
                   >
                     Cancelar Edição
-                  </button>
+                  </Button>
                 )}
 
-                <button
+                <Button
                   type="submit"
                   disabled={submitting}
                   className="flex-1 h-10 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border border-emerald-600/10 flex items-center justify-center gap-1"
                 >
                   {submitting && <Loader2 className="size-3 animate-spin" />}
                   <span>{selectedServiceId ? "Salvar Alterações" : "Efetivar Registro"}</span>
-                </button>
+                </Button>
               </div>
 
               <div className="p-3 bg-muted/20 text-muted-foreground rounded-2xl border border-border/50 text-[10px] flex items-start gap-2 leading-relaxed">
@@ -653,7 +668,19 @@ export default function ServicesPage() {
         </section>
       </div>
 
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        title="Excluir Serviço"
+        message="Tem certeza que deseja deletar este serviço do catálogo? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={handleConfirmDeleteService}
+        onCancel={() => {
+          setDeleteConfirmOpen(false)
+          setServiceIdToDelete(null)
+        }}
+      />
+
     </div>
   )
 }
-

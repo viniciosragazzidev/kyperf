@@ -25,6 +25,11 @@ import {
 } from "lucide-react"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 import {
   getMechanicsAction,
   searchCustomerAction,
@@ -144,7 +149,7 @@ function NewOSPrinterPopover({
 
   return (
     <div className="relative" ref={ref}>
-      <button
+      <Button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-full px-4 py-2.5 transition-all active:scale-95"
@@ -152,7 +157,7 @@ function NewOSPrinterPopover({
       >
         <Printer className="size-3.5" />
         Imprimir
-      </button>
+      </Button>
 
       <AnimatePresence>
         {open && (
@@ -814,7 +819,7 @@ function NewWorkOrderForm() {
     } else if (osStatus === 'AWAITING_BUDGET') {
       setOsStatus('AWAITING_APPROVAL')
     } else if (osStatus === 'AWAITING_APPROVAL') {
-      alert("Simulação: Orçamento enviado por WhatsApp!")
+      toast.success("Simulação: Orçamento enviado por WhatsApp!")
       setOsStatus('IN_PROGRESS')
     } else if (osStatus === 'IN_PROGRESS') {
       setOsStatus('READY')
@@ -883,13 +888,13 @@ function NewWorkOrderForm() {
                 Proprietário do Veículo
               </h2>
               {!selectedCustomer && (
-                <button
+                <Button
                   type="button"
                   onClick={() => setShowNewCustFields(!showNewCustFields)}
                   className="text-[10px] text-emerald-500 hover:underline font-bold"
                 >
                   {showNewCustFields ? "Buscar Existente" : "+ Cadastrar Novo Cliente"}
-                </button>
+                </Button>
               )}
             </div>
 
@@ -899,7 +904,7 @@ function NewWorkOrderForm() {
                 <span className="absolute left-2.5 top-2.5 text-muted-foreground">
                   <Search className="size-3.5" />
                 </span>
-                <input
+                <Input
                   type="text"
                   placeholder="Pesquise por celular ou CPF/CNPJ..."
                   value={custQuery}
@@ -911,7 +916,7 @@ function NewWorkOrderForm() {
                 {custSearchResults.length > 0 && (
                   <div className="absolute top-10 left-0 right-0 bg-card border border-border rounded-xl shadow-lg z-30 overflow-hidden text-xs">
                     {custSearchResults.map((c) => (
-                      <button
+                      <Button
                         key={c.id}
                         type="button"
                         onClick={() => {
@@ -923,7 +928,7 @@ function NewWorkOrderForm() {
                       >
                         <span className="font-bold text-foreground">{c.name}</span>
                         <span className="text-[10px] text-muted-foreground font-mono">{formatPhone(c.phone)}</span>
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 )}
@@ -952,13 +957,13 @@ function NewWorkOrderForm() {
                     {selectedCustomer.address && <span>Endereço: {selectedCustomer.address}</span>}
                   </div>
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={() => setSelectedCustomer(null)}
                   className="text-[10px] text-red-500 hover:underline font-bold"
                 >
                   Remover
-                </button>
+                </Button>
               </div>
             )}
 
@@ -969,8 +974,8 @@ function NewWorkOrderForm() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase">Nome Completo</label>
-                    <input
+                    <Label className="text-[9px] font-bold text-muted-foreground uppercase">Nome Completo</Label>
+                    <Input
                       type="text"
                       placeholder="Ex: Carlos Albuquerque"
                       value={newCustName}
@@ -979,8 +984,8 @@ function NewWorkOrderForm() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase">Telefone / WhatsApp</label>
-                    <input
+                    <Label className="text-[9px] font-bold text-muted-foreground uppercase">Telefone / WhatsApp</Label>
+                    <Input
                       type="text"
                       placeholder="Ex: (21) 98888-7777"
                       value={newCustPhone}
@@ -992,8 +997,8 @@ function NewWorkOrderForm() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase">CPF ou CNPJ</label>
-                    <input
+                    <Label className="text-[9px] font-bold text-muted-foreground uppercase">CPF ou CNPJ</Label>
+                    <Input
                       type="text"
                       placeholder="Ex: 000.000.000-00"
                       value={newCustDocument}
@@ -1002,8 +1007,8 @@ function NewWorkOrderForm() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase">E-mail (Opcional)</label>
-                    <input
+                    <Label className="text-[9px] font-bold text-muted-foreground uppercase">E-mail (Opcional)</Label>
+                    <Input
                       type="email"
                       placeholder="Ex: carlos@email.com"
                       value={newCustEmail}
@@ -1014,8 +1019,8 @@ function NewWorkOrderForm() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-muted-foreground uppercase">Endereço Completo</label>
-                  <input
+                  <Label className="text-[9px] font-bold text-muted-foreground uppercase">Endereço Completo</Label>
+                  <Input
                     type="text"
                     placeholder="Ex: Av. Atlântica, 1000 - Copacabana"
                     value={newCustAddress}
@@ -1034,7 +1039,7 @@ function NewWorkOrderForm() {
                 <Car className="size-4 text-emerald-500" />
                 Especificações do Veículo
               </h2>
-              <button
+              <Button
                 type="button"
                 onClick={() => {
                   setIsManualInput(!isManualInput);
@@ -1049,13 +1054,13 @@ function NewWorkOrderForm() {
                 className="text-[10px] text-emerald-500 hover:underline font-bold"
               >
                 {isManualInput ? "Usar Busca FIPE" : "Digitar Manualmente"}
-              </button>
+              </Button>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Placa</label>
-                <input
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase">Placa</Label>
+                <Input
                   type="text"
                   placeholder="KPR-2026"
                   maxLength={8}
@@ -1067,9 +1072,9 @@ function NewWorkOrderForm() {
 
               {/* Marca */}
               <div className="space-y-1 relative">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Marca</label>
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase">Marca</Label>
                 {isManualInput ? (
-                  <input
+                  <Input
                     type="text"
                     placeholder="Ex: Toyota"
                     value={vehBrand}
@@ -1078,7 +1083,7 @@ function NewWorkOrderForm() {
                   />
                 ) : (
                   <div className="relative">
-                    <input
+                    <Input
                       type="text"
                       placeholder="BUSCAR MARCA..."
                       value={brandSearch}
@@ -1101,7 +1106,7 @@ function NewWorkOrderForm() {
                           fipeBrands
                             .filter(b => b.name.toLowerCase().includes(brandSearch.toLowerCase()))
                             .map(b => (
-                              <button
+                              <Button
                                 key={b.code}
                                 type="button"
                                 onMouseDown={() => {
@@ -1112,7 +1117,7 @@ function NewWorkOrderForm() {
                                 className="w-full text-left px-3 py-1.5 hover:bg-muted font-bold text-foreground border-b border-border/20 last:border-b-0"
                               >
                                 {b.name}
-                              </button>
+                              </Button>
                             ))
                         )}
                       </div>
@@ -1123,9 +1128,9 @@ function NewWorkOrderForm() {
 
               {/* Modelo */}
               <div className="space-y-1 col-span-2 sm:col-span-2 relative">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Modelo</label>
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase">Modelo</Label>
                 {isManualInput ? (
-                  <input
+                  <Input
                     type="text"
                     placeholder="Ex: Corolla Altis Hybrid"
                     value={vehModel}
@@ -1134,7 +1139,7 @@ function NewWorkOrderForm() {
                   />
                 ) : (
                   <div className="relative">
-                    <input
+                    <Input
                       type="text"
                       placeholder={selectedFipeBrandCode ? "BUSCAR MODELO..." : "SELECIONE A MARCA"}
                       disabled={!selectedFipeBrandCode}
@@ -1157,7 +1162,7 @@ function NewWorkOrderForm() {
                           fipeModels
                             .filter(m => m.name.toLowerCase().includes(modelSearch.toLowerCase()))
                             .map(m => (
-                              <button
+                              <Button
                                 key={m.code}
                                 type="button"
                                 onMouseDown={() => {
@@ -1168,7 +1173,7 @@ function NewWorkOrderForm() {
                                 className="w-full text-left px-3 py-1.5 hover:bg-muted font-bold text-foreground border-b border-border/20 last:border-b-0"
                               >
                                 {m.name}
-                              </button>
+                              </Button>
                             ))
                         )}
                       </div>
@@ -1180,8 +1185,8 @@ function NewWorkOrderForm() {
 
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Motorização</label>
-                <input
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase">Motorização</Label>
+                <Input
                   type="text"
                   placeholder="Ex: 1.8 Flex"
                   value={vehEngine}
@@ -1190,9 +1195,9 @@ function NewWorkOrderForm() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Ano</label>
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase">Ano</Label>
                 {isManualInput ? (
-                  <input
+                  <Input
                     type="number"
                     placeholder="Ex: 2023"
                     value={vehYear}
@@ -1220,8 +1225,8 @@ function NewWorkOrderForm() {
                 )}
               </div>
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Km Atual</label>
-                <input
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase">Km Atual</Label>
+                <Input
                   type="number"
                   placeholder="Ex: 34500"
                   value={vehMileage}
@@ -1233,10 +1238,10 @@ function NewWorkOrderForm() {
 
             {/* Nível de Combustível */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-muted-foreground uppercase">Nível de Combustível no Check-in</label>
+              <Label className="text-[9px] font-bold text-muted-foreground uppercase">Nível de Combustível no Check-in</Label>
               <div className="grid grid-cols-5 gap-1.5">
                 {["Reserva", "1/4", "1/2", "3/4", "Cheio"].map((lvl) => (
-                  <button
+                  <Button
                     key={lvl}
                     type="button"
                     onClick={() => setFuelLevel(lvl)}
@@ -1247,7 +1252,7 @@ function NewWorkOrderForm() {
                     }`}
                   >
                     {lvl}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -1262,8 +1267,8 @@ function NewWorkOrderForm() {
 
             {/* Sintomas */}
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-muted-foreground uppercase">Sintomas Relatados (Queixa do Cliente)</label>
-              <textarea
+              <Label className="text-[9px] font-bold text-muted-foreground uppercase">Sintomas Relatados (Queixa do Cliente)</Label>
+              <Textarea
                 rows={2}
                 placeholder="Ex: Barulho metálico ao frear a roda dianteira esquerda, trepidação do volante..."
                 value={symptoms}
@@ -1289,7 +1294,7 @@ function NewWorkOrderForm() {
                     <span className="font-semibold text-muted-foreground text-[10px]">{label}</span>
                     <div className="flex gap-1">
                       {["P", "A", "N"].map((opt) => (
-                        <button
+                        <Button
                           key={opt}
                           type="button"
                           onClick={() => setChecklist((prev) => ({ ...prev, [key]: opt as any }))}
@@ -1303,7 +1308,7 @@ function NewWorkOrderForm() {
                           title={opt === 'P' ? 'Presente' : opt === 'A' ? 'Ausente' : 'Não se aplica'}
                         >
                           {opt}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -1363,7 +1368,7 @@ function NewWorkOrderForm() {
                           style={{ top: spot.top, left: spot.left }}
                           className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
                         >
-                          <button
+                          <Button
                             type="button"
                             onClick={() => setDamageMenuArea(damageMenuArea === spot.area ? null : spot.area)}
                             className={`size-6 rounded-full flex items-center justify-center text-[9px] font-extrabold border transition-all ${
@@ -1374,7 +1379,7 @@ function NewWorkOrderForm() {
                             title={`Avarias em ${spot.area}`}
                           >
                             {count > 0 ? count : "+"}
-                          </button>
+                          </Button>
                           
                           {/* Menu flutuante de avarias da área */}
                           {damageMenuArea === spot.area && (
@@ -1383,7 +1388,7 @@ function NewWorkOrderForm() {
                               {["Riscado", "Amassado", "Quebrado", "Trincado"].map((type) => {
                                 const active = damagesList.some(d => d.part === spot.area && d.type === type)
                                 return (
-                                  <button
+                                  <Button
                                     key={type}
                                     type="button"
                                     onClick={() => toggleDamage(spot.area, type)}
@@ -1393,7 +1398,7 @@ function NewWorkOrderForm() {
                                   >
                                     <span>{type}</span>
                                     {active && <Check className="size-3" />}
-                                  </button>
+                                  </Button>
                                 )
                               })}
                             </div>
@@ -1416,13 +1421,13 @@ function NewWorkOrderForm() {
                             className="inline-flex items-center gap-1 bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded-full text-[10px] font-bold"
                           >
                             <span>{dmg.type} - {dmg.part}</span>
-                            <button
+                            <Button
                               type="button"
                               onClick={() => toggleDamage(dmg.part, dmg.type)}
-                              className="hover:text-red-700 size-3 rounded-full flex items-center justify-center"
+                              className="hover:text-red-700 size-3 rounded-full flex items-center justify-center p-0 bg-transparent border-0"
                             >
                               <X className="size-2.5" />
-                            </button>
+                            </Button>
                           </span>
                         ))}
                       </div>
@@ -1435,7 +1440,7 @@ function NewWorkOrderForm() {
             {/* Galeria de Fotos de Check-in */}
             <div className="space-y-2 border-t border-dashed border-border pt-4">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-foreground uppercase tracking-wider">Fotos de Entrada</label>
+                <Label className="text-[10px] font-bold text-foreground uppercase tracking-wider">Fotos de Entrada</Label>
                 <label className="flex items-center gap-1 cursor-pointer bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground px-3 py-1 rounded-full text-[10px] font-bold transition-colors">
                   <Camera className="size-3.5" />
                   <span>Capturar / Enviar</span>
@@ -1457,20 +1462,20 @@ function NewWorkOrderForm() {
                     <div key={idx} className="relative aspect-video rounded-xl overflow-hidden border border-border group">
                       <img src={url} alt={`Check-in ${idx}`} className="size-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <button
+                        <Button
                           type="button"
                           onClick={() => setActiveLightboxPhoto(url)}
                           className="p-1.5 bg-card hover:bg-card/90 rounded-md text-foreground shadow-xs transition-all"
                         >
                           <Maximize2 className="size-3.5" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
                           onClick={() => setPhotoUrls((prev) => prev.filter((_, i) => i !== idx))}
                           className="p-1.5 bg-red-500 hover:bg-red-600 rounded-md text-white shadow-xs transition-all"
                         >
                           <Trash2 className="size-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -1487,8 +1492,8 @@ function NewWorkOrderForm() {
             </h2>
 
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-muted-foreground uppercase">Laudo de Diagnóstico Técnico</label>
-              <textarea
+              <Label className="text-[9px] font-bold text-muted-foreground uppercase">Laudo de Diagnóstico Técnico</Label>
+              <Textarea
                 rows={2}
                 placeholder="Ex: Realizada avaliação física. Pastilhas encontram-se com desgaste crítico. Necessária a troca das pastilhas e retífica de discos de freio dianteiros..."
                 value={diagnostic}
@@ -1499,7 +1504,7 @@ function NewWorkOrderForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Mecânico Alocado</label>
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase">Mecânico Alocado</Label>
                 <select
                   value={selectedMechanicId}
                   onChange={(e) => setSelectedMechanicId(e.target.value)}
@@ -1515,8 +1520,8 @@ function NewWorkOrderForm() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Box / Elevador Alocado</label>
-                <input
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase">Box / Elevador Alocado</Label>
+                <Input
                   type="text"
                   placeholder="Ex: Rampa 02, Elevador 03"
                   value={allocatedBox}
@@ -1527,21 +1532,20 @@ function NewWorkOrderForm() {
             </div>
           </div>
 
-          {/* 📦 Grade de Itens (Peças & Serviços) */}
           <div ref={itemsContainerRef} className="bg-card rounded-3xl p-5 border border-border/50 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.03)] space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Wrench className="size-4 text-emerald-500" />
                 Orçamento de Peças e Serviços
               </h2>
-              <button
+              <Button
                 type="button"
                 onClick={handleAddRow}
                 className="flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-1 rounded-full transition-all"
               >
                 <Plus className="size-3" />
                 Adicionar Item
-              </button>
+              </Button>
             </div>
 
             {osStatus === 'CHECK_IN' && osItems.length === 0 && (
@@ -1567,7 +1571,7 @@ function NewWorkOrderForm() {
                     <div className="flex flex-wrap md:flex-nowrap items-center gap-2.5">
                       {/* Seletor Tipo (SRV / PÇ) */}
                       <div className="flex rounded-lg border border-border/60 overflow-hidden w-20 shrink-0 text-[9px] font-bold bg-muted/40">
-                        <button
+                        <Button
                           type="button"
                           onClick={() => {
                             handleUpdateItemRow(idx, 'type', 'SERVICE')
@@ -1577,8 +1581,8 @@ function NewWorkOrderForm() {
                           className={`flex-1 py-1 text-center transition-colors ${item.type === 'SERVICE' ? 'bg-foreground text-background font-black' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           SRV
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
                           onClick={() => {
                             handleUpdateItemRow(idx, 'type', 'PART')
@@ -1588,12 +1592,12 @@ function NewWorkOrderForm() {
                           className={`flex-1 py-1 text-center transition-colors ${item.type === 'PART' ? 'bg-foreground text-background font-black' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           PÇ
-                        </button>
+                        </Button>
                       </div>
 
                       {/* Input de Pesquisa do Item com Auto-complete */}
                       <div className="flex-1 min-w-[200px] relative">
-                        <input
+                        <Input
                           type="text"
                           placeholder={item.type === 'PART' ? "Pesquise Peça..." : "Pesquise Serviço..."}
                           value={item.name}
@@ -1614,7 +1618,7 @@ function NewWorkOrderForm() {
                               catalogParts
                                 .filter(p => p.name.toLowerCase().includes(item.name.toLowerCase()))
                                 .map(p => (
-                                  <button
+                                  <Button
                                     key={p.id}
                                     type="button"
                                     onClick={() => handleSelectCatalogItem(idx, 'PART', p)}
@@ -1622,13 +1626,13 @@ function NewWorkOrderForm() {
                                   >
                                     <span>{p.name} ({p.brand})</span>
                                     <span className="text-[10px] font-bold text-emerald-500 font-mono">R$ {p.salePrice}</span>
-                                  </button>
+                                  </Button>
                                 ))
                             ) : (
                               catalogServices
                                 .filter(s => s.name.toLowerCase().includes(item.name.toLowerCase()))
                                 .map(s => (
-                                  <button
+                                  <Button
                                     key={s.id}
                                     type="button"
                                     onClick={() => handleSelectCatalogItem(idx, 'SERVICE', s)}
@@ -1636,11 +1640,11 @@ function NewWorkOrderForm() {
                                   >
                                     <span>{s.name}</span>
                                     <span className="text-[10px] font-bold text-emerald-500 font-mono">R$ {s.basePrice}</span>
-                                  </button>
+                                  </Button>
                                 ))
                             )}
                             {item.name.trim() !== "" && (
-                              <button
+                              <Button
                                 type="button"
                                 onClick={() => {
                                   handleUpdateItemRow(idx, 'itemId', '')
@@ -1651,22 +1655,22 @@ function NewWorkOrderForm() {
                               >
                                 <span className="truncate">Usar "{item.name}" como item temporário</span>
                                 <span className="text-[9px] uppercase font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded-sm shrink-0">Temporário</span>
-                              </button>
+                              </Button>
                             )}
-                            <button
+                            <Button
                               type="button"
                               onClick={() => setShowItemDropdown(null)}
                               className="w-full text-center py-1 bg-muted/30 text-[9px] font-bold hover:bg-muted text-muted-foreground border-t border-border"
                             >
                               Fechar Lista
-                            </button>
+                            </Button>
                           </div>
                         )}
                       </div>
 
                       {/* Status (Tri-state) */}
                       <div className="flex rounded-lg overflow-hidden border border-border/40 text-[9px] font-extrabold bg-muted/40 shrink-0">
-                        <button
+                        <Button
                           type="button"
                           onClick={() => handleUpdateItemRow(idx, 'isApproved', 0)}
                           className={`px-2.5 py-1.5 flex items-center justify-center gap-1 transition-colors ${item.isApproved === 0 ? 'bg-amber-500 text-white font-black' : 'text-muted-foreground hover:bg-muted/70'}`}
@@ -1674,8 +1678,8 @@ function NewWorkOrderForm() {
                         >
                           <Clock className="size-3.5" />
                           <span>Pend.</span>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
                           onClick={() => handleUpdateItemRow(idx, 'isApproved', 1)}
                           className={`px-2.5 py-1.5 flex items-center justify-center gap-1 transition-colors ${item.isApproved === 1 ? 'bg-emerald-500 text-white font-black' : 'text-muted-foreground hover:bg-muted/70'}`}
@@ -1683,8 +1687,8 @@ function NewWorkOrderForm() {
                         >
                           <Check className="size-3.5" />
                           <span>Aprov.</span>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
                           onClick={() => handleUpdateItemRow(idx, 'isApproved', 2)}
                           className={`px-2.5 py-1.5 flex items-center justify-center gap-1 transition-colors ${item.isApproved === 2 ? 'bg-red-500 text-white font-black' : 'text-muted-foreground hover:bg-muted/70'}`}
@@ -1692,17 +1696,17 @@ function NewWorkOrderForm() {
                         >
                           <X className="size-3.5" />
                           <span>Recus.</span>
-                        </button>
+                        </Button>
                       </div>
 
                       {/* Remover */}
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleRemoveRow(idx)}
                         className="p-1.5 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-lg transition-colors shrink-0"
                       >
                         <Trash2 className="size-4" />
-                      </button>
+                      </Button>
                     </div>
 
                     {/* Segunda linha: Qtd, Valores e Subtotal */}
@@ -1711,21 +1715,21 @@ function NewWorkOrderForm() {
                       <div className="flex items-center gap-1.5">
                         <span className="text-[9px] font-bold text-muted-foreground uppercase">Qtd:</span>
                         <div className="inline-flex items-center gap-1 bg-muted/40 rounded-lg p-0.5 border border-border/40">
-                          <button
+                          <Button
                             type="button"
                             onClick={() => handleUpdateItemRow(idx, 'quantity', Math.max(1, item.quantity - 1))}
                             className="size-5 rounded-md hover:bg-muted text-[10px] font-extrabold flex items-center justify-center"
                           >
                             -
-                          </button>
+                          </Button>
                           <span className="font-bold text-[11px] w-6 text-center">{item.quantity}</span>
-                          <button
+                          <Button
                             type="button"
                             onClick={() => handleUpdateItemRow(idx, 'quantity', item.quantity + 1)}
                             className="size-5 rounded-md hover:bg-muted text-[10px] font-extrabold flex items-center justify-center"
                           >
                             +
-                          </button>
+                          </Button>
                         </div>
                       </div>
 
@@ -1737,7 +1741,7 @@ function NewWorkOrderForm() {
                             <span className="text-[9px] font-bold text-muted-foreground uppercase">Custo:</span>
                             <div className="relative flex items-center">
                               <span className="absolute left-2 text-[9px] font-bold text-muted-foreground">R$</span>
-                              <input
+                              <Input
                                 type="text"
                                 value={item.unitCostPrice}
                                 onChange={(e) => handleUpdateItemRow(idx, 'unitCostPrice', e.target.value)}
@@ -1753,7 +1757,7 @@ function NewWorkOrderForm() {
                           <div className="flex flex-col items-end">
                             <div className="relative flex items-center">
                               <span className="absolute left-2 text-[9px] font-bold text-muted-foreground">R$</span>
-                              <input
+                              <Input
                                 type="text"
                                 value={item.unitSalePrice}
                                 onChange={(e) => handleUpdateItemRow(idx, 'unitSalePrice', e.target.value)}
@@ -1805,7 +1809,7 @@ function NewWorkOrderForm() {
               {/* Desconto */}
               <div className="flex items-center justify-between border-b border-dashed border-border pb-2">
                 <span className="text-muted-foreground">Desconto (R$):</span>
-                <input
+                <Input
                   type="number"
                   min="0"
                   value={discount}
@@ -1817,7 +1821,7 @@ function NewWorkOrderForm() {
               {/* Acréscimo */}
               <div className="flex items-center justify-between border-b border-dashed border-border pb-2">
                 <span className="text-muted-foreground">Acréscimo (R$):</span>
-                <input
+                <Input
                   type="number"
                   min="0"
                   value={surcharge}
@@ -1829,7 +1833,7 @@ function NewWorkOrderForm() {
               {/* Prazo de Garantia */}
               <div className="flex items-center justify-between border-b border-dashed border-border pb-2">
                 <span className="text-muted-foreground">Prazo de Garantia:</span>
-                <input
+                <Input
                   type="text"
                   placeholder="Ex: 90 dias, 1 ano"
                   value={warranty}
@@ -1864,7 +1868,7 @@ function NewWorkOrderForm() {
             {/* Pagamento */}
             <div className="grid grid-cols-2 gap-2 text-xs border-t border-dashed border-border pt-4">
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Forma de Pagamento</label>
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase">Forma de Pagamento</Label>
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
@@ -1879,7 +1883,7 @@ function NewWorkOrderForm() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-muted-foreground uppercase">Status Pagamento</label>
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase">Status Pagamento</Label>
                 <select
                   value={paymentStatus}
                   onChange={(e) => setPaymentStatus(e.target.value as any)}
@@ -1928,7 +1932,7 @@ function NewWorkOrderForm() {
               const active = osStatus === step.key
               return (
                 <div key={step.key} className="flex items-center shrink-0">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setOsStatus(step.key as any)}
                     className={`text-[10px] font-bold px-3 py-1.5 rounded-full transition-all relative ${
@@ -1945,7 +1949,7 @@ function NewWorkOrderForm() {
                         transition={springConfig}
                       />
                     )}
-                  </button>
+                  </Button>
                   {idx < statusSteps.length - 1 && (
                     <div className="w-4 h-px bg-border/80 mx-1 shrink-0" />
                   )}
@@ -1965,14 +1969,14 @@ function NewWorkOrderForm() {
               />
             )}
 
-            <button
+            <Button
               type="button"
               onClick={handleContextualAction}
               className="bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-full px-5 py-2.5 transition-all active:scale-95 shrink-0"
             >
               {getPrimaryButtonText()}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               disabled={isSubmitting}
               onClick={handleSaveOS}
@@ -1989,7 +1993,7 @@ function NewWorkOrderForm() {
                   <span>{editId ? "Atualizar O.S." : "Salvar O.S."}</span>
                 </>
               )}
-            </button>
+            </Button>
           </div>
 
         </div>
@@ -2006,13 +2010,13 @@ function NewWorkOrderForm() {
               transition={springConfig}
               className="relative max-w-4xl w-full h-full flex items-center justify-center"
             >
-              <button
+              <Button
                 type="button"
                 onClick={() => setActiveLightboxPhoto(null)}
-                className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-all z-50"
+                className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-all z-50 p-0 bg-transparent border-0"
               >
                 <X className="size-5" />
-              </button>
+              </Button>
               <img src={activeLightboxPhoto} alt="Zoom Check-in" className="max-h-[85vh] max-w-full object-contain rounded-xl" />
             </motion.div>
           </div>

@@ -22,6 +22,11 @@ import {
   deleteCustomerAction 
 } from "@/lib/actions/customers-actions"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { toast } from "sonner"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 const springConfig = { type: "spring" as const, stiffness: 300, damping: 28 }
 
@@ -91,6 +96,10 @@ export default function CustomersPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
+
+  // Confirm Dialog states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [customerIdToDelete, setCustomerIdToDelete] = useState<string | null>(null)
 
   // Estado para o Modal de Criação / Edição do Cliente
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -217,19 +226,25 @@ export default function CustomersPage() {
   }
 
   // Deletar cliente
-  const handleDeleteCustomer = async (id: string) => {
-    if (!confirm("Deseja realmente excluir este cliente e todos os seus veículos associados?")) return
+  const handleDeleteCustomerClick = (id: string) => {
+    setCustomerIdToDelete(id)
+    setDeleteConfirmOpen(true)
+  }
 
+  const handleConfirmDeleteCustomer = async () => {
+    if (!customerIdToDelete) return
+    setDeleteConfirmOpen(false)
     setActionLoading(true)
-    const res = await deleteCustomerAction(id)
+    const res = await deleteCustomerAction(customerIdToDelete)
     setActionLoading(false)
 
     if (res.success) {
-      setSuccessMessage("Cliente removido com sucesso!")
+      toast.success("Cliente removido com sucesso!")
       loadCustomers()
     } else {
-      setErrorMessage(res.error || "Erro ao deletar o cliente.")
+      toast.error(res.error || "Erro ao deletar o cliente.")
     }
+    setCustomerIdToDelete(null)
   }
 
   // Filtra clientes
@@ -256,13 +271,13 @@ export default function CustomersPage() {
           </p>
         </div>
         
-        <button
+        <Button
           onClick={handleOpenCreateModal}
           className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-full px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
         >
           <Plus className="size-3.5" />
           <span>Cadastrar Cliente</span>
-        </button>
+        </Button>
       </div>
 
       {/* Alertas */}
@@ -284,12 +299,12 @@ export default function CustomersPage() {
         <span className="absolute left-2.5 top-2.5 text-muted-foreground">
           <Search className="size-3.5" />
         </span>
-        <input
+        <Input
           type="text"
           placeholder="Buscar por nome, telefone ou documento..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full text-xs border border-border rounded-lg pl-8 pr-3 py-2 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+          className="w-full text-xs pl-8 pr-3 py-2 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
         />
       </div>
 
@@ -345,20 +360,20 @@ export default function CustomersPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex items-center gap-1.5">
-                      <button
+                      <Button
                         onClick={() => handleOpenEditModal(cust)}
                         className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-md border border-transparent hover:border-border transition-all"
                         title="Editar cliente"
                       >
                         <Edit2 className="size-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCustomer(cust.id)}
-                        className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-md border border-transparent hover:border-red-500/20 transition-all"
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteCustomerClick(cust.id)}
+                        className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-555 rounded-md border border-transparent hover:border-red-500/20 transition-all"
                         title="Excluir cliente"
                       >
                         <Trash2 className="size-3.5" />
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -384,12 +399,12 @@ export default function CustomersPage() {
                   <Users className="size-4 text-emerald-500" />
                   {editingCustomer ? "Editar Cliente" : "Cadastrar Cliente"}
                 </h2>
-                <button
+                <Button
                   onClick={() => setIsModalOpen(false)}
                   className="text-muted-foreground hover:text-foreground text-xs font-semibold"
                 >
                   Fechar
-                </button>
+                </Button>
               </div>
 
               <form onSubmit={handleSaveCustomer} className="flex flex-col max-h-[85vh]">
@@ -398,60 +413,60 @@ export default function CustomersPage() {
                     {/* 1. Dados Pessoais do Cliente */}
                     <div className="space-y-3">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">Nome Completo</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Nome Completo</Label>
+                        <Input
                           type="text"
                           required
                           placeholder="Ex: João da Silva"
                           value={formName}
                           onChange={(e) => setFormName(e.target.value)}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-medium text-muted-foreground">CPF ou CNPJ</label>
-                          <input
+                          <Label className="text-[10px] font-medium text-muted-foreground">CPF ou CNPJ</Label>
+                          <Input
                             type="text"
                             placeholder="Ex: 123.456.789-00"
                             value={formDocument}
                             onChange={(e) => setFormDocument(formatDocument(e.target.value))}
-                            className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                            className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-medium text-muted-foreground">Celular / Telefone</label>
-                          <input
+                          <Label className="text-[10px] font-medium text-muted-foreground">Celular / Telefone</Label>
+                          <Input
                             type="text"
                             required
                             placeholder="Ex: (21) 99999-9999"
                             value={formPhone}
                             onChange={(e) => setFormPhone(formatPhone(e.target.value))}
-                            className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                            className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">E-mail (Opcional)</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">E-mail (Opcional)</Label>
+                        <Input
                           type="email"
                           placeholder="Ex: joao@gmail.com"
                           value={formEmail}
                           onChange={(e) => setFormEmail(e.target.value)}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-medium text-muted-foreground">Endereço (Opcional)</label>
-                        <input
+                        <Label className="text-[10px] font-medium text-muted-foreground">Endereço (Opcional)</Label>
+                        <Input
                           type="text"
                           placeholder="Ex: Rua das Flores, 123 - Centro"
                           value={formAddress}
                           onChange={(e) => setFormAddress(e.target.value)}
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         />
                       </div>
                     </div>
@@ -459,7 +474,7 @@ export default function CustomersPage() {
                     {/* 2. Seção de Veículo Opcional (apenas na criação) */}
                     {!editingCustomer && (
                       <div className="border-t border-dashed border-border pt-3.5 space-y-3">
-                        <label className="flex items-center gap-2 cursor-pointer">
+                        <Label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={addInitialVehicle}
@@ -467,7 +482,7 @@ export default function CustomersPage() {
                             className="rounded-md border-border text-emerald-500 focus:ring-emerald-500/30 size-4"
                           />
                           <span className="text-[11px] font-bold text-foreground">Deseja cadastrar o primeiro veículo do cliente agora?</span>
-                        </label>
+                        </Label>
 
                         {addInitialVehicle && (
                           <motion.div
@@ -484,72 +499,72 @@ export default function CustomersPage() {
 
                             <div className="grid grid-cols-2 gap-3 text-xs">
                               <div className="space-y-1">
-                                <label className="text-[10px] font-medium text-muted-foreground">Placa</label>
-                                <input
+                                <Label className="text-[10px] font-medium text-muted-foreground">Placa</Label>
+                                <Input
                                   type="text"
                                   required={addInitialVehicle}
                                   placeholder="Ex: ABC-1234"
                                   value={vPlate}
                                   onChange={(e) => setVPlate(formatPlate(e.target.value))}
-                                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground placeholder-muted-foreground/50 font-mono"
+                                  className="w-full text-xs bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground placeholder-muted-foreground/50 font-mono"
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="text-[10px] font-medium text-muted-foreground">Motor (Opcional)</label>
-                                <input
+                                <Label className="text-[10px] font-medium text-muted-foreground">Motor (Opcional)</Label>
+                                <Input
                                   type="text"
                                   placeholder="Ex: 1.6 Flex, 2.0 Turbo"
                                   value={vEngine}
                                   onChange={(e) => setVEngine(e.target.value)}
-                                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                                  className="w-full text-xs bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                                 />
                               </div>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                               <div className="space-y-1">
-                                <label className="text-[10px] font-medium text-muted-foreground">Marca</label>
-                                <input
+                                <Label className="text-[10px] font-medium text-muted-foreground">Marca</Label>
+                                <Input
                                   type="text"
                                   required={addInitialVehicle}
                                   placeholder="Ex: Honda"
                                   value={vBrand}
                                   onChange={(e) => setVBrand(e.target.value)}
-                                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                                  className="w-full text-xs bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                                 />
                               </div>
                               <div className="space-y-1 col-span-1 sm:col-span-2">
-                                <label className="text-[10px] font-medium text-muted-foreground">Modelo</label>
-                                <input
+                                <Label className="text-[10px] font-medium text-muted-foreground">Modelo</Label>
+                                <Input
                                   type="text"
                                   required={addInitialVehicle}
                                   placeholder="Ex: Civic Sedan EXS"
                                   value={vModel}
                                   onChange={(e) => setVModel(e.target.value)}
-                                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                                  className="w-full text-xs bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                                 />
                               </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3 text-xs">
                               <div className="space-y-1">
-                                <label className="text-[10px] font-medium text-muted-foreground">Ano de Fabricação (Opcional)</label>
-                                <input
+                                <Label className="text-[10px] font-medium text-muted-foreground">Ano de Fabricação (Opcional)</Label>
+                                <Input
                                   type="number"
                                   placeholder="Ex: 2018"
                                   value={vYear}
                                   onChange={(e) => setVYear(e.target.value)}
-                                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                                  className="w-full text-xs bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="text-[10px] font-medium text-muted-foreground">Quilometragem (Km - Opcional)</label>
-                                <input
+                                <Label className="text-[10px] font-medium text-muted-foreground">Quilometragem (Km - Opcional)</Label>
+                                <Input
                                   type="number"
                                   placeholder="Ex: 85000"
                                   value={vMileage}
                                   onChange={(e) => setVMileage(e.target.value)}
-                                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+                                  className="w-full text-xs bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                                 />
                               </div>
                             </div>
@@ -562,27 +577,40 @@ export default function CustomersPage() {
                 </ScrollArea>
 
                 <div className="p-5 pt-3.5 flex justify-end gap-2 border-t border-dashed border-border bg-card">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
                     className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors"
                   >
                     Cancelar
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
                     disabled={actionLoading}
                     className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"
                   >
                     {actionLoading && <Loader2 className="size-3 animate-spin" />}
                     <span>Salvar Cliente</span>
-                  </button>
+                  </Button>
                 </div>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        title="Excluir Cliente"
+        message="Deseja realmente excluir este cliente e todos os seus veículos associados?"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={handleConfirmDeleteCustomer}
+        onCancel={() => {
+          setDeleteConfirmOpen(false)
+          setCustomerIdToDelete(null)
+        }}
+      />
 
     </div>
   )

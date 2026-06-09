@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface DashboardData {
@@ -353,9 +354,9 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
               </div>
               
               <Link href="/panel/inventory/parts">
-                <button className="w-full mt-2 py-2 bg-red-500/10 hover:bg-red-500/15 text-red-500 dark:text-red-400 font-bold uppercase text-[9px] rounded-lg border border-red-500/20 transition-all active:scale-98">
+                <Button className="w-full mt-2 py-2 bg-red-500/10 hover:bg-red-500/15 text-red-500 dark:text-red-400 font-bold uppercase text-[9px] rounded-lg border border-red-500/20 transition-all active:scale-98">
                   Ir para Estoque de Peças
-                </button>
+                </Button>
               </Link>
             </div>
           )}
@@ -370,10 +371,10 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                 Últimas Ordens de Serviço
               </h3>
               <Link href="/panel/orders">
-                <button className="text-[10px] uppercase font-bold text-emerald-500 hover:underline flex items-center gap-1 group">
+                <Button className="text-[10px] uppercase font-bold text-emerald-500 hover:underline flex items-center gap-1 group">
                   Ver Todas
                   <ArrowRight className="size-3 group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                </Button>
               </Link>
             </div>
 
@@ -416,9 +417,9 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                         </span>
                         
                         <Link href="/panel/orders">
-                          <button className="text-[9px] font-bold uppercase text-muted-foreground hover:text-foreground border border-border px-2.5 py-1 rounded-full transition-all bg-card hover:bg-muted/40">
+                          <Button className="text-[9px] font-bold uppercase text-muted-foreground hover:text-foreground border border-border px-2.5 py-1 rounded-full transition-all bg-card hover:bg-muted/40">
                             Acessar
-                          </button>
+                          </Button>
                         </Link>
                       </div>
                     </div>

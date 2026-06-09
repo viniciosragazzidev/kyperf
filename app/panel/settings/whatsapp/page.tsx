@@ -19,6 +19,8 @@ import {
   disconnectWhatsappSessionAction
 } from "@/lib/actions/whatsapp-actions"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 export default function WhatsappSettingsPage() {
   const [loading, setLoading] = useState(true)
@@ -35,6 +37,7 @@ export default function WhatsappSettingsPage() {
   const [status, setStatus] = useState<"DISCONNECTED" | "CONNECTED" | "CONNECTING">("DISCONNECTED")
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [qrError, setQrError] = useState<string | null>(null)
+  const [disconnectConfirmOpen, setDisconnectConfirmOpen] = useState(false)
 
   // Polling Refs
   const pollingRef = useRef<NodeJS.Timeout | null>(null)
@@ -143,11 +146,12 @@ export default function WhatsappSettingsPage() {
     }
   }
 
-  const handleDisconnect = async () => {
-    if (!confirm("Tem certeza que deseja desconectar o WhatsApp da oficina?")) {
-      return
-    }
+  const handleDisconnectClick = () => {
+    setDisconnectConfirmOpen(true)
+  }
 
+  const handleConfirmDisconnect = async () => {
+    setDisconnectConfirmOpen(false)
     setSubmitting(true)
     try {
       const res = await disconnectWhatsappSessionAction()
@@ -319,7 +323,7 @@ export default function WhatsappSettingsPage() {
                     </p>
                   </div>
 
-                  <button
+                  <Button
                     onClick={handleStartSession}
                     disabled={connecting || !apiUrl}
                     className="h-10 px-6 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-full font-bold uppercase tracking-wider text-[10px] cursor-pointer flex items-center justify-center gap-2 shadow-sm"
@@ -332,7 +336,7 @@ export default function WhatsappSettingsPage() {
                     ) : (
                       "Gerar QR Code de Conexão"
                     )}
-                  </button>
+                  </Button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -341,19 +345,19 @@ export default function WhatsappSettingsPage() {
           {/* Action Buttons */}
           <div className="pt-4 border-t border-dashed border-border space-y-3">
             {status !== "DISCONNECTED" && (
-              <button 
+              <Button 
                 type="button"
-                onClick={handleDisconnect}
+                onClick={handleDisconnectClick}
                 disabled={submitting}
                 className="w-full h-10 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-full font-black uppercase tracking-wider flex items-center justify-center gap-2 text-[10px] cursor-pointer disabled:opacity-50"
               >
                 <LogOut className="size-4" />
                 Desconectar WhatsApp
-              </button>
+              </Button>
             )}
 
             {apiUrl && (
-              <button 
+              <Button 
                 type="button"
                 onClick={handleSyncStatus}
                 disabled={statusCheckLoading}
@@ -361,7 +365,7 @@ export default function WhatsappSettingsPage() {
               >
                 <RefreshCw className={`size-4 ${statusCheckLoading ? "animate-spin" : ""}`} />
                 Sincronizar Status de Conexão
-              </button>
+              </Button>
             )}
           </div>
 
@@ -377,6 +381,16 @@ export default function WhatsappSettingsPage() {
 
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={disconnectConfirmOpen}
+        title="Desconectar WhatsApp"
+        message="Tem certeza que deseja desconectar o WhatsApp da oficina? Você deixará de enviar mensagens automáticas."
+        confirmText="Desconectar"
+        cancelText="Cancelar"
+        onConfirm={handleConfirmDisconnect}
+        onCancel={() => setDisconnectConfirmOpen(false)}
+      />
 
     </div>
   )

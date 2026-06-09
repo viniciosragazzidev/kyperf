@@ -18,6 +18,8 @@ import {
   FileText 
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 // Import Server Actions
 import { 
@@ -51,6 +53,10 @@ export default function SuppliersPage() {
   const [cnpj, setCnpj] = useState("")
   const [address, setAddress] = useState("")
   const [submitting, setSubmitting] = useState(false)
+
+  // Confirm Dialog states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [supplierIdToDelete, setSupplierIdToDelete] = useState<string | null>(null)
 
   const loadData = async () => {
     setLoading(true)
@@ -90,24 +96,33 @@ export default function SuppliersPage() {
     setModalOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja deletar este fornecedor?")) return
+  const handleDeleteClick = (id: string) => {
+    setSupplierIdToDelete(id)
+    setDeleteConfirmOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!supplierIdToDelete) return
+    setDeleteConfirmOpen(false)
     try {
-      const res = await deleteSupplierAction(id)
+      const res = await deleteSupplierAction(supplierIdToDelete)
       if (res.success) {
-        setSuppliers(prev => prev.filter(s => s.id !== id))
+        setSuppliers(prev => prev.filter(s => s.id !== supplierIdToDelete))
+        toast.success("Fornecedor removido com sucesso!")
       } else {
-        alert("Erro ao deletar fornecedor: " + res.error)
+        toast.error("Erro ao deletar fornecedor: " + res.error)
       }
     } catch (err: any) {
-      alert("Erro interno: " + err.message)
+      toast.error("Erro interno: " + err.message)
+    } finally {
+      setSupplierIdToDelete(null)
     }
   }
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name) {
-      alert("O nome do fornecedor é obrigatório.")
+      toast.warning("O nome do fornecedor é obrigatório.")
       return
     }
 
@@ -131,12 +146,12 @@ export default function SuppliersPage() {
       if (res.success) {
         setModalOpen(false)
         loadData()
-        alert(editingId ? "Fornecedor atualizado com sucesso!" : "Fornecedor cadastrado com sucesso!")
+        toast.success(editingId ? "Fornecedor atualizado com sucesso!" : "Fornecedor cadastrado com sucesso!")
       } else {
-        alert("Erro ao salvar: " + res.error)
+        toast.error("Erro ao salvar: " + res.error)
       }
     } catch (err: any) {
-      alert("Erro interno: " + err.message)
+      toast.error("Erro interno: " + err.message)
     } finally {
       setSubmitting(false)
     }
@@ -184,13 +199,13 @@ export default function SuppliersPage() {
           </p>
         </div>
 
-        <button
+        <Button
           onClick={openCreateModal}
           className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-full px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
         >
           <Plus className="size-3.5" />
           <span>Novo Fornecedor</span>
-        </button>
+        </Button>
       </div>
 
       {/* Main Panel */}
@@ -200,7 +215,7 @@ export default function SuppliersPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="relative w-full sm:max-w-xs">
             <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-            <input 
+            <Input 
               placeholder="BUSCAR FORNECEDOR OU CNPJ..."
               className="w-full text-xs border border-border rounded-lg pl-8 pr-3 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
               value={searchQuery}
@@ -260,18 +275,18 @@ export default function SuppliersPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="inline-flex items-center gap-1.5">
-                        <button 
+                        <Button 
                           onClick={() => openEditModal(s)}
                           className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-md border border-transparent hover:border-border transition-all"
                         >
                           <Edit className="size-3.5" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(s.id)}
-                          className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-550 rounded-md border border-transparent hover:border-red-500/20 transition-all"
+                        </Button>
+                        <Button 
+                          onClick={() => handleDeleteClick(s.id)}
+                          className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-md border border-transparent hover:border-red-500/20 transition-all"
                         >
                           <Trash2 className="size-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -305,12 +320,12 @@ export default function SuppliersPage() {
                   <Building2 className="size-4 text-emerald-500" />
                   {editingId ? "Editar Fornecedor" : "Novo Fornecedor"}
                 </h3>
-                <button 
+                <Button 
                   onClick={() => setModalOpen(false)}
                   className="text-muted-foreground hover:text-foreground text-xs font-semibold"
                 >
                   Fechar
-                </button>
+                </Button>
               </div>
 
               {/* Form */}
@@ -319,8 +334,8 @@ export default function SuppliersPage() {
                   
                   {/* Name */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Nome / Razão Social *</label>
-                    <input 
+                    <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Nome / Razão Social *</Label>
+                    <Input 
                       placeholder="EX: DISTRIBUIDORA DE AUTO PEÇAS SÃO PAULO"
                       className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground placeholder-muted-foreground/50 uppercase"
                       required
@@ -331,8 +346,8 @@ export default function SuppliersPage() {
 
                   {/* CNPJ */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">CNPJ</label>
-                    <input 
+                    <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">CNPJ</Label>
+                    <Input 
                       placeholder="EX: 12.345.678/0001-90"
                       className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                       value={cnpj}
@@ -343,8 +358,8 @@ export default function SuppliersPage() {
                   {/* Phone & Email */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Telefone</label>
-                      <input 
+                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Telefone</Label>
+                      <Input 
                         placeholder="EX: (11) 99999-9999"
                         className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         value={phone}
@@ -352,8 +367,8 @@ export default function SuppliersPage() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">E-mail</label>
-                      <input 
+                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">E-mail</Label>
+                      <Input 
                         type="email"
                         placeholder="EX: contato@fornecedor.com"
                         className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
@@ -365,8 +380,8 @@ export default function SuppliersPage() {
 
                   {/* Address */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Endereço Completo</label>
-                    <input 
+                    <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Endereço Completo</Label>
+                    <Input 
                       placeholder="RUA DAS AUTOPEÇAS, 100 - SÃO PAULO/SP"
                       className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                       value={address}
@@ -378,20 +393,20 @@ export default function SuppliersPage() {
 
                 {/* Buttons */}
                 <div className="p-5 pt-3.5 flex justify-end gap-2 border-t border-dashed border-border bg-card">
-                  <button 
+                  <Button 
                     type="button" 
                     onClick={() => setModalOpen(false)}
                     className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors"
                   >
                     Cancelar
-                  </button>
-                  <button 
+                  </Button>
+                  <Button 
                     type="submit"
                     disabled={submitting}
                     className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"
                   >
                     <span>{submitting ? "Gravando..." : "Salvar Fornecedor"}</span>
-                  </button>
+                  </Button>
                 </div>
 
               </form>
@@ -399,6 +414,19 @@ export default function SuppliersPage() {
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        title="Excluir Fornecedor"
+        message="Tem certeza que deseja deletar este fornecedor?"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setDeleteConfirmOpen(false)
+          setSupplierIdToDelete(null)
+        }}
+      />
 
     </div>
   )

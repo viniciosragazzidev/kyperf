@@ -25,6 +25,8 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 // Import Server Actions
 import { 
@@ -114,6 +116,10 @@ export default function VehiclesPage() {
   const [engine, setEngine] = useState("")
   const [mileage, setMileage] = useState("")
   const [submitting, setSubmitting] = useState(false)
+
+  // Confirm Dialog states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [vehicleIdToDelete, setVehicleIdToDelete] = useState<string | null>(null)
 
   // FIPE states
   const [fipeBrands, setFipeBrands] = useState<{ code: string; name: string }[]>([])
@@ -268,26 +274,40 @@ export default function VehiclesPage() {
     setModalOpen(true)
   }
 
-  const handleDeleteVehicle = async (id: string, e: React.MouseEvent) => {
+  const handleDeleteVehicleClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!confirm("Deletar este veículo irá excluir o histórico de OS associado. Deseja continuar?")) return
+    setVehicleIdToDelete(id)
+    setDeleteConfirmOpen(true)
+  }
+
+  const handleConfirmDeleteVehicle = async () => {
+    if (!vehicleIdToDelete) return
+    setDeleteConfirmOpen(false)
     try {
-      const res = await deleteVehicleAction(id)
+      const res = await deleteVehicleAction(vehicleIdToDelete)
       if (res.success) {
-        setVehicles(prev => prev.filter(v => v.id !== id))
-        if (selectedVehicle?.id === id) setSelectedVehicle(null)
+        setVehicles(prev => prev.filter(v => v.id !== vehicleIdToDelete))
+        if (selectedVehicle?.id === vehicleIdToDelete) setSelectedVehicle(null)
+        toast.success("Veículo excluído com sucesso!")
       } else {
-        alert("Erro ao deletar veículo: " + res.error)
+        const errMsg = res.error || ""
+        if (errMsg.includes("foreign key") || errMsg.includes("violates foreign key") || errMsg.includes("work_orders_vehicle_id_vehicles_id_fk")) {
+          toast.error("Não é possível excluir este veículo pois ele possui ordens de serviço vinculadas.")
+        } else {
+          toast.error("Erro ao deletar veículo: " + res.error)
+        }
       }
     } catch (err: any) {
-      alert("Erro interno: " + err.message)
+      toast.error("Erro interno: " + err.message)
+    } finally {
+      setVehicleIdToDelete(null)
     }
   }
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!customerId || !plate || !brand || !model) {
-      alert("Por favor, preencha os campos obrigatórios.")
+      toast.warning("Por favor, preencha os campos obrigatórios.")
       return
     }
 
@@ -313,12 +333,12 @@ export default function VehiclesPage() {
       if (res.success) {
         setModalOpen(false)
         loadData()
-        alert(editingId ? "Veículo atualizado!" : "Veículo cadastrado!")
+        toast.success(editingId ? "Veículo atualizado com sucesso!" : "Veículo cadastrado com sucesso!")
       } else {
-        alert("Erro ao salvar: " + res.error)
+        toast.error("Erro ao salvar: " + res.error)
       }
     } catch (err: any) {
-      alert("Erro interno: " + err.message)
+      toast.error("Erro interno: " + err.message)
     } finally {
       setSubmitting(false)
     }
@@ -364,13 +384,13 @@ export default function VehiclesPage() {
           </p>
         </div>
 
-        <button
+        <Button
           onClick={openCreateModal}
           className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-full px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
         >
           <Plus className="size-3.5" />
           <span>Novo Veículo</span>
-        </button>
+        </Button>
       </div>
 
       {/* Main Grid */}
@@ -389,9 +409,9 @@ export default function VehiclesPage() {
             {/* Search Bar */}
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-              <input 
+              <Input 
                 placeholder="BUSCAR PLACA, MODELO OU CLIENTE..."
-                className="w-full text-xs border border-border rounded-lg pl-8 pr-3 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                className="w-full text-xs pl-8 pr-3 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -432,18 +452,18 @@ export default function VehiclesPage() {
                     </div>
 
                     <div className="flex items-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <button 
+                      <Button 
                         onClick={(e) => openEditModal(v, e)}
                         className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted transition-all"
                       >
                         <Edit className="size-3.5" />
-                      </button>
-                      <button 
-                        onClick={(e) => handleDeleteVehicle(v.id, e)}
-                        className="text-muted-foreground hover:text-red-500 p-1 rounded hover:bg-red-500/10 transition-all"
+                      </Button>
+                      <Button 
+                        onClick={(e) => handleDeleteVehicleClick(v.id, e)}
+                        className="text-muted-foreground hover:text-red-550 p-1 rounded hover:bg-red-500/10 transition-all"
                       >
                         <Trash2 className="size-3.5" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -641,12 +661,12 @@ export default function VehiclesPage() {
                   <Car className="size-4 text-emerald-500" />
                   {editingId ? "Editar Veículo" : "Novo Veículo"}
                 </h3>
-                <button 
+                <Button 
                   onClick={() => setModalOpen(false)}
                   className="text-muted-foreground hover:text-foreground text-xs font-semibold"
                 >
                   Fechar
-                </button>
+                </Button>
               </div>
 
               {/* Form */}
@@ -655,7 +675,7 @@ export default function VehiclesPage() {
                   
                   {/* Customer Dropdown */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Proprietário *</label>
+                    <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Proprietário *</Label>
                     <select 
                       className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground uppercase"
                       required
@@ -673,10 +693,10 @@ export default function VehiclesPage() {
 
                   {/* Plate input */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Placa *</label>
-                    <input 
+                    <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Placa *</Label>
+                    <Input 
                       placeholder="EX: ABC1D23"
-                      className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground placeholder-muted-foreground/50 uppercase font-mono"
+                      className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground placeholder-muted-foreground/50 uppercase font-mono"
                       required
                       value={plate}
                       onChange={(e) => setPlate(e.target.value)}
@@ -686,8 +706,8 @@ export default function VehiclesPage() {
                   {/* Brand & Model Selector */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between col-span-2">
-                      <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Informações do Veículo *</label>
-                      <button
+                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Informações do Veículo *</Label>
+                      <Button
                         type="button"
                         onClick={() => {
                           setIsManualInput(!isManualInput);
@@ -702,26 +722,26 @@ export default function VehiclesPage() {
                         className="text-[10px] text-emerald-500 hover:underline font-bold"
                       >
                         {isManualInput ? "Usar Busca FIPE" : "Digitar Manualmente"}
-                      </button>
+                      </Button>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       {/* Marca */}
                       <div className="space-y-1 relative">
-                        <label className="text-[9px] font-bold text-muted-foreground uppercase">Marca *</label>
+                        <Label className="text-[9px] font-bold text-muted-foreground uppercase">Marca *</Label>
                         {isManualInput ? (
-                          <input 
+                          <Input 
                             placeholder="EX: HONDA"
-                            className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                            className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                             required
                             value={brand}
                             onChange={(e) => setBrand(e.target.value)}
                           />
                         ) : (
                           <div className="relative">
-                            <input 
+                            <Input 
                               placeholder="BUSCAR MARCA..."
-                              className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                              className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                               required
                               value={brandSearch}
                               onChange={(e) => {
@@ -742,7 +762,7 @@ export default function VehiclesPage() {
                                   fipeBrands
                                     .filter(b => b.name.toLowerCase().includes(brandSearch.toLowerCase()))
                                     .map(b => (
-                                      <button
+                                      <Button
                                         key={b.code}
                                         type="button"
                                         onMouseDown={() => {
@@ -753,7 +773,7 @@ export default function VehiclesPage() {
                                         className="w-full text-left px-3 py-1.5 hover:bg-muted font-bold text-foreground border-b border-border/20 last:border-b-0"
                                       >
                                         {b.name}
-                                      </button>
+                                      </Button>
                                     ))
                                 )}
                               </div>
@@ -764,20 +784,20 @@ export default function VehiclesPage() {
 
                       {/* Modelo */}
                       <div className="space-y-1 relative">
-                        <label className="text-[9px] font-bold text-muted-foreground uppercase">Modelo *</label>
+                        <Label className="text-[9px] font-bold text-muted-foreground uppercase">Modelo *</Label>
                         {isManualInput ? (
-                          <input 
+                          <Input 
                             placeholder="EX: CIVIC"
-                            className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                            className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                             required
                             value={model}
                             onChange={(e) => setModel(e.target.value)}
                           />
                         ) : (
                           <div className="relative">
-                            <input 
+                            <Input 
                               placeholder={selectedFipeBrandCode ? "BUSCAR MODELO..." : "SELECIONE A MARCA"}
-                              className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                              className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                               required
                               disabled={!selectedFipeBrandCode}
                               value={modelSearch}
@@ -798,7 +818,7 @@ export default function VehiclesPage() {
                                   fipeModels
                                     .filter(m => m.name.toLowerCase().includes(modelSearch.toLowerCase()))
                                     .map(m => (
-                                      <button
+                                      <Button
                                         key={m.code}
                                         type="button"
                                         onMouseDown={() => {
@@ -809,7 +829,7 @@ export default function VehiclesPage() {
                                         className="w-full text-left px-3 py-1.5 hover:bg-muted font-bold text-foreground border-b border-border/20 last:border-b-0"
                                       >
                                         {m.name}
-                                      </button>
+                                      </Button>
                                     ))
                                 )}
                               </div>
@@ -823,12 +843,12 @@ export default function VehiclesPage() {
                   {/* Year, Engine, Mileage */}
                   <div className="grid grid-cols-3 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Ano</label>
+                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Ano</Label>
                       {isManualInput ? (
-                        <input 
+                        <Input 
                           type="number"
                           placeholder="2020"
-                          className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
+                          className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
                           value={year}
                           onChange={(e) => setYear(e.target.value)}
                         />
@@ -853,20 +873,20 @@ export default function VehiclesPage() {
                       )}
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Motor</label>
-                      <input 
+                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Motor</Label>
+                      <Input 
                         placeholder="2.0 FLEX"
-                        className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                        className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                         value={engine}
                         onChange={(e) => setEngine(e.target.value)}
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Km Atual</label>
-                      <input 
+                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Km Atual</Label>
+                      <Input 
                         type="number"
                         placeholder="85000"
-                        className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
+                        className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 font-mono"
                         value={mileage}
                         onChange={(e) => setMileage(e.target.value)}
                       />
@@ -876,20 +896,20 @@ export default function VehiclesPage() {
 
                 {/* Buttons */}
                 <div className="p-5 pt-3.5 flex justify-end gap-2 border-t border-dashed border-border bg-card">
-                  <button 
+                  <Button 
                     type="button" 
                     onClick={() => setModalOpen(false)}
                     className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-full px-4 py-2 transition-colors"
                   >
                     Cancelar
-                  </button>
-                  <button 
+                  </Button>
+                  <Button 
                     type="submit"
                     disabled={submitting}
                     className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-full px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"
                   >
                     <span>{submitting ? "Gravando..." : "Salvar Veículo"}</span>
-                  </button>
+                  </Button>
                 </div>
 
               </form>
@@ -897,6 +917,19 @@ export default function VehiclesPage() {
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        title="Excluir Veículo"
+        message="Deletar este veículo irá excluir o histórico de OS associado. Deseja realmente continuar?"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={handleConfirmDeleteVehicle}
+        onCancel={() => {
+          setDeleteConfirmOpen(false)
+          setVehicleIdToDelete(null)
+        }}
+      />
 
     </div>
   )

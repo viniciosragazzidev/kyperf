@@ -10,6 +10,10 @@ import {
   Check, 
   Info 
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 // Import Server Actions
 import { 
@@ -63,7 +67,7 @@ export default function WorkshopSettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name) {
-      alert("O nome da oficina é obrigatório.")
+      toast.warning("O nome da oficina é obrigatório.")
       return
     }
 
@@ -78,13 +82,13 @@ export default function WorkshopSettingsPage() {
       })
 
       if (res.success) {
-        alert("Configurações da oficina atualizadas com sucesso!")
+        toast.success("Configurações da oficina atualizadas com sucesso!")
         loadData()
       } else {
-        alert("Erro ao salvar: " + res.error)
+        toast.error("Erro ao salvar: " + res.error)
       }
     } catch (err: any) {
-      alert("Erro interno: " + err.message)
+      toast.error("Erro interno: " + err.message)
     } finally {
       setSubmitting(false)
     }
@@ -144,10 +148,10 @@ export default function WorkshopSettingsPage() {
             
             {/* Name */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nome Fantasia da Unidade *</label>
-              <input 
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nome Fantasia da Unidade *</Label>
+              <Input 
                 placeholder="EX: AUTO CENTER CAR MATRIZ"
-                className="w-full text-xs border border-border rounded-lg bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 px-3 font-bold uppercase outline-hidden"
+                className="w-full text-xs bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 px-3 font-bold uppercase outline-hidden"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -156,10 +160,10 @@ export default function WorkshopSettingsPage() {
 
             {/* CNPJ */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">CNPJ da Filial</label>
-              <input 
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">CNPJ da Filial</Label>
+              <Input 
                 placeholder="EX: 12.345.678/0001-90"
-                className="w-full text-xs border border-border rounded-lg bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 px-3 outline-hidden"
+                className="w-full text-xs bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 px-3 outline-hidden"
                 value={cnpj}
                 onChange={(e) => setCnpj(formatCNPJ(e.target.value))}
               />
@@ -168,25 +172,25 @@ export default function WorkshopSettingsPage() {
             {/* Phone & Email */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Telefone de Contato</label>
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Telefone de Contato</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                  <input 
+                  <Input 
                     placeholder="EX: (11) 99999-9999"
-                    className="w-full text-xs border border-border rounded-lg bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 pl-10 pr-3 outline-hidden"
+                    className="w-full text-xs bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 pl-10 pr-3 outline-hidden"
                     value={phone}
                     onChange={(e) => setPhone(formatPhone(e.target.value))}
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">E-mail Corporativo</label>
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">E-mail Corporativo</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                  <input 
+                  <Input 
                     type="email"
                     placeholder="EX: matriz@oficina.com"
-                    className="w-full text-xs border border-border rounded-lg bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 pl-10 pr-3 outline-hidden"
+                    className="w-full text-xs bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 pl-10 pr-3 outline-hidden"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -196,12 +200,12 @@ export default function WorkshopSettingsPage() {
 
             {/* Address */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Endereço Físico Completo</label>
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Endereço Físico Completo</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <input 
+                <Input 
                   placeholder="EX: AVENIDA BRASIL, 1000 - CENTRO - RIO DE JANEIRO/RJ"
-                  className="w-full text-xs border border-border rounded-lg bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 pl-10 pr-3 uppercase outline-hidden"
+                  className="w-full text-xs bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 pl-10 pr-3 uppercase outline-hidden"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                 />
@@ -217,14 +221,14 @@ export default function WorkshopSettingsPage() {
                 </p>
               </div>
 
-              <button 
+              <Button 
                 type="submit"
                 disabled={submitting}
                 className="w-full h-10 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-black uppercase tracking-wider flex items-center justify-center gap-2 text-[10px] cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Check className="size-4" />
                 {submitting ? "Gravando Configurações..." : "Salvar Configurações"}
-              </button>
+              </Button>
             </div>
 
           </form>

@@ -39,6 +39,10 @@ import {
 import { sendDirectWhatsappAction } from "@/lib/actions/whatsapp-actions"
 import { toast } from "sonner"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import dynamic from "next/dynamic"
 
 const ThermalPrinterCard = dynamic(
@@ -141,7 +145,7 @@ function PrinterPopover({
 
   return (
     <div className="relative" ref={ref}>
-      <button
+      <Button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="bg-muted hover:bg-muted/80 text-foreground font-bold text-[10px] rounded-lg p-2.5 transition-all flex items-center gap-1.5"
@@ -149,7 +153,7 @@ function PrinterPopover({
       >
         <Printer className="size-4" />
         Imprimir
-      </button>
+      </Button>
 
       <AnimatePresence>
         {open && (
@@ -384,22 +388,22 @@ export default function OrdersPage() {
 
         <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
           {/* Quadro Kanban Button */}
-          <button
+          <Button
             onClick={() => router.push("/panel/orders/kanban")}
             className="bg-purple-600/10 hover:bg-purple-600/20 text-purple-650 dark:text-purple-400 font-extrabold text-xs rounded-full px-4 py-2.5 transition-all border border-purple-600/20 flex items-center gap-1.5 shadow-sm cursor-pointer animate-pulse"
           >
             <Sparkles className="size-3.5" />
             <span>Quadro Kanban / Pátio</span>
-          </button>
+          </Button>
 
           {/* Nova O.S. Button */}
-          <button
+          <Button
             onClick={() => router.push("/panel/orders/new")}
             className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-full px-5 py-2.5 transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="size-4" />
             Nova O.S.
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -475,7 +479,7 @@ export default function OrdersPage() {
             <span className="absolute left-3 top-3 text-muted-foreground">
               <Search className="size-4" />
             </span>
-            <input
+            <Input
               type="text"
               placeholder="Pesquise por OS, placa, modelo, cliente..."
               value={searchTerm}
@@ -483,12 +487,12 @@ export default function OrdersPage() {
               className="w-full text-xs border border-border rounded-xl pl-9 pr-4 py-2.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground placeholder:text-muted-foreground"
             />
             {searchTerm && (
-              <button
+              <Button
                 onClick={() => setSearchTerm("")}
                 className="absolute right-3 top-3.5 text-muted-foreground hover:text-foreground text-[10px] font-bold"
               >
                 Limpar
-              </button>
+              </Button>
             )}
           </div>
 
@@ -515,7 +519,7 @@ export default function OrdersPage() {
             const active = statusFilter === tab.key
             const count = getCountForStatus(tab.key)
             return (
-              <button
+              <Button
                 key={tab.key}
                 onClick={() => setStatusFilter(tab.key)}
                 className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all shrink-0 flex items-center gap-1.5 relative ${
@@ -539,7 +543,7 @@ export default function OrdersPage() {
                     transition={springConfig}
                   />
                 )}
-              </button>
+              </Button>
             )
           })}
         </div>
@@ -661,20 +665,20 @@ export default function OrdersPage() {
                       {/* Ações */}
                       <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
-                          <button
+                          <Button
                             onClick={() => handleOpenDrawer(order.id)}
                             className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-all"
                             title="Visualizar / Ações"
                           >
                             <ChevronRight className="size-4" />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             onClick={() => setOrderToDelete(order.id)}
-                            className="p-1.5 hover:bg-red-500/10 rounded-lg text-muted-foreground hover:text-red-500 transition-all"
+                            className="p-1.5 hover:bg-red-500/10 rounded-lg text-muted-foreground hover:text-red-550 rounded-md border border-transparent hover:border-red-500/20 transition-all"
                             title="Excluir O.S."
                           >
                             <Trash2 className="size-3.5" />
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -766,12 +770,12 @@ export default function OrdersPage() {
                     ABERTURA: {selectedOrderDetails?.createdAt ? new Date(selectedOrderDetails.createdAt).toLocaleDateString('pt-BR') : ""}
                   </span>
                 </div>
-                <button
+                <Button
                   onClick={() => setIsDrawerOpen(false)}
-                  className="p-1.5 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-all"
+                  className="p-1.5 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-all p-0 bg-transparent border-0"
                 >
                   <X className="size-4.5" />
-                </button>
+                </Button>
               </div>
 
               {/* Corpo Principal (Scrollable) */}
@@ -792,7 +796,7 @@ export default function OrdersPage() {
                       </h4>
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase">Etapa do Fluxo</label>
+                          <Label className="text-[9px] font-bold text-muted-foreground uppercase">Etapa do Fluxo</Label>
                           <select
                             value={editStatus}
                             onChange={(e) => setEditStatus(e.target.value)}
@@ -810,7 +814,7 @@ export default function OrdersPage() {
                         </div>
                         
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase">Mecânico Alocado</label>
+                          <Label className="text-[9px] font-bold text-muted-foreground uppercase">Mecânico Alocado</Label>
                           <select
                             value={editMechanicId}
                             onChange={(e) => setEditMechanicId(e.target.value)}
@@ -826,7 +830,7 @@ export default function OrdersPage() {
 
                       <div className="grid grid-cols-2 gap-3 text-xs pt-1.5">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase">Status Financeiro</label>
+                          <Label className="text-[9px] font-bold text-muted-foreground uppercase">Status Financeiro</Label>
                           <select
                             value={editPaymentStatus}
                             onChange={(e) => setEditPaymentStatus(e.target.value)}
@@ -839,8 +843,8 @@ export default function OrdersPage() {
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase">Box Alocado</label>
-                          <input
+                          <Label className="text-[9px] font-bold text-muted-foreground uppercase">Box Alocado</Label>
+                          <Input
                             type="text"
                             placeholder="Ex: Elevador 2"
                             value={editAllocatedBox}
@@ -898,8 +902,8 @@ export default function OrdersPage() {
                     {/* Notas do Triador / Diagnóstico */}
                     <div className="space-y-4">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-muted-foreground uppercase">Diagnóstico Inicial (Reclamação do Cliente)</label>
-                        <textarea
+                        <Label className="text-[9px] font-bold text-muted-foreground uppercase">Diagnóstico Inicial (Reclamação do Cliente)</Label>
+                        <Textarea
                           placeholder="Digite o diagnóstico inicial..."
                           value={editDiagnostic}
                           onChange={(e) => setEditDiagnostic(e.target.value)}
@@ -909,8 +913,8 @@ export default function OrdersPage() {
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-muted-foreground uppercase">Observações Internas</label>
-                        <textarea
+                        <Label className="text-[9px] font-bold text-muted-foreground uppercase">Observações Internas</Label>
+                        <Textarea
                           placeholder="Digite observações internas..."
                           value={editNotes}
                           onChange={(e) => setEditNotes(e.target.value)}
@@ -966,13 +970,13 @@ export default function OrdersPage() {
                             Peças e Serviços Orçados
                           </h4>
                           {drawerItems.some(i => i.isApproved === 0) && (
-                            <button
+                            <Button
                               type="button"
                               onClick={handleApproveAllDrawerItems}
-                              className="text-[8.5px] bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full transition-all active:scale-95 shadow-xs"
+                              className="text-[8.5px] bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full transition-all active:scale-95 shadow-xs h-auto border-0"
                             >
                               ✓ Aprovar Todo Orçamento
-                            </button>
+                            </Button>
                           )}
                         </div>
                         <span className="text-[9px] text-muted-foreground font-bold">
@@ -1022,30 +1026,30 @@ export default function OrdersPage() {
                                   
                                   {/* Toggles de Aprovação Rápidos */}
                                   <div className="inline-flex rounded-lg overflow-hidden border border-border/40 text-[9px] font-extrabold shrink-0">
-                                    <button
+                                    <Button
                                       type="button"
                                       onClick={() => handleUpdateDrawerItemApproval(item.id, 0)}
-                                      className={`px-2 py-1 flex items-center justify-center transition-all ${item.isApproved === 0 ? 'bg-amber-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
+                                      className={`px-2 py-1 flex items-center justify-center transition-all rounded-none h-auto border-0 ${item.isApproved === 0 ? 'bg-amber-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
                                       title="Pendente"
                                     >
                                       <Clock className="size-3" />
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                       type="button"
                                       onClick={() => handleUpdateDrawerItemApproval(item.id, 1)}
-                                      className={`px-2 py-1 flex items-center justify-center transition-all ${item.isApproved === 1 ? 'bg-emerald-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
+                                      className={`px-2 py-1 flex items-center justify-center transition-all rounded-none h-auto border-0 ${item.isApproved === 1 ? 'bg-emerald-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
                                       title="Aprovado"
                                     >
                                       <Check className="size-3" />
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                       type="button"
                                       onClick={() => handleUpdateDrawerItemApproval(item.id, 2)}
-                                      className={`px-2 py-1 flex items-center justify-center transition-all ${item.isApproved === 2 ? 'bg-red-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
+                                      className={`px-2 py-1 flex items-center justify-center transition-all rounded-none h-auto border-0 ${item.isApproved === 2 ? 'bg-red-500 text-white' : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'}`}
                                       title="Recusado"
                                     >
                                       <X className="size-3" />
-                                    </button>
+                                    </Button>
                                   </div>
                                 </div>
                               </div>
@@ -1109,7 +1113,7 @@ export default function OrdersPage() {
                     status={selectedOrderDetails?.status ?? 'CHECK_IN'}
                   />
 
-                  <button
+                  <Button
                     type="button"
                     disabled={sendingWhatsapp}
                     onClick={async () => {
@@ -1142,7 +1146,7 @@ export default function OrdersPage() {
                         setSendingWhatsapp(false);
                       }
                     }}
-                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg p-2.5 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg p-2.5 h-auto transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-0"
                     title="Enviar orçamento por WhatsApp"
                   >
                     {sendingWhatsapp ? (
@@ -1151,34 +1155,34 @@ export default function OrdersPage() {
                       <Phone className="size-4" />
                     )}
                     {sendingWhatsapp ? "Enviando..." : "WhatsApp"}
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       router.push(`/panel/orders/new?id=${selectedOrderId}`)
                     }}
-                    className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 font-bold text-[10px] rounded-lg p-2.5 transition-all flex items-center gap-1.5"
+                    className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 font-bold text-[10px] rounded-lg p-2.5 h-auto transition-all flex items-center gap-1.5 border-0 shadow-none"
                     title="Editar O.S. Completa"
                   >
                     <Edit2 className="size-4" />
                     Editar O.S.
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setIsDrawerOpen(false)}
-                    className="bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-lg px-4 py-2.5 transition-all"
+                    className="bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-lg px-4 py-2.5 h-auto transition-all border-0 shadow-none"
                   >
                     Fechar
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     disabled={isSavingDetails || isLoadingDetails}
                     onClick={handleSaveQuickEdits}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-lg px-5 py-2.5 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50"
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-lg px-5 py-2.5 h-auto transition-all flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50 border-0"
                   >
                     {isSavingDetails ? (
                       <>
@@ -1191,7 +1195,7 @@ export default function OrdersPage() {
                         <span>Salvar</span>
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -1218,18 +1222,18 @@ export default function OrdersPage() {
                 Você tem certeza absoluta que deseja excluir esta Ordem de Serviço? Esta ação é irreversível e excluirá permanentemente todos os registros de itens e triagem associados.
               </p>
               <div className="flex items-center justify-end gap-2 pt-2">
-                <button
+                <Button
                   type="button"
                   onClick={() => setOrderToDelete(null)}
-                  className="bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-lg px-4 py-2 transition-all"
+                  className="bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-lg px-4 py-2 h-auto transition-all border-0 shadow-none"
                 >
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   disabled={isDeleting}
                   onClick={handleDeleteOrder}
-                  className="bg-red-500 hover:bg-red-600 text-white font-extrabold text-xs rounded-lg px-4 py-2 transition-all flex items-center gap-1 shadow-md disabled:opacity-50"
+                  className="bg-red-500 hover:bg-red-600 text-white font-extrabold text-xs rounded-lg px-4 py-2 h-auto transition-all flex items-center gap-1 shadow-md disabled:opacity-50 border-0"
                 >
                   {isDeleting ? (
                     <>
@@ -1239,7 +1243,7 @@ export default function OrdersPage() {
                   ) : (
                     <span>Sim, Excluir</span>
                   )}
-                </button>
+                </Button>
               </div>
             </motion.div>
           </div>
