@@ -36,9 +36,11 @@ export async function getWorkOrderForPdfAction(id: string) {
     }
 
     const getBaseUrl = () => {
-      if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
-      if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-      return "http://localhost:3000";
+      let url = "";
+      if (process.env.NEXT_PUBLIC_APP_URL) url = process.env.NEXT_PUBLIC_APP_URL;
+      else if (process.env.VERCEL_URL) url = `https://${process.env.VERCEL_URL}`;
+      else url = "http://localhost:3000";
+      return url.replace(/\/$/, "");
     };
     const appUrl = getBaseUrl();
     const qrUrl = `${appUrl}/public/budget/${order.id}`;
