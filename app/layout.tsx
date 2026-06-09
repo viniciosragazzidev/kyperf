@@ -4,6 +4,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { CommandBar } from "@/components/command-bar";
+import { SyncStatusIndicator } from "@/components/sync-status-indicator";
 
 const instrumentSansHeading = Instrument_Sans({ subsets: ['latin'], variable: '--font-heading' });
 
@@ -36,6 +38,8 @@ export default function RootLayout({
         <TooltipProvider>
           {children}
           <Toaster richColors closeButton />
+          <CommandBar />
+          <SyncStatusIndicator />
         </TooltipProvider>
       </body>
     </html>

@@ -140,7 +140,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer">
+            <DropdownMenuItem onClick={handleLogout} variant="destructive" className="cursor-pointer">
               <HugeiconsIcon icon={LogoutIcon} strokeWidth={2} />
               Sair do Sistema
             </DropdownMenuItem>

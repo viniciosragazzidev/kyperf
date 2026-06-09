@@ -46,7 +46,15 @@ export function SiteHeader() {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="ml-auto flex items-center gap-2">
-          <SearchForm className="w-full sm:w-auto" />
+          <div className="relative hidden md:block group">
+            <SearchForm className="w-full sm:w-64 transition-all duration-300 focus-within:sm:w-80" />
+            <div className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 transition-opacity group-focus-within:opacity-0">
+              <span className="text-xs">⌘</span>K
+            </div>
+          </div>
+          <div className="md:hidden">
+            <SearchForm />
+          </div>
           <AnimatedThemeToggler className="flex size-8 items-center justify-center rounded-md border bg-background hover:bg-accent hover:text-accent-foreground" />
         </div>
       </div>

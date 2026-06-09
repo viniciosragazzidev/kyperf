@@ -90,7 +90,7 @@
   --foreground: oklch(0.985 0 0);
   --card: oklch(12.856% 0.00001 271.152);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.16 0.01 160 / 0.8);
+  --popover: oklch(0% 0 0);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.432 0.095 166.913);
   --primary-foreground: oklch(0.979 0.021 166.113);
@@ -214,6 +214,7 @@ html[data-magicui-theme-vt="active"]::view-transition-group(root) {
 .logo-invert {
   filter: invert(1);
 }
+
 .dark .logo-invert {
   filter: invert(0);
 }
