@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { auth } from "@/lib/auth"
+import { db } from "@/lib/db"
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -12,16 +14,24 @@ export async function proxy(request: NextRequest) {
 
   if (sessionToken) {
     try {
-      const getBaseUrl = () => request.nextUrl.origin;
-      
-      const res = await fetch(`${getBaseUrl()}/api/onboarding/status`, {
-        headers: new Headers(request.headers),
+      const session = await auth.api.getSession({
+        headers: request.headers,
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        isAuthenticated = !!data.authenticated;
-        onboardingCompleted = !!data.onboardingCompleted;
+      if (session && session.user) {
+        isAuthenticated = true;
+        const userId = session.user.id;
+
+        const dbUser = await db.query.user.findFirst({
+          where: (u, { eq }) => eq(u.id, userId),
+        });
+
+        if (dbUser && dbUser.tenantId) {
+          const tenant = await db.query.tenants.findFirst({
+            where: (t, { eq }) => eq(t.id, dbUser.tenantId!),
+          });
+          onboardingCompleted = !!tenant?.onboardingCompleted;
+        }
       }
     } catch (err) {
       console.error("Erro ao verificar onboarding no proxy:", err);
@@ -70,3 +80,4 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.svg$).*)',
   ],
 }
+
