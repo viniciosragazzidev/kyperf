@@ -35,7 +35,12 @@ export async function getWorkOrderForPdfAction(id: string) {
         .where(eq(schema.workOrders.id, order.id));
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://kyperfixy.vercel.app";
+    const getBaseUrl = () => {
+      if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+      if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+      return "http://localhost:3000";
+    };
+    const appUrl = getBaseUrl();
     const qrUrl = `${appUrl}/public/budget/${order.id}`;
     let qrCodeUrl = "";
     try {
