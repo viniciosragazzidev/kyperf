@@ -550,6 +550,7 @@ export default function CustomersPage() {
                     <div className="inline-flex items-center gap-1.5">
                       <Button
                         onClick={() => handleOpenEditModal(cust)}
+                        variant="ghost"
                         className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-md border border-transparent hover:border-border transition-all"
                         title="Editar cliente"
                       >
@@ -557,6 +558,7 @@ export default function CustomersPage() {
                       </Button>
                       <Button
                         onClick={() => handleDeleteCustomerClick(cust.id)}
+                        variant="ghost"
                         className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-555 rounded-md border border-transparent hover:border-red-500/20 transition-all"
                         title="Excluir cliente"
                       >
@@ -589,15 +591,16 @@ export default function CustomersPage() {
                 </h2>
                 <Button
                   onClick={() => setIsModalOpen(false)}
+                  variant="ghost"
                   className="text-muted-foreground hover:text-foreground text-xs font-semibold"
                 >
                   Fechar
                 </Button>
               </div>
 
-              <form onSubmit={handleSaveCustomer} className="flex flex-col max-h-[85vh]">
-                <ScrollArea className="flex-1 max-h-[65vh]">
-                  <div className="p-5 space-y-3.5 pr-6">
+              <form onSubmit={handleSaveCustomer} className="flex flex-col max-h-[85vh] overflow-hidden">
+                <ScrollArea className="flex-1 min-h-0 overflow-hidden max-h-[60vh]">
+                  <div className="p-5 space-y-3.5 pr-6 pb-12">
                     {/* 1. Dados Pessoais do Cliente */}
                     <div className="space-y-3">
                       <div className="space-y-1">
@@ -767,8 +770,9 @@ export default function CustomersPage() {
                 <div className="p-5 pt-3.5 flex justify-end gap-2 border-t border-dashed border-border bg-card">
                   <Button
                     type="button"
+                    variant="outline"
                     onClick={() => setIsModalOpen(false)}
-                    className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-none px-4 py-2 transition-colors"
+                    className="font-semibold text-xs rounded-none px-4 py-2 transition-colors"
                   >
                     Cancelar
                   </Button>

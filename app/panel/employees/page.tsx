@@ -246,7 +246,8 @@ export default function EmployeesPage() {
         <div className="flex gap-2">
           <Button
             onClick={() => window.location.href = "/panel/employees/workload"}
-            className="flex items-center gap-1.5 border border-border bg-card hover:bg-muted text-foreground font-bold text-xs rounded-none px-4 py-2 transition-all active:scale-95 shrink-0"
+            variant="outline"
+            className="flex items-center gap-1.5 font-bold text-xs rounded-none px-4 py-2 transition-all active:scale-95 shrink-0"
           >
             <span>Carga de Trabalho</span>
           </Button>
@@ -418,6 +419,7 @@ export default function EmployeesPage() {
                     <td className="px-4 py-3 text-right">
                       <Button
                         onClick={() => handleOpenEditModal(emp)}
+                        variant="ghost"
                         className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-md border border-transparent hover:border-border transition-all"
                         title="Editar colaborador"
                       >
@@ -450,15 +452,16 @@ export default function EmployeesPage() {
                 </h2>
                 <Button
                   onClick={() => setIsModalOpen(false)}
+                  variant="ghost"
                   className="text-muted-foreground hover:text-foreground text-xs font-semibold"
                 >
                   Fechar
                 </Button>
               </div>
 
-              <form onSubmit={handleSaveEmployee} className="flex flex-col max-h-[85vh]">
-                <ScrollArea className="flex-1 max-h-[65vh]">
-                  <div className="p-5 space-y-4 pr-6 text-xs">
+              <form onSubmit={handleSaveEmployee} className="flex flex-col max-h-[85vh] overflow-hidden">
+                <ScrollArea className="flex-1 min-h-0 overflow-hidden max-h-[60vh]">
+                  <div className="p-5 space-y-4 pr-6 pb-12 text-xs">
                     
                     {/* Nome */}
                     <div className="space-y-1">
@@ -630,8 +633,9 @@ export default function EmployeesPage() {
                 <div className="p-5 pt-3.5 flex justify-end gap-2 border-t border-dashed border-border bg-card">
                   <Button
                     type="button"
+                    variant="outline"
                     onClick={() => setIsModalOpen(false)}
-                    className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-none px-4 py-2 transition-colors"
+                    className="font-semibold text-xs rounded-none px-4 py-2 transition-colors"
                   >
                     Cancelar
                   </Button>
