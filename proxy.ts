@@ -8,7 +8,11 @@ export async function proxy(request: NextRequest) {
   const sessionCookie = request.cookies.getAll().find((c) =>
     c.name.endsWith("better-auth.session_token")
   );
-  const sessionToken = sessionCookie?.value;
+  
+  let sessionToken = sessionCookie?.value;
+  if (sessionToken && sessionToken.includes(".")) {
+    sessionToken = sessionToken.split(".")[0];
+  }
 
   let isAuthenticated = false;
   let onboardingCompleted = false;
