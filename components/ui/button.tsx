@@ -8,15 +8,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        default:
+          "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:text-primary active:bg-primary/30",
+        none: "",
         outline:
-          "border-border hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:bg-input/30",
+          "border-border/60 bg-foreground/[0.02] text-foreground hover:bg-foreground/[0.06] hover:text-foreground active:bg-foreground/[0.1]",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-secondary/40 text-secondary-foreground border-secondary/20 hover:bg-secondary/60 hover:text-secondary-foreground active:bg-secondary/80",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "hover:bg-foreground/[0.05] hover:text-foreground active:bg-foreground/[0.1] border-transparent",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+          "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20 hover:text-destructive active:bg-destructive/30",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -38,16 +40,131 @@ const buttonVariants = cva(
   }
 )
 
+const transformToBadgeStyle = (className: string): string => {
+  let classes = className.split(/\s+/);
+  
+  let hasSolidBg = false;
+  for (const c of classes) {
+    if (c.startsWith("bg-") && 
+        !c.includes("/") &&
+        !c.startsWith("bg-clip-") && 
+        !c.startsWith("bg-origin-") &&
+        !c.startsWith("bg-blend-") &&
+        c !== "bg-cover" && 
+        c !== "bg-contain" && 
+        c !== "bg-center" && 
+        c !== "bg-no-repeat" && 
+        c !== "bg-repeat" &&
+        c !== "bg-local" &&
+        c !== "bg-scroll" &&
+        c !== "bg-fixed" &&
+        c !== "bg-auto" &&
+        c !== "bg-transparent") {
+      hasSolidBg = true;
+      break;
+    }
+  }
+
+  if (!hasSolidBg) {
+    return className;
+  }
+
+  classes = classes.map(c => {
+    // Transform bg-[color]
+    const bgMatch = c.match(/^bg-(emerald|green|red|amber|orange|blue|indigo|purple|pink|yellow|zinc|gray|neutral|slate)-?([0-9]*)$/);
+    if (bgMatch) {
+      const color = bgMatch[1];
+      const weight = bgMatch[2] || "500";
+      return `bg-${color}-${weight}/10 border border-${color}-${weight}/20 text-${color}-600 dark:text-${color}-400`;
+    }
+
+    if (c === "bg-primary") {
+      return "bg-primary/10 border border-primary/20 text-primary";
+    }
+    
+    if (c === "bg-secondary") {
+      return "bg-secondary/40 border border-secondary/20 text-secondary-foreground";
+    }
+
+    if (c === "bg-muted") {
+      return "bg-muted/50 border border-border/40 text-foreground";
+    }
+
+    // Transform hover:bg-[color]
+    const hoverMatch = c.match(/^hover:bg-(emerald|green|red|amber|orange|blue|indigo|purple|pink|yellow|zinc|gray|neutral|slate)-?([0-9]*)$/);
+    if (hoverMatch) {
+      const color = hoverMatch[1];
+      const weight = hoverMatch[2] || "500";
+      return `hover:bg-${color}-${weight}/20`;
+    }
+
+    if (c === "hover:bg-primary/80" || c === "hover:bg-primary") {
+      return "hover:bg-primary/20";
+    }
+
+    if (c === "hover:bg-secondary/80" || c === "hover:bg-secondary") {
+      return "hover:bg-secondary/60";
+    }
+
+    if (c === "hover:bg-muted/80" || c === "hover:bg-muted") {
+      return "hover:bg-muted/80";
+    }
+
+    // Remove text-white / text-black / text-primary-foreground / text-secondary-foreground if we transformed a custom background
+    if (c === "text-white" || c === "text-black" || c === "text-primary-foreground" || c === "text-secondary-foreground") {
+      return "";
+    }
+
+    // Remove existing borders that might clash
+    if (c.startsWith("border-emerald-") || 
+        c.startsWith("border-green-") || 
+        c.startsWith("border-red-") || 
+        c.startsWith("border-amber-") || 
+        c.startsWith("border-blue-") || 
+        c.startsWith("border-primary") || 
+        c.startsWith("border-secondary")) {
+      return "";
+    }
+
+    return c;
+  });
+
+  return classes.filter(Boolean).join(" ");
+};
+
+const hasCustomBgOrHover = (className?: string | ((state: any) => string | undefined)) => {
+  if (!className || typeof className !== "string") return false;
+  const classes = className.split(/\s+/);
+  return classes.some(c => 
+    (c.startsWith("bg-") || c.startsWith("hover:bg-") || c.startsWith("dark:hover:bg-") || c.startsWith("focus:bg-")) && 
+    !c.startsWith("bg-clip-") && 
+    !c.startsWith("bg-origin-") &&
+    !c.startsWith("bg-blend-") &&
+    c !== "bg-cover" && 
+    c !== "bg-contain" && 
+    c !== "bg-center" && 
+    c !== "bg-no-repeat" && 
+    c !== "bg-repeat" &&
+    c !== "bg-local" &&
+    c !== "bg-scroll" &&
+    c !== "bg-fixed" &&
+    c !== "bg-auto"
+  );
+};
+
 function Button({
   className,
   variant = "default",
   size = "default",
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+  const transformedClassName = typeof className === "string" ? transformToBadgeStyle(className) : className;
+  const resolvedVariant = variant === "default" && hasCustomBgOrHover(transformedClassName) ? "none" : variant;
+  
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant: resolvedVariant, size, className: transformedClassName }))}
       {...props}
     />
   )

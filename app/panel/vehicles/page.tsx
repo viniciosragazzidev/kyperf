@@ -516,17 +516,19 @@ export default function VehiclesPage() {
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans space-y-6">
       
       {/* Cabeçalho */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <span className="bg-emerald-500/10 text-emerald-500 p-1.5 rounded-lg border border-emerald-500/20">
-              <Car className="size-4.5" />
-            </span>
-            Cadastro de Veículos
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
-            Gestão da frota de clientes com visualização de timeline e histórico completo de serviços.
-          </p>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
+        <div className="flex items-start gap-3">
+          <span className="bg-emerald-500/10 text-emerald-500 p-2 rounded-xl border border-emerald-500/20 shrink-0 mt-0.5">
+            <Car className="size-5" />
+          </span>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-foreground leading-none">
+              Cadastro de Veículos
+            </h1>
+            <p className="text-xs text-muted-foreground leading-relaxed geist-mono">
+              Gestão da frota de clientes com visualização de timeline e histórico completo de serviços.
+            </p>
+          </div>
         </div>
 
         <Button
@@ -862,6 +864,7 @@ export default function VehiclesPage() {
                       <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Informações do Veículo *</Label>
                       <Button
                         type="button"
+                        variant="ghost"
                         onClick={() => {
                           setIsManualInput(!isManualInput);
                           if (!isManualInput) {
@@ -872,7 +875,7 @@ export default function VehiclesPage() {
                             setModelSearch(model);
                           }
                         }}
-                        className="text-[10px] text-emerald-500 hover:underline font-bold"
+                        className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 font-bold px-2.5 h-6 rounded-lg shadow-none"
                       >
                         {isManualInput ? "Usar Busca FIPE" : "Digitar Manualmente"}
                       </Button>

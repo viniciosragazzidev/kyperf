@@ -196,17 +196,19 @@ export default function WhatsappSettingsPage() {
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans space-y-6">
       
       {/* Cabeçalho */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <span className="bg-emerald-500/10 text-emerald-500 p-1.5 rounded-lg border border-emerald-500/20">
-              <MessageSquare className="size-4.5" />
-            </span>
-            Integração WhatsApp
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
-            Conecte o WhatsApp da sua oficina para disparar orçamentos e ordens de serviço diretamente para os clientes.
-          </p>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
+        <div className="flex items-start gap-3">
+          <span className="bg-emerald-500/10 text-emerald-500 p-2 rounded-xl border border-emerald-500/20 shrink-0 mt-0.5">
+            <MessageSquare className="size-5" />
+          </span>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-foreground leading-none">
+              Integração WhatsApp
+            </h1>
+            <p className="text-xs text-muted-foreground leading-relaxed geist-mono">
+              Conecte o WhatsApp da sua oficina para disparar orçamentos e ordens de serviço diretamente para os clientes.
+            </p>
+          </div>
         </div>
       </div>
 

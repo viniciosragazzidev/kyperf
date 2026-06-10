@@ -1237,6 +1237,7 @@ export default function OrdersPage() {
 
                   <Button
                     type="button"
+                    variant="ghost"
                     disabled={sendingWhatsapp}
                     onClick={async () => {
                       if (sendingWhatsapp) return;
@@ -1268,7 +1269,7 @@ export default function OrdersPage() {
                         setSendingWhatsapp(false);
                       }
                     }}
-                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg p-2.5 h-auto transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-0"
+                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg px-3 h-7 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-transparent"
                     title="Enviar orçamento por WhatsApp"
                   >
                     {sendingWhatsapp ? (
@@ -1281,10 +1282,11 @@ export default function OrdersPage() {
 
                   <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => {
                       router.push(`/panel/orders/new?id=${selectedOrderId}`)
                     }}
-                    className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 font-bold text-[10px] rounded-lg p-2.5 h-auto transition-all flex items-center gap-1.5 border-0 shadow-none"
+                    className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 font-bold text-[10px] rounded-lg px-3 h-7 transition-all flex items-center gap-1.5 border-transparent shadow-none"
                     title="Editar O.S. Completa"
                   >
                     <Edit2 className="size-4" />

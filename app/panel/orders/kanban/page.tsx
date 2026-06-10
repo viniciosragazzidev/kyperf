@@ -3,24 +3,24 @@
 import React, { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Wrench, 
-  Plus, 
-  Search, 
-  Trash2, 
-  Edit2, 
-  Loader2, 
-  Check, 
-  AlertCircle, 
-  Info, 
-  Car, 
-  User, 
-  Calendar, 
-  Clock, 
-  FileText, 
-  DollarSign, 
-  ChevronRight, 
-  X, 
+import {
+  Wrench,
+  Plus,
+  Search,
+  Trash2,
+  Edit2,
+  Loader2,
+  Check,
+  AlertCircle,
+  Info,
+  Car,
+  User,
+  Calendar,
+  Clock,
+  FileText,
+  DollarSign,
+  ChevronRight,
+  X,
   Sparkles,
   ArrowRight,
   ShieldAlert,
@@ -30,12 +30,12 @@ import {
   ChevronLeft,
   Phone
 } from "lucide-react"
-import { 
-  getWorkOrdersAction, 
-  deleteWorkOrderAction, 
-  updateWorkOrderAction, 
+import {
+  getWorkOrdersAction,
+  deleteWorkOrderAction,
+  updateWorkOrderAction,
   getWorkOrderAction,
-  getMechanicsAction 
+  getMechanicsAction
 } from "@/lib/actions/orders-actions"
 import { sendDirectWhatsappAction } from "@/lib/actions/whatsapp-actions"
 import { toast } from "sonner"
@@ -197,15 +197,15 @@ export default function KanbanPage() {
     setSelectedOrderId(orderId)
     setIsLoadingDetails(true)
     setIsDrawerOpen(true)
-    
+
     const res = await getWorkOrderAction(orderId)
     setIsLoadingDetails(false)
-    
+
     if (res.success && res.data) {
       const details = res.data
       setSelectedOrderDetails(details)
       setDrawerItems(details.items || [])
-      
+
       // Preenche estados de edição rápida
       setEditStatus(details.status)
       setEditMechanicId(details.mechanicId || "")
@@ -409,7 +409,7 @@ export default function KanbanPage() {
     setTimeout(() => {
       setIsCommandProcessing(false)
       const cleanQuery = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      
+
       // 1. Rebalancear
       if (cleanQuery.includes("rebalance") || cleanQuery.includes("rampa") || cleanQuery.includes("especialidade")) {
         const activeOrders = orders.filter(o => o.status === 'IN_PROGRESS' || o.status === 'AWAITING_PARTS')
@@ -454,7 +454,7 @@ export default function KanbanPage() {
               }
               return o
             }))
-            
+
             // Run background updates
             toast.promise(
               Promise.all(activeOrders.map((o, index) => {
@@ -538,7 +538,7 @@ export default function KanbanPage() {
             }))
 
             toast.promise(
-              Promise.all(readyOrders.map(o => 
+              Promise.all(readyOrders.map(o =>
                 updateWorkOrderAction({
                   id: o.id,
                   status: 'DELIVERED',
@@ -569,7 +569,7 @@ export default function KanbanPage() {
             "Tente expressar sua intenção de outra forma ou clique em um dos atalhos sugeridos.",
             "Exemplos: 'rebalancear o pátio', 'cobrar orçamentos', 'liberar os boxes'."
           ],
-          execute: async () => {}
+          execute: async () => { }
         })
       }
     }, 1500)
@@ -577,7 +577,7 @@ export default function KanbanPage() {
 
   // Filtro de Busca & Status Tabs
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
+    const matchesSearch =
       order.osNumber.toString().includes(searchTerm) ||
       order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.vehiclePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -596,31 +596,31 @@ export default function KanbanPage() {
 
   return (
     <div className="flex-1 w-full min-w-0 max-w-full h-[calc(100vh-var(--header-height))] flex flex-col p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 overflow-hidden font-sans">
-      
+
       {/* 📋 SEO Friendly Page Title */}
       <h1 className="sr-only">Quadro Kanban - Monitoramento de Rampa</h1>
 
       {/* Cabeçalho Principal */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shrink-0">
-        <div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => router.push("/panel/orders")}
-              className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors border border-border/40 bg-card mr-1 h-auto"
-              title="Voltar para Histórico"
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <span className="bg-purple-500/10 text-purple-500 p-1.5 rounded-lg border border-purple-500/20">
-              <Sparkles className="size-5" />
-            </span>
-            <h2 className="text-xl font-bold tracking-tight text-foreground">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6 shrink-0">
+        <div className="flex items-start gap-2.5">
+          <Button
+            onClick={() => router.push("/panel/orders")}
+            className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors border border-border/40 bg-card mr-1 h-7 px-2 shrink-0"
+            title="Voltar para Histórico"
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <span className="bg-purple-500/10 text-purple-500 p-2 rounded-xl border border-purple-500/20 shrink-0 mt-0.5">
+            <Sparkles className="size-5" />
+          </span>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-foreground leading-none">
               Monitoramento de Rampa (Kanban)
-            </h2>
+            </h1>
+            <p className="text-xs text-muted-foreground leading-relaxed geist-mono">
+              Gerencie boxes de serviço em tempo real por rampa, otimize mecânicos e execute comandos em lote.
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5 ml-8 geist-mono">
-            Gerencie boxes de serviço em tempo real por rampa, otimize mecânicos e execute comandos em lote.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
@@ -711,18 +711,16 @@ export default function KanbanPage() {
               <Button
                 key={tab.key}
                 onClick={() => setStatusFilter(tab.key)}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all shrink-0 flex items-center gap-1.5 relative h-auto border-0 shadow-none ${
-                  active 
-                    ? "bg-foreground text-background scale-102 hover:bg-foreground/90" 
-                    : "bg-muted/30 hover:bg-muted/60 text-muted-foreground"
-                }`}
+                className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all shrink-0 flex items-center gap-1.5 relative h-auto border-0 shadow-none ${active
+                  ? "bg-foreground text-background scale-102 hover:bg-foreground/90"
+                  : "bg-muted/30 hover:bg-muted/60 text-muted-foreground"
+                  }`}
               >
                 <span>{tab.label}</span>
-                <span className={`px-1.5 py-0.5 rounded-md text-[9px] ${
-                  active 
-                    ? "bg-background/25 text-foreground" 
-                    : "bg-muted/70 text-muted-foreground font-mono"
-                }`}>
+                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold ${active
+                  ? "bg-background/25 text-background"
+                  : "bg-muted-foreground/15 text-foreground"
+                  }`}>
                   {count}
                 </span>
                 {active && (
@@ -787,107 +785,107 @@ export default function KanbanPage() {
       ) : (
         <ScrollArea className="flex-1 w-full min-w-0" data-slot="kanban-scroll-area">
           <div className="flex gap-4 pb-4 select-none min-h-full">
-          {[
-            { id: 'CHECK_IN', label: 'Check-in', color: 'border-blue-500/20 bg-blue-500/5 text-blue-500 dark:text-blue-400' },
-            { id: 'AWAITING_BUDGET', label: 'Orçamento', color: 'border-amber-500/20 bg-amber-500/5 text-amber-500 dark:text-amber-400' },
-            { id: 'AWAITING_APPROVAL', label: 'Aprovação', color: 'border-yellow-500/20 bg-yellow-500/5 text-yellow-500 dark:text-yellow-400' },
-            { id: 'AWAITING_PARTS', label: 'Peças', color: 'border-purple-500/20 bg-purple-500/5 text-purple-500 dark:text-purple-400' },
-            { id: 'IN_PROGRESS', label: 'Execução', color: 'border-indigo-500/20 bg-indigo-500/5 text-indigo-500 dark:text-indigo-400' },
-            { id: 'TESTING_WASHING', label: 'Teste/Lavagem', color: 'border-pink-500/20 bg-pink-500/5 text-pink-500 dark:text-pink-400' },
-            { id: 'READY', label: 'Pronto', color: 'border-emerald-500/20 bg-emerald-500/5 text-emerald-500 dark:text-emerald-400' },
-            { id: 'DELIVERED', label: 'Entregue', color: 'border-zinc-500/20 bg-zinc-500/5 text-zinc-500 dark:text-zinc-400' }
-          ].map((col) => {
-            const columnOrders = filteredOrders.filter(o => o.status === col.id)
-            return (
-              <div
-                key={col.id}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  const orderId = e.dataTransfer.getData("text/plain")
-                  handleMoveOrderStatus(orderId, col.id as any)
-                }}
-                className="flex-none w-[280px] min-w-[280px] bg-card/60 border border-border/50 rounded-3xl p-4 flex flex-col h-full min-h-0 transition-all hover:bg-card/90"
-              >
-                {/* Cabeçalho da Rampa / Coluna */}
-                <div className="flex items-center justify-between mb-4 pb-2 border-b border-border/30 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className={`size-2 rounded-full ${col.id === 'CHECK_IN' ? 'bg-blue-500' : col.id === 'AWAITING_BUDGET' ? 'bg-amber-500' : col.id === 'AWAITING_APPROVAL' ? 'bg-yellow-500' : col.id === 'AWAITING_PARTS' ? 'bg-purple-500' : col.id === 'IN_PROGRESS' ? 'bg-indigo-500' : col.id === 'TESTING_WASHING' ? 'bg-pink-500' : col.id === 'READY' ? 'bg-emerald-500' : 'bg-zinc-500'}`} />
-                    <span className="text-xs font-bold text-foreground uppercase tracking-wider">{col.label}</span>
-                  </div>
-                  <span className="bg-muted px-2 py-0.5 rounded-full text-[9px] font-bold text-muted-foreground font-mono">
-                    {columnOrders.length}
-                  </span>
-                </div>
-
-                {/* Lista de Cards da Rampa */}
-                <ScrollArea className="flex-1 min-h-0 pr-1">
-                  <div className="space-y-3 pb-4">
-                  {columnOrders.length === 0 ? (
-                    <div className="h-40 flex items-center justify-center text-[10px] text-muted-foreground/60 italic p-6 text-center border border-dashed border-border/30 rounded-2xl bg-muted/5">
-                      Arraste um veículo para esta rampa
+            {[
+              { id: 'CHECK_IN', label: 'Check-in', color: 'border-blue-500/20 bg-blue-500/5 text-blue-500 dark:text-blue-400' },
+              { id: 'AWAITING_BUDGET', label: 'Orçamento', color: 'border-amber-500/20 bg-amber-500/5 text-amber-500 dark:text-amber-400' },
+              { id: 'AWAITING_APPROVAL', label: 'Aprovação', color: 'border-yellow-500/20 bg-yellow-500/5 text-yellow-500 dark:text-yellow-400' },
+              { id: 'AWAITING_PARTS', label: 'Peças', color: 'border-purple-500/20 bg-purple-500/5 text-purple-500 dark:text-purple-400' },
+              { id: 'IN_PROGRESS', label: 'Execução', color: 'border-indigo-500/20 bg-indigo-500/5 text-indigo-500 dark:text-indigo-400' },
+              { id: 'TESTING_WASHING', label: 'Teste/Lavagem', color: 'border-pink-500/20 bg-pink-500/5 text-pink-500 dark:text-pink-400' },
+              { id: 'READY', label: 'Pronto', color: 'border-emerald-500/20 bg-emerald-500/5 text-emerald-500 dark:text-emerald-400' },
+              { id: 'DELIVERED', label: 'Entregue', color: 'border-zinc-500/20 bg-zinc-500/5 text-zinc-500 dark:text-zinc-400' }
+            ].map((col) => {
+              const columnOrders = filteredOrders.filter(o => o.status === col.id)
+              return (
+                <div
+                  key={col.id}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    const orderId = e.dataTransfer.getData("text/plain")
+                    handleMoveOrderStatus(orderId, col.id as any)
+                  }}
+                  className="flex-none w-[280px] min-w-[280px] bg-card/60 border border-border/50 rounded-3xl p-4 flex flex-col h-full min-h-0 transition-all hover:bg-card/90"
+                >
+                  {/* Cabeçalho da Rampa / Coluna */}
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-border/30 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`size-2 rounded-full ${col.id === 'CHECK_IN' ? 'bg-blue-500' : col.id === 'AWAITING_BUDGET' ? 'bg-amber-500' : col.id === 'AWAITING_APPROVAL' ? 'bg-yellow-500' : col.id === 'AWAITING_PARTS' ? 'bg-purple-500' : col.id === 'IN_PROGRESS' ? 'bg-indigo-500' : col.id === 'TESTING_WASHING' ? 'bg-pink-500' : col.id === 'READY' ? 'bg-emerald-500' : 'bg-zinc-500'}`} />
+                      <span className="text-xs font-bold text-foreground uppercase tracking-wider">{col.label}</span>
                     </div>
-                  ) : (
-                    columnOrders.map((order) => (
-                      <div
-                        key={order.id}
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData("text/plain", order.id)
-                        }}
-                        onClick={() => handleOpenDrawer(order.id)}
-                        className="bg-card border border-border/40 rounded-2xl p-4 space-y-3.5 shadow-sm hover:shadow-md hover:border-border/80 hover:scale-102 transition-all cursor-pointer group active:scale-98 relative"
-                      >
-                        {/* Cabeçalho do Card: Modelo e Placa */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <span className="text-xs font-black text-foreground block truncate group-hover:text-emerald-500 transition-colors leading-tight">
-                              {order.vehicleBrand} {order.vehicleModel}
-                            </span>
-                            <span className="text-[9px] font-bold text-muted-foreground block mt-0.5">
-                              OS #{order.osNumber.toString().padStart(4, '0')}
-                            </span>
-                          </div>
-                          <span className="text-[9px] font-black font-mono text-muted-foreground bg-muted border border-border/60 px-1.5 py-0.5 rounded-md shrink-0">
-                            {order.vehiclePlate}
-                          </span>
-                        </div>
-
-                        {/* Alert Tags: P0 ou P1 */}
-                        {order.status === 'AWAITING_PARTS' && (
-                          <div className="flex items-center gap-1 text-[8.5px] font-extrabold uppercase px-2 py-0.75 rounded-md bg-red-500/10 text-red-500 border border-red-500/20 w-max leading-none">
-                            <ShieldAlert className="size-3 shrink-0" />
-                            <span>P0 - Carro Parado p/ Peça</span>
-                          </div>
-                        )}
-                        {order.status === 'AWAITING_APPROVAL' && (
-                          <div className="flex items-center gap-1 text-[8.5px] font-extrabold uppercase px-2 py-0.75 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 w-max leading-none">
-                            <AlertTriangle className="size-3 shrink-0" />
-                            <span>P1 - Aguarda Aprovação</span>
-                          </div>
-                        )}
-
-                        {/* Rodapé: Mecânico e Tempo Decorrido */}
-                        <div className="flex items-center justify-between pt-2.5 border-t border-dashed border-border/40 text-[9.5px]">
-                          {/* Mecânico */}
-                          <div className="flex items-center gap-1 text-muted-foreground font-semibold truncate max-w-[130px]">
-                            <User className="size-3 text-muted-foreground/60 shrink-0" />
-                            <span className="truncate">{order.mechanicName || "Sem mecânico"}</span>
-                          </div>
-
-                          {/* Tempo no Status */}
-                          <div className="flex items-center gap-1 text-muted-foreground font-bold shrink-0">
-                            <Clock className="size-3 text-muted-foreground/60 shrink-0" />
-                            <span>{getElapsedTime(order.statusChangedAt || order.createdAt)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                    <span className="bg-muted px-2 py-0.5 rounded-full text-[9px] font-bold text-muted-foreground font-mono">
+                      {columnOrders.length}
+                    </span>
                   </div>
-                </ScrollArea>
-              </div>
-            )
-          })}
+
+                  {/* Lista de Cards da Rampa */}
+                  <ScrollArea className="flex-1 min-h-0 pr-1">
+                    <div className="space-y-3 pb-4">
+                      {columnOrders.length === 0 ? (
+                        <div className="h-40 flex items-center justify-center text-[10px] text-muted-foreground/60 italic p-6 text-center border border-dashed border-border/30 rounded-2xl bg-muted/5">
+                          Arraste um veículo para esta rampa
+                        </div>
+                      ) : (
+                        columnOrders.map((order) => (
+                          <div
+                            key={order.id}
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData("text/plain", order.id)
+                            }}
+                            onClick={() => handleOpenDrawer(order.id)}
+                            className="bg-card border border-border/40 rounded-2xl p-4 space-y-3.5 shadow-sm hover:shadow-md hover:border-border/80 hover:scale-102 transition-all cursor-pointer group active:scale-98 relative"
+                          >
+                            {/* Cabeçalho do Card: Modelo e Placa */}
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <span className="text-xs font-black text-foreground block truncate group-hover:text-emerald-500 transition-colors leading-tight">
+                                  {order.vehicleBrand} {order.vehicleModel}
+                                </span>
+                                <span className="text-[9px] font-bold text-muted-foreground block mt-0.5">
+                                  OS #{order.osNumber.toString().padStart(4, '0')}
+                                </span>
+                              </div>
+                              <span className="text-[9px] font-black font-mono text-muted-foreground bg-muted border border-border/60 px-1.5 py-0.5 rounded-md shrink-0">
+                                {order.vehiclePlate}
+                              </span>
+                            </div>
+
+                            {/* Alert Tags: P0 ou P1 */}
+                            {order.status === 'AWAITING_PARTS' && (
+                              <div className="flex items-center gap-1 text-[8.5px] font-extrabold uppercase px-2 py-0.75 rounded-md bg-red-500/10 text-red-500 border border-red-500/20 w-max leading-none">
+                                <ShieldAlert className="size-3 shrink-0" />
+                                <span>P0 - Carro Parado p/ Peça</span>
+                              </div>
+                            )}
+                            {order.status === 'AWAITING_APPROVAL' && (
+                              <div className="flex items-center gap-1 text-[8.5px] font-extrabold uppercase px-2 py-0.75 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 w-max leading-none">
+                                <AlertTriangle className="size-3 shrink-0" />
+                                <span>P1 - Aguarda Aprovação</span>
+                              </div>
+                            )}
+
+                            {/* Rodapé: Mecânico e Tempo Decorrido */}
+                            <div className="flex items-center justify-between pt-2.5 border-t border-dashed border-border/40 text-[9.5px]">
+                              {/* Mecânico */}
+                              <div className="flex items-center gap-1 text-muted-foreground font-semibold truncate max-w-[130px]">
+                                <User className="size-3 text-muted-foreground/60 shrink-0" />
+                                <span className="truncate">{order.mechanicName || "Sem mecânico"}</span>
+                              </div>
+
+                              {/* Tempo no Status */}
+                              <div className="flex items-center gap-1 text-muted-foreground font-bold shrink-0">
+                                <Clock className="size-3 text-muted-foreground/60 shrink-0" />
+                                <span>{getElapsedTime(order.statusChangedAt || order.createdAt)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )
+            })}
           </div>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
@@ -898,7 +896,7 @@ export default function KanbanPage() {
         {isDrawerOpen && (
           <>
             {/* Backdrop */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
@@ -942,7 +940,7 @@ export default function KanbanPage() {
                   </div>
                 ) : selectedOrderDetails ? (
                   <div className="p-4 md:p-5 space-y-6 pb-8">
-                    
+
                     {/* Status Atual Card */}
                     <div className="bg-muted/30 border border-border/55 rounded-2xl p-4 space-y-3">
                       <h4 className="text-[10px] uppercase font-extrabold tracking-wider text-muted-foreground flex items-center gap-1">
@@ -967,7 +965,7 @@ export default function KanbanPage() {
                             <option value="DELIVERED">Faturado & Entregue</option>
                           </select>
                         </div>
-                        
+
                         <div className="space-y-1">
                           <Label className="text-[9px] font-bold text-muted-foreground uppercase">Mecânico Alocado</Label>
                           <select
@@ -1083,17 +1081,17 @@ export default function KanbanPage() {
                     {((selectedOrderDetails.checklist && selectedOrderDetails.checklist !== "{}") || selectedOrderDetails.damages) && (
                       <div className="border border-border/50 rounded-2xl p-4 bg-muted/10 space-y-3">
                         <h4 className="text-[10px] uppercase font-extrabold tracking-wider text-muted-foreground">Triagem Física</h4>
-                        
+
                         {selectedOrderDetails.checklist && selectedOrderDetails.checklist !== "{}" && (
                           <div className="space-y-1.5">
                             <span className="text-[9px] font-bold text-muted-foreground uppercase block">Acessórios Triados</span>
                             <div className="flex flex-wrap gap-1">
                               {Object.entries(JSON.parse(selectedOrderDetails.checklist)).map(([key, val]: any) => {
                                 const states: Record<string, string> = { P: "Presente", A: "Ausente", N: "Não Se Aplica" }
-                                const badgeColors: Record<string, string> = { 
-                                  P: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", 
-                                  A: "bg-red-500/10 text-red-500 border-red-500/20", 
-                                  N: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20" 
+                                const badgeColors: Record<string, string> = {
+                                  P: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+                                  A: "bg-red-500/10 text-red-500 border-red-500/20",
+                                  N: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20"
                                 }
                                 return (
                                   <span key={key} className={`text-[9.5px] font-bold px-2 py-0.5 rounded-sm border ${badgeColors[val] || "bg-zinc-500/10 text-zinc-500"}`}>
@@ -1146,23 +1144,21 @@ export default function KanbanPage() {
                             const isApproved = item.isApproved === 1
                             const isRejected = item.isApproved === 2
                             return (
-                              <div 
+                              <div
                                 key={item.id}
-                                className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
-                                  isApproved 
-                                    ? "bg-emerald-500/5 border-emerald-500/20" 
-                                    : isRejected
-                                      ? "bg-red-500/5 border-red-500/20 opacity-60"
-                                      : "bg-muted/20 border-border/50"
-                                }`}
+                                className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${isApproved
+                                  ? "bg-emerald-500/5 border-emerald-500/20"
+                                  : isRejected
+                                    ? "bg-red-500/5 border-red-500/20 opacity-60"
+                                    : "bg-muted/20 border-border/50"
+                                  }`}
                               >
                                 <div className="space-y-0.5 pr-2 flex-1">
                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className={`text-[8.5px] font-bold px-1.5 py-0.25 rounded-md ${
-                                      item.type === 'PART' 
-                                        ? "bg-blue-500/10 text-blue-500" 
-                                        : "bg-purple-500/10 text-purple-500"
-                                    }`}>
+                                    <span className={`text-[8.5px] font-bold px-1.5 py-0.25 rounded-md ${item.type === 'PART'
+                                      ? "bg-blue-500/10 text-blue-500"
+                                      : "bg-purple-500/10 text-purple-500"
+                                      }`}>
                                       {item.type === 'PART' ? 'Peça' : 'Serviço'}
                                     </span>
                                     <span className="text-xs font-bold text-foreground">
@@ -1178,7 +1174,7 @@ export default function KanbanPage() {
                                   <span className="text-xs font-black text-foreground font-mono">
                                     R$ {itemTotal.toFixed(2)}
                                   </span>
-                                  
+
                                   {/* Toggles de Aprovação Rápidos */}
                                   <div className="inline-flex rounded-lg overflow-hidden border border-border/40 text-[9px] font-extrabold shrink-0">
                                     <Button
@@ -1217,7 +1213,7 @@ export default function KanbanPage() {
                               <span>Total Bruto:</span>
                               <span className="font-mono">R$ {drawerItems.reduce((acc: number, curr: any) => acc + (curr.quantity * parseFloat(curr.unitSalePrice)), 0).toFixed(2)}</span>
                             </div>
-                            
+
                             {parseFloat(selectedOrderDetails.discount || '0') > 0 && (
                               <div className="flex justify-between w-full max-w-[200px] text-[11px] text-red-500 font-medium">
                                 <span>Desconto:</span>
@@ -1264,10 +1260,11 @@ export default function KanbanPage() {
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => {
                       window.print()
                     }}
-                    className="bg-muted hover:bg-muted/80 text-foreground font-bold text-[10px] rounded-lg p-2.5 h-auto transition-all flex items-center gap-1.5 border-0 shadow-none"
+                    className="bg-muted hover:bg-muted/80 text-foreground font-bold text-[10px] rounded-lg px-3 h-7 transition-all flex items-center gap-1.5 border-transparent shadow-none"
                     title="Imprimir O.S."
                   >
                     <Printer className="size-4" />
@@ -1276,6 +1273,7 @@ export default function KanbanPage() {
 
                   <Button
                     type="button"
+                    variant="ghost"
                     disabled={sendingWhatsapp}
                     onClick={async () => {
                       if (sendingWhatsapp) return;
@@ -1288,15 +1286,15 @@ export default function KanbanPage() {
                           const phone = selectedOrderDetails?.customer?.phone || "";
                           const cleanPhone = phone.replace(/\D/g, "");
                           const formattedPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-                          
+
                           const urlPublic = `${window.location.origin}/public/budget/${selectedOrderId}`;
                           const accessCode = selectedOrderDetails?.budgetAccessCode || "";
                           const customerName = selectedOrderDetails?.customer?.name || "Cliente";
                           const osNum = String(selectedOrderDetails?.osNumber).padStart(4, '0');
-                          
+
                           const message = `Olá, ${customerName}! Segue o link para visualizar e aprovar o orçamento da sua Ordem de Serviço *#${osNum}*:\n\n*Link:* ${urlPublic}\n*Código de Acesso:* *${accessCode}*\n\nSe tiver qualquer dúvida, estamos à disposição!`;
                           const encodedMessage = encodeURIComponent(message);
-                          
+
                           window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`, '_blank');
                         } else {
                           toast.error("Erro ao enviar: " + res.error);
@@ -1307,7 +1305,7 @@ export default function KanbanPage() {
                         setSendingWhatsapp(false);
                       }
                     }}
-                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg p-2.5 h-auto transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-0"
+                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg px-3 h-7 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-transparent"
                     title="Enviar orçamento por WhatsApp"
                   >
                     {sendingWhatsapp ? (
@@ -1320,10 +1318,11 @@ export default function KanbanPage() {
 
                   <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => {
                       router.push(`/panel/orders/new?id=${selectedOrderId}`)
                     }}
-                    className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 font-bold text-[10px] rounded-lg p-2.5 h-auto transition-all flex items-center gap-1.5 border-0 shadow-none"
+                    className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 font-bold text-[10px] rounded-lg px-3 h-7 transition-all flex items-center gap-1.5 border-transparent shadow-none"
                     title="Editar O.S. Completa"
                   >
                     <Edit2 className="size-4" />

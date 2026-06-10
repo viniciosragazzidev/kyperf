@@ -844,20 +844,22 @@ function NewWorkOrderForm() {
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans pb-56 md:pb-48">
       
       {/* Cabeçalho */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <span className="bg-emerald-500/10 text-emerald-500 p-1.5 rounded-lg border border-emerald-500/20">
-              <Wrench className="size-4.5" />
-            </span>
-            {editId ? "Editar Ordem de Serviço" : "Nova Ordem de Serviço"}
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
-            {editId 
-              ? `Atualize a triagem de check-in, avarias externas, diagnóstico, mecânico e orçamento da O.S.`
-              : "Abertura, triagem de check-in, visualização de avarias externas e orçamento integrado."
-            }
-          </p>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
+        <div className="flex items-start gap-3">
+          <span className="bg-emerald-500/10 text-emerald-500 p-2 rounded-xl border border-emerald-500/20 shrink-0 mt-0.5">
+            <Wrench className="size-5" />
+          </span>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-foreground leading-none">
+              {editId ? "Editar Ordem de Serviço" : "Nova Ordem de Serviço"}
+            </h1>
+            <p className="text-xs text-muted-foreground leading-relaxed geist-mono">
+              {editId 
+                ? "Atualize a triagem de check-in, avarias externas, diagnóstico, mecânico e orçamento da O.S."
+                : "Abertura, triagem de check-in, visualização de avarias externas e orçamento integrado."
+              }
+            </p>
+          </div>
         </div>
       </div>
 
@@ -890,8 +892,9 @@ function NewWorkOrderForm() {
               {!selectedCustomer && (
                 <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setShowNewCustFields(!showNewCustFields)}
-                  className="text-[10px] text-emerald-500 hover:underline font-bold"
+                  className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 font-bold px-2.5 h-6 rounded-lg shadow-none"
                 >
                   {showNewCustFields ? "Buscar Existente" : "+ Cadastrar Novo Cliente"}
                 </Button>
@@ -959,8 +962,10 @@ function NewWorkOrderForm() {
                 </div>
                 <Button
                   type="button"
+                  variant="destructive"
+                  size="xs"
                   onClick={() => setSelectedCustomer(null)}
-                  className="text-[10px] text-red-500 hover:underline font-bold"
+                  className="font-bold text-[10px] rounded-lg px-2.5"
                 >
                   Remover
                 </Button>
@@ -1041,6 +1046,7 @@ function NewWorkOrderForm() {
               </h2>
               <Button
                 type="button"
+                variant="ghost"
                 onClick={() => {
                   setIsManualInput(!isManualInput);
                   if (!isManualInput) {
@@ -1051,7 +1057,7 @@ function NewWorkOrderForm() {
                     setModelSearch(vehModel);
                   }
                 }}
-                className="text-[10px] text-emerald-500 hover:underline font-bold"
+                className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 font-bold px-2.5 h-6 rounded-lg shadow-none"
               >
                 {isManualInput ? "Usar Busca FIPE" : "Digitar Manualmente"}
               </Button>
@@ -1244,10 +1250,11 @@ function NewWorkOrderForm() {
                   <Button
                     key={lvl}
                     type="button"
+                    variant="ghost"
                     onClick={() => setFuelLevel(lvl)}
                     className={`text-[10px] font-bold py-1.5 rounded-lg border transition-all ${
                       fuelLevel === lvl
-                        ? "bg-amber-500/10 text-amber-500 border-amber-500/30 scale-102 shadow-xs"
+                        ? "bg-amber-500/10 text-amber-500 border-amber-500/30 scale-102 shadow-xs hover:bg-amber-500/20"
                         : "bg-muted/40 hover:bg-muted/70 text-muted-foreground border-transparent"
                     }`}
                   >
@@ -1297,13 +1304,14 @@ function NewWorkOrderForm() {
                         <Button
                           key={opt}
                           type="button"
+                          variant="ghost"
                           onClick={() => setChecklist((prev) => ({ ...prev, [key]: opt as any }))}
                           className={`size-6 rounded-md text-[9px] font-bold flex items-center justify-center transition-all ${
                             checklist[key] === opt
-                              ? opt === 'P' ? "bg-emerald-500/20 text-emerald-600 border border-emerald-500/30" :
-                                opt === 'A' ? "bg-red-500/20 text-red-600 border border-red-500/30" :
-                                "bg-zinc-500/20 text-zinc-600 border border-zinc-500/30"
-                              : "bg-muted/40 hover:bg-muted/70 text-muted-foreground"
+                              ? opt === 'P' ? "bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 hover:bg-emerald-500/30" :
+                                opt === 'A' ? "bg-red-500/20 text-red-600 border border-red-500/30 hover:bg-red-500/30" :
+                                "bg-zinc-500/20 text-zinc-600 border border-zinc-500/30 hover:bg-zinc-500/30"
+                              : "bg-muted/40 hover:bg-muted/70 text-muted-foreground border-transparent"
                           }`}
                           title={opt === 'P' ? 'Presente' : opt === 'A' ? 'Ausente' : 'Não se aplica'}
                         >
@@ -1370,11 +1378,12 @@ function NewWorkOrderForm() {
                         >
                           <Button
                             type="button"
+                            variant="ghost"
                             onClick={() => setDamageMenuArea(damageMenuArea === spot.area ? null : spot.area)}
                             className={`size-6 rounded-full flex items-center justify-center text-[9px] font-extrabold border transition-all ${
                               count > 0
-                                ? "bg-red-500 border-red-600 text-white animate-pulse"
-                                : "bg-card border-border hover:border-emerald-500 text-foreground"
+                                ? "bg-red-500 border-red-600 text-white hover:bg-red-600 hover:text-white animate-pulse"
+                                : "bg-card border-border hover:border-emerald-500 hover:bg-emerald-500/10 text-foreground"
                             }`}
                             title={`Avarias em ${spot.area}`}
                           >
@@ -1391,9 +1400,10 @@ function NewWorkOrderForm() {
                                   <Button
                                     key={type}
                                     type="button"
+                                    variant="ghost"
                                     onClick={() => toggleDamage(spot.area, type)}
-                                    className={`w-full text-left px-2 py-1 rounded transition-colors flex items-center justify-between font-semibold ${
-                                      active ? "bg-red-500/10 text-red-500" : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                                    className={`w-full text-left px-2 py-1 rounded transition-colors flex items-center justify-between font-semibold border-transparent ${
+                                      active ? "bg-red-500/10 text-red-500 hover:bg-red-500/20" : "hover:bg-muted text-muted-foreground hover:text-foreground"
                                     }`}
                                   >
                                     <span>{type}</span>
@@ -1570,26 +1580,28 @@ function NewWorkOrderForm() {
                     {/* Primeira linha: Identificação do Item, Tipo e Ações de Status */}
                     <div className="flex flex-wrap md:flex-nowrap items-center gap-2.5">
                       {/* Seletor Tipo (SRV / PÇ) */}
-                      <div className="flex rounded-lg border border-border/60 overflow-hidden w-20 shrink-0 text-[9px] font-bold bg-muted/40">
+                      <div className="flex rounded-lg border border-border/60 overflow-hidden h-6 w-16 shrink-0 text-[9.5px] font-bold bg-muted/40">
                         <Button
                           type="button"
+                          variant="ghost"
                           onClick={() => {
                             handleUpdateItemRow(idx, 'type', 'SERVICE')
                             handleUpdateItemRow(idx, 'itemId', '')
                             handleUpdateItemRow(idx, 'name', '')
                           }}
-                          className={`flex-1 py-1 text-center transition-colors ${item.type === 'SERVICE' ? 'bg-foreground text-background font-black' : 'text-muted-foreground hover:text-foreground'}`}
+                          className={`flex-1 h-full py-0 text-center transition-colors border-none rounded-none ${item.type === 'SERVICE' ? 'bg-foreground text-background font-black' : 'text-muted-foreground hover:bg-muted/30 hover:text-foreground'}`}
                         >
                           SRV
                         </Button>
                         <Button
                           type="button"
+                          variant="ghost"
                           onClick={() => {
                             handleUpdateItemRow(idx, 'type', 'PART')
                             handleUpdateItemRow(idx, 'itemId', '')
                             handleUpdateItemRow(idx, 'name', '')
                           }}
-                          className={`flex-1 py-1 text-center transition-colors ${item.type === 'PART' ? 'bg-foreground text-background font-black' : 'text-muted-foreground hover:text-foreground'}`}
+                          className={`flex-1 h-full py-0 text-center transition-colors border-none rounded-none ${item.type === 'PART' ? 'bg-foreground text-background font-black' : 'text-muted-foreground hover:bg-muted/30 hover:text-foreground'}`}
                         >
                           PÇ
                         </Button>
@@ -1669,32 +1681,47 @@ function NewWorkOrderForm() {
                       </div>
 
                       {/* Status (Tri-state) */}
-                      <div className="flex rounded-lg overflow-hidden border border-border/40 text-[9px] font-extrabold bg-muted/40 shrink-0">
+                      <div className="flex rounded-lg overflow-hidden border border-border/40 h-6 text-[9.5px] font-extrabold bg-muted/40 shrink-0">
                         <Button
                           type="button"
+                          variant="ghost"
                           onClick={() => handleUpdateItemRow(idx, 'isApproved', 0)}
-                          className={`px-2.5 py-1.5 flex items-center justify-center gap-1 transition-colors ${item.isApproved === 0 ? 'bg-amber-500 text-white font-black' : 'text-muted-foreground hover:bg-muted/70'}`}
+                          className={`px-2 flex items-center justify-center gap-0.5 h-full transition-colors rounded-none border-none ${
+                            item.isApproved === 0
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-black hover:bg-amber-500/25'
+                              : 'text-muted-foreground hover:bg-muted/70'
+                          }`}
                           title="Pendente"
                         >
-                          <Clock className="size-3.5" />
+                          <Clock className="size-3" />
                           <span>Pend.</span>
                         </Button>
                         <Button
                           type="button"
+                          variant="ghost"
                           onClick={() => handleUpdateItemRow(idx, 'isApproved', 1)}
-                          className={`px-2.5 py-1.5 flex items-center justify-center gap-1 transition-colors ${item.isApproved === 1 ? 'bg-emerald-500 text-white font-black' : 'text-muted-foreground hover:bg-muted/70'}`}
+                          className={`px-2 flex items-center justify-center gap-0.5 h-full transition-colors rounded-none border-none ${
+                            item.isApproved === 1
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-black hover:bg-emerald-500/25'
+                              : 'text-muted-foreground hover:bg-muted/70'
+                          }`}
                           title="Aprovado"
                         >
-                          <Check className="size-3.5" />
+                          <Check className="size-3" />
                           <span>Aprov.</span>
                         </Button>
                         <Button
                           type="button"
+                          variant="ghost"
                           onClick={() => handleUpdateItemRow(idx, 'isApproved', 2)}
-                          className={`px-2.5 py-1.5 flex items-center justify-center gap-1 transition-colors ${item.isApproved === 2 ? 'bg-red-500 text-white font-black' : 'text-muted-foreground hover:bg-muted/70'}`}
+                          className={`px-2 flex items-center justify-center gap-0.5 h-full transition-colors rounded-none border-none ${
+                            item.isApproved === 2
+                              ? 'bg-red-500/15 text-red-600 dark:text-red-400 font-black hover:bg-red-500/25'
+                              : 'text-muted-foreground hover:bg-muted/70'
+                          }`}
                           title="Recusado"
                         >
-                          <X className="size-3.5" />
+                          <X className="size-3" />
                           <span>Recus.</span>
                         </Button>
                       </div>
