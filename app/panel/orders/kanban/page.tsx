@@ -1448,19 +1448,7 @@ export default function KanbanPage() {
                         if (res.success) {
                           toast.success(res.message);
                         } else if (res.fallback) {
-                          const phone = selectedOrderDetails?.customer?.phone || "";
-                          const cleanPhone = phone.replace(/\D/g, "");
-                          const formattedPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-
-                          const urlPublic = `${window.location.origin}/public/budget/${selectedOrderId}`;
-                          const accessCode = selectedOrderDetails?.budgetAccessCode || "";
-                          const customerName = selectedOrderDetails?.customer?.name || "Cliente";
-                          const osNum = String(selectedOrderDetails?.osNumber).padStart(4, '0');
-
-                          const message = `Olá, ${customerName}! Segue o link para visualizar e aprovar o orçamento da sua Ordem de Serviço *#${osNum}*:\n\n*Link:* ${urlPublic}\n*Código de Acesso:* *${accessCode}*\n\nSe tiver qualquer dúvida, estamos à disposição!`;
-                          const encodedMessage = encodeURIComponent(message);
-
-                          window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`, '_blank');
+                          toast.error("WhatsApp não conectado! Por favor, ative a integração em Ajustes > Integração WhatsApp para habilitar envios automáticos.");
                         } else {
                           toast.error("Erro ao enviar: " + res.error);
                         }
