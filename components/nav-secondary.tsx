@@ -24,7 +24,7 @@ export function NavSecondary({
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
-          {items.map((item) => (
+          {items.map((item: { title: string; url: string; icon: React.ReactNode }) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton size="sm" render={<a href={item.url} />}>
                 {item.icon}
