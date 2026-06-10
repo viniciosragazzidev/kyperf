@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react";
-import { getLitePartsAction } from "@/lib/actions/lite-actions";
-import { createPartAction } from "@/lib/actions/parts-actions";
-import { Search, Package, Loader2, Plus, X, Tag } from "lucide-react";
+import { getLitePartsAction, adjustLitePartStockAction } from "@/lib/actions/lite-actions";
+import { createPartAction, updatePartAction, deletePartAction } from "@/lib/actions/parts-actions";
+import { Search, Package, Loader2, Plus, X, Tag, Edit, Trash2 } from "lucide-react";
 
 type Part = {
   id: string; name: string; brand: string | null; sku: string | null;
   quantity: number; costPrice: string; salePrice: string;
+  location?: string | null;
 };
 
 const EMPTY_FORM = {
@@ -46,6 +47,8 @@ export default function PecasPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
+  const [adjustingId, setAdjustingId] = useState<string | null>(null);
+  const [editingPart, setEditingPart] = useState<Part | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -56,6 +59,27 @@ export default function PecasPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  const handleAdjustStock = async (partId: string, delta: number) => {
+    setAdjustingId(partId);
+    const r = await adjustLitePartStockAction(partId, delta);
+    if (r.success) {
+      setParts(prev => prev.map(p => p.id === partId ? { ...p, quantity: Math.max(0, p.quantity + delta) } : p));
+    } else {
+      alert(r.error || "Erro ao atualizar estoque.");
+    }
+    setAdjustingId(null);
+  };
+
+  const handleDelete = async (partId: string) => {
+    if (!confirm("Excluir esta peça do estoque?")) return;
+    const r = await deletePartAction(partId);
+    if (r.success) {
+      load();
+    } else {
+      alert(r.error || "Erro ao excluir peça.");
+    }
+  };
 
   const set = (field: keyof typeof EMPTY_FORM) => (v: string) =>
     setForm(p => ({ ...p, [field]: v }));
@@ -170,6 +194,11 @@ export default function PecasPage() {
                           {part.sku}
                         </span>
                       )}
+                      {part.location && (
+                        <span className="bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 font-mono">
+                          📍 {part.location}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
@@ -177,11 +206,55 @@ export default function PecasPage() {
                     <p className="text-gray-400 text-xs mt-1 font-mono">custo {fmt(part.costPrice)}</p>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-2">
-                  <div className={`h-2.5 w-2.5 rounded-full ${part.quantity > 0 ? "bg-emerald-500" : "bg-red-500"}`} />
-                  <span className={`text-sm font-bold ${part.quantity > 0 ? "text-emerald-700" : "text-red-600"}`}>
-                    {part.quantity > 0 ? `${part.quantity} em estoque` : "Sem estoque"}
-                  </span>
+                <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleAdjustStock(part.id, -1)}
+                        disabled={adjustingId === part.id}
+                        className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-700 hover:text-red-600 font-black flex items-center justify-center transition-colors disabled:opacity-40"
+                        title="Retirar 1 do estoque"
+                      >
+                        -
+                      </button>
+                      <span className="text-sm font-black font-mono w-8 text-center text-gray-900">
+                        {part.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleAdjustStock(part.id, 1)}
+                        disabled={adjustingId === part.id}
+                        className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-emerald-50 border border-gray-200 hover:border-emerald-200 text-gray-700 hover:text-emerald-600 font-black flex items-center justify-center transition-colors disabled:opacity-40"
+                        title="Adicionar 1 ao estoque"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded-md ${part.quantity > 0 ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50" : "bg-red-50 text-red-600 border border-red-200/50"}`}>
+                      {part.quantity > 0 ? "EM ESTOQUE" : "SEM ESTOQUE"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setEditingPart(part)}
+                      className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold font-mono px-2.5 py-1.5 rounded-lg border border-gray-200 transition-all shadow-xs"
+                      title="Editar Peça"
+                    >
+                      <Edit className="size-3.5" />
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(part.id)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                      title="Excluir Peça"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -266,6 +339,157 @@ export default function PecasPage() {
           </div>
         </div>
       )}
+
+      {/* Modal Editar Peça */}
+      {editingPart && (
+        <EditPartModal
+          part={editingPart}
+          onClose={() => setEditingPart(null)}
+          onSave={load}
+        />
+      )}
+    </div>
+  );
+}
+
+// Componente para Edição de Peça no estoque
+function EditPartModal({
+  part,
+  onClose,
+  onSave,
+}: {
+  part: any;
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({
+    name: part.name || "",
+    brand: part.brand || "",
+    sku: part.sku || "",
+    quantity: part.quantity?.toString() || "0",
+    minQuantity: part.minQuantity?.toString() || "2",
+    costPrice: part.costPrice || "",
+    salePrice: part.salePrice || "",
+    location: part.location || "",
+    compatibleCars: part.compatibleCars || "",
+    dimension: part.dimension || "",
+    size: part.size || "",
+    weight: part.weight || "",
+  });
+
+  const set = (field: string) => (v: string) =>
+    setForm(p => ({ ...p, [field]: v }));
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (!form.name || !form.costPrice || !form.salePrice) {
+      setError("Nome e preços são obrigatórios.");
+      return;
+    }
+
+    startTransition(async () => {
+      const r = await updatePartAction({
+        id: part.id,
+        name: form.name,
+        brand: form.brand || undefined,
+        sku: form.sku || undefined,
+        quantity: parseInt(form.quantity) || 0,
+        minQuantity: parseInt(form.minQuantity) || 0,
+        costPrice: form.costPrice.replace(",", "."),
+        salePrice: form.salePrice.replace(",", "."),
+        location: form.location || undefined,
+        compatibleCars: form.compatibleCars || undefined,
+        dimension: form.dimension || undefined,
+        size: form.size || undefined,
+        weight: form.weight || undefined,
+      });
+
+      if (r.success) {
+        onSave();
+        onClose();
+      } else {
+        setError(r.error || "Erro ao salvar alterações.");
+      }
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white border border-gray-200 rounded-3xl shadow-2xl 
+                      w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-7 py-5 flex items-center justify-between z-10">
+          <div>
+            <h2 className="text-lg font-black text-gray-900 font-mono">EDITAR PEÇA</h2>
+            <p className="text-gray-500 text-xs font-mono mt-0.5">Altere os dados no estoque</p>
+          </div>
+          <button onClick={onClose}
+                  className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 hover:text-gray-700 transition-colors">
+            <X className="size-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-7 space-y-6">
+          
+          <div>
+            <p className="text-[10px] font-bold text-emerald-600 font-mono tracking-widest mb-4 flex items-center gap-2">
+              <Package className="size-3" /> INFORMAÇÕES BÁSICAS
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Nome da Peça" value={form.name} onChange={set("name")} placeholder="Filtro de Óleo" required span />
+              <Field label="Marca" value={form.brand} onChange={set("brand")} placeholder="Tecfil" />
+              <Field label="Código SKU" value={form.sku} onChange={set("sku")} placeholder="TEC-123" mono />
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-5">
+            <p className="text-[10px] font-bold text-emerald-600 font-mono tracking-widest mb-4 flex items-center gap-2">
+              <Tag className="size-3" /> ESTOQUE E PRECIFICAÇÃO
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Qtd Atual" value={form.quantity} onChange={set("quantity")} type="number" required />
+              <Field label="Qtd Mínima" value={form.minQuantity} onChange={set("minQuantity")} type="number" required />
+              <Field label="Preço Custo (R$)" value={form.costPrice} onChange={set("costPrice")} placeholder="15.00" required mono />
+              <Field label="Preço Venda (R$)" value={form.salePrice} onChange={set("salePrice")} placeholder="35.00" required mono />
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-5">
+            <p className="text-[10px] font-bold text-gray-400 font-mono tracking-widest mb-4">
+              ESPECIFICAÇÕES (Opcionais)
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Localização" value={form.location} onChange={set("location")} placeholder="Prateleira A1" />
+              <Field label="Carros Compatíveis" value={form.compatibleCars} onChange={set("compatibleCars")} placeholder="Gol, Palio" />
+              <Field label="Dimensões" value={form.dimension} onChange={set("dimension")} placeholder="10x10x5 cm" />
+              <Field label="Tamanho" value={form.size} onChange={set("size")} placeholder="Único" />
+              <Field label="Peso" value={form.weight} onChange={set("weight")} placeholder="200g" span />
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-mono font-medium">
+              ⚠ {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4 border-t border-gray-100">
+            <button type="button" onClick={onClose}
+                    className="flex-1 bg-white border border-gray-300 text-gray-700 rounded-xl py-3.5 text-sm font-bold font-mono hover:bg-gray-50 transition-colors shadow-sm">
+              Cancelar
+            </button>
+            <button type="submit" disabled={isPending}
+                    className="flex-1 bg-[#065f46] hover:bg-[#047857] shadow-lg shadow-[#065f46]/20 text-white rounded-xl py-3.5 text-sm font-black font-mono disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+              {isPending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+              SALVAR ALTERAÇÕES
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

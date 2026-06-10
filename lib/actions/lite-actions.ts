@@ -254,6 +254,7 @@ export async function getLitePartsAction(search?: string) {
       quantity: schema.partsInventory.quantity,
       costPrice: schema.partsInventory.costPrice,
       salePrice: schema.partsInventory.salePrice,
+      location: schema.partsInventory.location,
     })
     .from(schema.partsInventory)
     .where(
@@ -598,6 +599,29 @@ export async function getLiteCustomerVehiclesAction(customerId: string) {
       .orderBy(schema.vehicles.plate);
 
     return { success: true, data: vehicles };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+// ── Ajustar estoque de uma peça (Adicionar/Retirar)
+export async function adjustLitePartStockAction(partId: string, delta: number) {
+  try {
+    const user = await requireAuth();
+    if (!user.tenantId) throw new Error("Sem empresa vinculada.");
+
+    const part = await db.query.partsInventory.findFirst({
+      where: (p, { eq, and }) => and(eq(p.id, partId), eq(p.tenantId, user.tenantId!))
+    });
+    if (!part) throw new Error("Peça não encontrada.");
+
+    const newQty = Math.max(0, part.quantity + delta);
+
+    await db.update(schema.partsInventory)
+      .set({ quantity: newQty })
+      .where(eq(schema.partsInventory.id, partId));
+
+    return { success: true, data: { quantity: newQty } };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
