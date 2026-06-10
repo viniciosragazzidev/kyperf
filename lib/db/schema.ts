@@ -230,7 +230,7 @@ export const servicesCatalog = pgTable('services_catalog', {
 export const workOrders = pgTable('work_orders', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
-  branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'cascade' }).notNull(),
+  branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'set null' }), // nullable: Lite mode sem filial
   osNumber: integer('os_number').notNull(), // Mudado de generatedAlwaysAsIdentity para controle de sequência por tenant
   
   customerId: uuid('customer_id').references(() => customers.id).notNull(),

@@ -54,7 +54,7 @@ export async function getWorkOrderForPdfAction(id: string) {
     const [customer, vehicle, branch, tenant] = await Promise.all([
       db.query.customers.findFirst({ where: (c) => eq(c.id, order.customerId) }),
       db.query.vehicles.findFirst({ where: (v) => eq(v.id, order.vehicleId) }),
-      db.query.branches.findFirst({ where: (b) => eq(b.id, order.branchId) }),
+      db.query.branches.findFirst({ where: (b) => order.branchId ? eq(b.id, order.branchId) : undefined }),
       db.query.tenants.findFirst({ where: (t) => eq(t.id, user.tenantId!) }),
     ]);
 

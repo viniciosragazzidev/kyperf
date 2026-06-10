@@ -156,6 +156,8 @@ export default function InteractiveBg() {
     };
 
     rafRef.current = requestAnimationFrame(update);
+    // Constrain canvas so it never overflows the container
+    gl.canvas.style.cssText = "display:block;width:100%;height:100%;position:absolute;top:0;left:0;";
     ctn.appendChild(gl.canvas);
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -169,5 +171,5 @@ export default function InteractiveBg() {
     };
   }, [handleMouseMove]);
 
-  return <div ref={containerRef} className="absolute inset-0 w-full h-full -z-10 bg-zinc-950 pointer-events-none" />;
+  return <div ref={containerRef} className="fixed inset-0 w-full h-full -z-10 bg-zinc-950 pointer-events-none" />;
 }

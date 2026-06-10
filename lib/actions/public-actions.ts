@@ -56,7 +56,7 @@ export async function getPublicWorkOrderAction(id: string, cpf: string, accessCo
 
     // Busca dados da filial
     const branch = await db.query.branches.findFirst({
-      where: (b) => eq(b.id, order.branchId),
+      where: (b) => order.branchId ? eq(b.id, order.branchId) : undefined,
     });
 
     // Busca dados do mecânico

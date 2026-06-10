@@ -126,6 +126,8 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    /* clip = recorta sem criar scroll container, preserva position:sticky */
+    overflow-x: clip;
   }
 
   button:not(:disabled),
@@ -135,7 +137,12 @@
 
   html {
     @apply h-full;
+    overflow-x: clip;
   }
+}
+
+html {
+  @apply scroll-smooth;
 }
 
 @layer utilities {
