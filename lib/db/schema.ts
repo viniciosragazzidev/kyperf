@@ -94,6 +94,11 @@ export const user = pgTable('user', {
   phone: varchar('phone', { length: 20 }),
   specialties: text('specialties').array(),
   workStatus: workStatusEnum('work_status').default('AVAILABLE').notNull(),
+  
+  // Better Auth Admin fields
+  banned: boolean('banned').default(false),
+  banReason: text('ban_reason'),
+  banExpires: timestamp('ban_expires'),
 }, (table) => [
   index('user_tenant_idx').on(table.tenantId),
   index('user_branch_idx').on(table.branchId),
@@ -107,7 +112,8 @@ export const session = pgTable("session", {
     updatedAt: timestamp("updated_at").notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
-    userId: text("user_id").notNull().references(() => user.id)
+    userId: text("user_id").notNull().references(() => user.id),
+    impersonatedBy: text("impersonated_by"),
 }, (table) => [
   index('session_user_idx').on(table.userId),
 ]);
