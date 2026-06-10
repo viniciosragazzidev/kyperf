@@ -123,21 +123,10 @@ export default function Home() {
       );
     });
 
-    // 3. Pin showcase: Pinned mockup with 3D tilt/rotation and zoom
-    const pinSection = document.querySelector(".pin-section");
+    // 3. Showcase 3D tilt/rotation (CSS sticky handles positioning)
     const pinShowcase = document.querySelector(".pin-showcase");
-    if (pinSection && pinShowcase) {
-      // Pin the section
-      gsap.to(pinShowcase, {
-        scrollTrigger: {
-          trigger: pinSection,
-          start: "top 20%",
-          end: "+=1200",
-          pin: true,
-          scrub: true,
-        }
-      });
-
+    const showcaseSection = document.getElementById("showcase");
+    if (showcaseSection && pinShowcase) {
       // 3D tilt effect on scroll
       gsap.fromTo(pinShowcase, 
         { scale: 0.9, rotateX: -10, rotateY: 12, transformPerspective: 1000 },
@@ -146,26 +135,23 @@ export default function Home() {
           rotateX: 6,
           rotateY: -6,
           scrollTrigger: {
-            trigger: pinSection,
-            start: "top 20%",
-            end: "+=1200",
+            trigger: showcaseSection,
+            start: "top 30%",
+            end: "bottom 70%",
             scrub: true,
           }
         }
       );
 
-      // Sincronização dinâmica de steps ativos baseada no scroll da direita
+      // Dynamic active steps synced to scrolling text targets
       const stepTriggers = gsap.utils.toArray(".step-trigger");
       stepTriggers.forEach((trigger: any, idx: number) => {
         ScrollTrigger.create({
           trigger: trigger,
-          start: "top 50%",
-          end: "bottom 50%",
-          onToggle: (self) => {
-            if (self.isActive) {
-              setActiveStep(idx + 1);
-            }
-          }
+          start: "top 60%",
+          end: "bottom 40%",
+          onEnter: () => setActiveStep(idx + 1),
+          onEnterBack: () => setActiveStep(idx + 1),
         });
       });
     }
@@ -295,7 +281,7 @@ export default function Home() {
           </div>
         </header>
 
-        {/* 1. HERO SECTION (RESIZED & COMPACTED) */}
+        {/* 1. HERO SECTION */}
         <section ref={heroRef} className="relative z-10 min-h-[75vh] flex flex-col justify-center px-6 md:px-12 lg:px-24 py-12 border-b border-white/5">
           {/* Engineering-like float metadata coordinates */}
           <div className="absolute top-6 left-8 hidden lg:block text-[8px] text-zinc-650 tracking-widest uppercase space-y-1">
@@ -327,13 +313,13 @@ export default function Home() {
             Esqueça os relatórios cinzas do Windows 95 e planilhas riscadas de óleo. O KYPERFIX redesenha a gestão da sua oficina com controle em tempo real, disparos automáticos de WhatsApp e relatórios que respiram profissionalismo.
           </p>
 
-          {/* Live Command Terminal Mockup (Compacted) */}
+          {/* Live Command Terminal Mockup */}
           <div className="hero-reveal mt-6 w-full max-w-lg bg-black/70 border border-white/5 rounded-2xl p-3.5 font-mono text-[11px] shadow-2xl relative">
             <div className="flex items-center justify-between border-b border-white/5 pb-1.5 mb-2.5">
               <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500/40" />
-                <span className="w-2 h-2 rounded-full bg-yellow-500/40" />
-                <span className="w-2 h-2 rounded-full bg-emerald-500/40" />
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500/40" />
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/40" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/40" />
               </div>
               <span className="text-[7px] text-zinc-500 uppercase tracking-widest font-bold">TERMINAL DE COMANDO MOCK</span>
             </div>
@@ -346,7 +332,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Telemetry Hero Stats (Compacted) */}
+          {/* Telemetry Hero Stats */}
           <div className="hero-reveal mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3.5xl border-t border-white/5 pt-6">
             <div className="space-y-0.5">
               <span className="text-[7px] text-zinc-500 uppercase tracking-wider block font-bold">[OFICINAS_CONECTADAS]</span>
@@ -398,7 +384,7 @@ export default function Home() {
                   O erro clássico dos sistemas antigos.
                 </h2>
                 <p className="chapter-fade text-xs md:text-sm text-zinc-400 leading-relaxed font-sans">
-                  Sistemas antigos cospem relatórios em folhas A4 com tabelas pretas e cinzas que parecem planilhas de Excel mal formatadas. Suas ordens de serviço ficam perdidas em blocos de papel manchados de graxa. Essa falta de clareza gera desconfiança no cliente e atrasos na entrega dos veículos.
+                  Sistemas antigos cospem relatórios em folhas A4 com tabelas pretas e cinzas que parecem planilhas de Excel mal formatadas. Suas ordens de serviço ficam perdidas in blocos de papel manchados de graxa. Essa falta de clareza gera desconfiança no cliente e atrasos na entrega dos veículos.
                 </p>
               </div>
             </div>
@@ -493,12 +479,12 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 5. PIN SHOWCASE: FLUXO DE O.S. CINEMÁTICO (WITH DYNAMIC MOCKUPS CONDITIONAL TO SCROLL) */}
-        <section id="showcase" className="pin-section relative z-10 min-h-[200vh] border-b border-white/5 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 px-6 md:px-12 lg:px-24">
+        {/* 5. PIN SHOWCASE: FLUXO DE O.S. CINEMÁTICO (WITH CSS STICKY TO SOLVE GSAP GRID BREAKING) */}
+        <section id="showcase" className="relative z-10 border-b border-white/5 py-20 bg-zinc-950/20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 px-6 md:px-12 lg:px-24 items-start">
             
-            {/* Left side pinned graphic (Dynamic mockup reflecting active step) */}
-            <div className="h-[75vh] flex items-center justify-center">
+            {/* Left side pinned graphic (Sticky via CSS) */}
+            <div className="lg:sticky lg:top-[20vh] w-full flex items-center justify-center py-12 z-20">
               <div className="pin-showcase w-full max-w-md bg-zinc-950/70 border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden h-[330px] flex flex-col justify-between">
                 <div className="absolute top-0 right-0 size-24 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
                 
@@ -660,8 +646,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right side scrolling descriptions */}
-            <div className="space-y-[60vh] py-32 z-10">
+            {/* Right side scrolling descriptions with spaced layouts */}
+            <div className="z-10 pb-[30vh]">
               
               <div className="step-trigger space-y-4 max-w-md">
                 <div className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">[ETAPA 01: ENTRADA]</div>
@@ -671,7 +657,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="step-trigger space-y-4 max-w-md">
+              <div className="step-trigger space-y-4 max-w-md pt-[45vh]">
                 <div className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">[ETAPA 02: ORÇAMENTO]</div>
                 <h3 className="text-xl font-bold text-white uppercase font-mono">Geração de orçamentos limpos</h3>
                 <p className="text-xs text-zinc-400 font-sans leading-relaxed">
@@ -679,7 +665,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="step-trigger space-y-4 max-w-md">
+              <div className="step-trigger space-y-4 max-w-md pt-[45vh]">
                 <div className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">[ETAPA 03: FECHAMENTO]</div>
                 <h3 className="text-xl font-bold text-white uppercase font-mono">Faturamento e fone automatizado</h3>
                 <p className="text-xs text-zinc-400 font-sans leading-relaxed">
