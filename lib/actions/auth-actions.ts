@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { eq } from "drizzle-orm";
 
 interface RegisterTenantInput {
   name: string;
@@ -70,7 +71,7 @@ export async function registerTenantAction(input: RegisterTenantInput) {
       return { tenant: newTenant, branch: newBranch };
     });
 
-    // 3. Cadastrar usuário no Better Auth associando o Tenant e a Branch com papel OWNER
+    // 3. Cadastrar usuário no Better Auth associando o Tenant e a Branch
     const signUpResult = await auth.api.signUpEmail({
       body: {
         email,
@@ -78,7 +79,6 @@ export async function registerTenantAction(input: RegisterTenantInput) {
         name,
         tenantId: result.tenant.id,
         branchId: result.branch.id,
-        role: "OWNER",
         commissionRate: "0.00",
         isActive: 1,
       },
@@ -88,6 +88,14 @@ export async function registerTenantAction(input: RegisterTenantInput) {
     if (!signUpResult || !signUpResult.user) {
       throw new Error("Erro ao cadastrar usuário proprietário.");
     }
+
+    // Definir explicitamente o papel OWNER diretamente no banco de dados para evitar regras de restrição do Better Auth API
+    await db
+      .update(schema.user)
+      .set({
+        role: "OWNER",
+      })
+      .where(eq(schema.user.id, signUpResult.user.id));
 
     return {
       success: true,

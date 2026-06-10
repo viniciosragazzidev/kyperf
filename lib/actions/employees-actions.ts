@@ -87,7 +87,6 @@ export async function createEmployeeAction(input: CreateEmployeeInput) {
         name: input.name,
         tenantId: adminUser.tenantId,
         branchId: input.branchId || adminUser.branchId,
-        role: input.role,
         commissionRate: input.role === "MECHANIC" ? (input.commissionRate || "0.00") : "0.00",
         isActive: 1,
       },
@@ -98,10 +97,11 @@ export async function createEmployeeAction(input: CreateEmployeeInput) {
       throw new Error("Falha ao registrar credenciais do funcionário.");
     }
 
-    // Atualiza os dados extras específicos (telefone, especialidades) diretamente no banco
+    // Atualiza a role e os dados extras específicos (telefone, especialidades) diretamente no banco
     await db
       .update(schema.user)
       .set({
+        role: input.role,
         phone: input.phone || null,
         specialties: input.specialties || null,
         workStatus: "AVAILABLE",
