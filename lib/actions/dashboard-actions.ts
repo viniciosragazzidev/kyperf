@@ -142,6 +142,12 @@ export async function getDashboardDataAction() {
 
     const hasWorkOrder = allOrders.length > 0;
 
+    // Fetch tenant name
+    const tenantInfo = await db.query.tenants.findFirst({
+      where: (t, { eq }) => eq(t.id, tenantId)
+    });
+    const tenantName = tenantInfo?.name || "KYPERFIX";
+
     return {
       success: true,
       data: {
@@ -152,6 +158,7 @@ export async function getDashboardDataAction() {
         lowStockParts: lowStockParts.slice(0, 5),
         statusCounts,
         recentOrders: recentOrdersWithTotals,
+        tenantName,
         onboarding: {
           hasMechanic,
           isWhatsappConnected,

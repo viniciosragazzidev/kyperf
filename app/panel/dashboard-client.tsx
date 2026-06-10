@@ -68,6 +68,7 @@ interface DashboardData {
     isWhatsappConnected: boolean;
     hasWorkOrder: boolean;
   };
+  tenantName?: string;
 }
 
 interface DashboardClientProps {
@@ -294,7 +295,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
             <div className="space-y-1">
               <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-650 flex items-center gap-2">
                 <CheckCircle2 className="size-4 animate-pulse text-emerald-500" />
-                Vamos preparar a KYPERFIX para rodar? 🚀
+                Vamos preparar a {initialData?.tenantName || "KYPERFIX"} para rodar? 🚀
               </h2>
               <p className="text-xs text-muted-foreground">
                 Conclua estes 3 passos básicos para destravar todo o poder operacional e de faturamento da sua oficina.
