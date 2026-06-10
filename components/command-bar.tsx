@@ -36,9 +36,16 @@ export function CommandBar() {
         setOpen((open) => !open)
       }
     }
+    const handleToggle = () => {
+      setOpen((open) => !open)
+    }
 
     document.addEventListener("keydown", down)
-    return () => document.removeEventListener("keydown", down)
+    window.addEventListener("toggle-command-bar", handleToggle)
+    return () => {
+      document.removeEventListener("keydown", down)
+      window.removeEventListener("toggle-command-bar", handleToggle)
+    }
   }, [])
 
   const runCommand = React.useCallback((command: () => void) => {

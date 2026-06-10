@@ -41,6 +41,7 @@ import {
 } from "@/lib/actions/orders-actions"
 import { getPartsAction } from "@/lib/actions/parts-actions"
 import { getServicesAction } from "@/lib/actions/services-actions"
+import { createEmployeeAction } from "@/lib/actions/employees-actions"
 import dynamic from "next/dynamic"
 import { 
   getFipeBrandsAction, 
@@ -199,6 +200,47 @@ function NewWorkOrderForm() {
   const [mechanics, setMechanics] = useState<Mechanic[]>([])
   const [catalogParts, setCatalogParts] = useState<PartItem[]>([])
   const [catalogServices, setCatalogServices] = useState<ServiceItem[]>([])
+
+  // Estados para cadastro rápido de mecânico (Onboarding/Block)
+  const [newMechName, setNewMechName] = useState("")
+  const [newMechEmail, setNewMechEmail] = useState("")
+  const [newMechRate, setNewMechRate] = useState("0")
+  const [isCreatingMech, setIsCreatingMech] = useState(false)
+
+  const handleQuickCreateMechanic = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newMechName || !newMechEmail) {
+      setErrorMsg("Nome e e-mail são obrigatórios.")
+      return
+    }
+    setIsCreatingMech(true)
+    setErrorMsg("")
+    try {
+      const res = await createEmployeeAction({
+        name: newMechName,
+        email: newMechEmail,
+        role: "MECHANIC",
+        commissionRate: newMechRate
+      })
+      if (res.success && res.data) {
+        toast.success("Mecânico cadastrado com sucesso!")
+        setNewMechName("")
+        setNewMechEmail("")
+        setNewMechRate("0")
+        // Recarrega lista de mecânicos
+        const mechRes = await getMechanicsAction()
+        if (mechRes.success && mechRes.data) {
+          setMechanics(mechRes.data as Mechanic[])
+        }
+      } else {
+        setErrorMsg(res.error || "Erro ao cadastrar mecânico.")
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || "Erro ao cadastrar mecânico.")
+    } finally {
+      setIsCreatingMech(false)
+    }
+  }
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -877,7 +919,77 @@ function NewWorkOrderForm() {
         </div>
       )}
 
-      <form onSubmit={handleSaveOS} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {!editId && mechanics.length === 0 ? (
+        <div className="max-w-xl mx-auto my-8 p-6 bg-card border border-border/50 rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] space-y-6 animate-in fade-in slide-in-from-bottom-2">
+          <div className="text-center space-y-2">
+            <div className="mx-auto w-12 h-12 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center border border-amber-500/20 mb-2">
+              <Users className="size-6 animate-pulse" />
+            </div>
+            <h2 className="text-lg font-bold tracking-tight">Primeiro, cadastre um mecânico</h2>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+              Para abrir uma nova Ordem de Serviço, o sistema exige pelo menos um mecânico cadastrado para associar como responsável técnico. Cadastre abaixo de forma rápida.
+            </p>
+          </div>
+
+          <form onSubmit={handleQuickCreateMechanic} className="space-y-4">
+            <div className="space-y-1">
+              <Label htmlFor="quick-name" className="text-xs font-semibold">Nome Completo</Label>
+              <Input
+                id="quick-name"
+                placeholder="Ex: João Silva"
+                value={newMechName}
+                onChange={(e) => setNewMechName(e.target.value)}
+                className="rounded-xl border-border/60 focus:border-emerald-500/50"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="quick-email" className="text-xs font-semibold">E-mail</Label>
+              <Input
+                id="quick-email"
+                type="email"
+                placeholder="Ex: joao@oficina.com.br"
+                value={newMechEmail}
+                onChange={(e) => setNewMechEmail(e.target.value)}
+                className="rounded-xl border-border/60 focus:border-emerald-500/50"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="quick-rate" className="text-xs font-semibold">Taxa de Comissão (%)</Label>
+              <Input
+                id="quick-rate"
+                type="number"
+                min="0"
+                max="100"
+                placeholder="Ex: 10"
+                value={newMechRate}
+                onChange={(e) => setNewMechRate(e.target.value)}
+                className="rounded-xl border-border/60 focus:border-emerald-500/50"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isCreatingMech}
+              className="w-full rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold transition-all"
+            >
+              {isCreatingMech ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <span>Cadastrando...</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="mr-2 size-4" />
+                  <span>Cadastrar Mecânico e Iniciar O.S.</span>
+                </>
+              )}
+            </Button>
+          </form>
+        </div>
+      ) : (
+        <form onSubmit={handleSaveOS} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Lado Esquerdo e Centro: Formulários e Grade (2/3) */}
         <div className="lg:col-span-2 space-y-6">
@@ -1948,9 +2060,11 @@ function NewWorkOrderForm() {
 
         </div>
       </form>
+      )}
 
       {/* 🕹️ Footer Fixo com Barra de Status e Ações Primárias (Estilo Jeet) */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-t border-border p-4 shadow-[0_-5px_30px_rgba(0,0,0,0.05)]">
+      {!editId && mechanics.length === 0 ? null : (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-t border-border p-4 shadow-[0_-5px_30px_rgba(0,0,0,0.05)]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           
           {/* Esteira Horizontal de Status */}
@@ -2025,6 +2139,7 @@ function NewWorkOrderForm() {
 
         </div>
       </div>
+      )}
 
       {/* Lightbox / Zoom da Foto */}
       <AnimatePresence>

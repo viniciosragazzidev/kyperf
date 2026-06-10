@@ -1,3 +1,8 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+import { HelpCircle } from "lucide-react"
+import { toast } from "sonner"
 import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
 import { NavSecondary } from "@/components/nav-secondary"
@@ -140,6 +145,19 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter()
+
+  const handleResetOnboarding = () => {
+    localStorage.removeItem("kyperfix_welcome_shown")
+    localStorage.removeItem("kyperfix_demo_mode")
+    localStorage.removeItem("kyperfix_dashboard_onboarding_step")
+    toast.success("Tour e copiloto reiniciados!")
+    router.push("/panel")
+    setTimeout(() => {
+      window.location.reload()
+    }, 500)
+  }
+
   return (
     <Sidebar
       className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
@@ -162,7 +180,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain label="Gestão" items={data.navGestao} />
         <NavMain label="Configurações" items={data.navConfig} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="p-3 gap-2 border-t border-border/40">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={handleResetOnboarding}
+              className="w-full text-[11px] font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 h-9 rounded-lg flex items-center justify-start gap-2 pl-3 shadow-none transition-all cursor-pointer"
+            >
+              <HelpCircle className="size-4 shrink-0 text-amber-500 animate-pulse" />
+              <span>Ajuda do Copiloto</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>

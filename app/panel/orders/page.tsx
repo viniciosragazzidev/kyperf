@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   Wrench, 
@@ -209,6 +210,124 @@ export default function OrdersPage() {
   // Confirmação de exclusão
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isDemoMode, setIsDemoMode] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsDemoMode(localStorage.getItem("kyperfix_demo_mode") === "true")
+    }
+  }, [])
+
+  const mockOrders = [
+    {
+      id: "demo-1",
+      osNumber: 1,
+      status: "IN_PROGRESS",
+      paymentStatus: "PENDING",
+      currentMileage: 45000,
+      allocatedBox: "Rampa 1",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      customer: {
+        name: "João Silva (Simulado)",
+        phone: "5521999999999",
+        document: "123.456.789-00",
+        email: "joao@example.com",
+        address: "Rua das Flores, 123",
+        createdAt: new Date().toISOString()
+      },
+      vehicle: {
+        brand: "Volkswagen",
+        model: "Golf GTI 2.0 TSI",
+        plate: "GTI2026",
+        year: 2021,
+        engine: "2.0 TSI",
+        mileage: 45000,
+        createdAt: new Date().toISOString()
+      },
+      totalPrice: 1250,
+      items: [
+        { id: "item-1", name: "Revisão e Troca de Óleo", quantity: 1, unitSalePrice: "450.00", isApproved: 1 },
+        { id: "item-2", name: "Jogo de Pastilhas de Freio", quantity: 1, unitSalePrice: "800.00", isApproved: 1 }
+      ]
+    },
+    {
+      id: "demo-2",
+      osNumber: 2,
+      status: "AWAITING_PARTS",
+      paymentStatus: "PENDING",
+      currentMileage: 89000,
+      allocatedBox: "Rampa 3",
+      createdAt: new Date(Date.now() - 3600000).toISOString(),
+      updatedAt: new Date(Date.now() - 3600000).toISOString(),
+      customer: {
+        name: "Maria Oliveira (Simulado)",
+        phone: "5521888888888",
+        document: "987.654.321-11",
+        email: "maria@example.com",
+        address: "Av. Brasil, 456",
+        createdAt: new Date().toISOString()
+      },
+      vehicle: {
+        brand: "Honda",
+        model: "Civic 1.5 Turbo Touring",
+        plate: "CIV9999",
+        year: 2020,
+        engine: "1.5 Turbo",
+        mileage: 89000,
+        createdAt: new Date().toISOString()
+      },
+      totalPrice: 2400,
+      items: [
+        { id: "item-3", name: "Amortecedores Dianteiros (Kit)", quantity: 1, unitSalePrice: "1800.00", isApproved: 1 },
+        { id: "item-4", name: "Mão de Obra de Troca", quantity: 1, unitSalePrice: "600.00", isApproved: 1 }
+      ]
+    },
+    {
+      id: "demo-3",
+      osNumber: 3,
+      status: "READY",
+      paymentStatus: "PAID",
+      currentMileage: 112000,
+      allocatedBox: "Estacionamento",
+      createdAt: new Date(Date.now() - 7200000).toISOString(),
+      updatedAt: new Date(Date.now() - 7200000).toISOString(),
+      customer: {
+        name: "Carlos Santos (Simulado)",
+        phone: "5521777777777",
+        document: "456.789.012-33",
+        email: "carlos@example.com",
+        address: "Rua Principal, 789",
+        createdAt: new Date().toISOString()
+      },
+      vehicle: {
+        brand: "Fiat",
+        model: "Uno Way 1.0",
+        plate: "UNO1111",
+        year: 2012,
+        engine: "1.0 Fire",
+        mileage: 112000,
+        createdAt: new Date().toISOString()
+      },
+      totalPrice: 350,
+      items: [
+        { id: "item-5", name: "Alinhamento e Balanceamento", quantity: 1, unitSalePrice: "120.00", isApproved: 1 },
+        { id: "item-6", name: "Higienização de Ar Condicionado", quantity: 1, unitSalePrice: "230.00", isApproved: 1 }
+      ]
+    }
+  ] as any[]
+
+  const enableDemoMode = () => {
+    localStorage.setItem("kyperfix_demo_mode", "true")
+    setIsDemoMode(true)
+    setOrders(mockOrders)
+  }
+
+  const disableDemoMode = () => {
+    localStorage.removeItem("kyperfix_demo_mode")
+    setIsDemoMode(false)
+    loadInitialData()
+  }
 
   // Carrega Ordens de Serviço e Mecânicos
   const loadInitialData = async () => {
@@ -220,7 +339,19 @@ export default function OrdersPage() {
     setIsLoading(false)
 
     if (ordersRes.success && ordersRes.data) {
-      setOrders(ordersRes.data as WorkOrderSummary[])
+      const dbOrders = ordersRes.data as WorkOrderSummary[]
+      if (dbOrders.length > 0) {
+        localStorage.removeItem("kyperfix_demo_mode")
+        setIsDemoMode(false)
+        setOrders(dbOrders)
+      } else {
+        const demoActive = localStorage.getItem("kyperfix_demo_mode") === "true"
+        if (demoActive) {
+          setOrders(mockOrders)
+        } else {
+          setOrders(dbOrders)
+        }
+      }
     } else {
       setErrorMessage(ordersRes.error || "Erro ao carregar Ordens de Serviço.")
     }
@@ -649,6 +780,23 @@ export default function OrdersPage() {
         </div>
       </div>
       {/* 📋 Listagem de Ordens */}
+      {isDemoMode && (
+        <div className="bg-amber-500/10 border border-amber-500/25 p-3 rounded-2xl flex items-center justify-between text-xs text-amber-500 mb-4 animate-pulse">
+          <span className="font-bold flex items-center gap-1.5">
+            <AlertTriangle className="size-4 animate-bounce" />
+            Modo de Demonstração Ativo: os dados exibidos são simulados para teste.
+          </span>
+          <Button
+            variant="default"
+            size="xs"
+            onClick={disableDemoMode}
+            className="text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-455 border border-amber-500/30 hover:bg-amber-500/30 h-6 px-3 rounded-lg"
+          >
+            Limpar dados e começar de verdade
+          </Button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="bg-card border border-border/50 rounded-2xl p-6 space-y-4">
           <div className="space-y-3">
@@ -664,6 +812,32 @@ export default function OrdersPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      ) : orders.length === 0 ? (
+        <div className="bg-card border border-border/50 rounded-2xl p-12 text-center flex flex-col items-center justify-center gap-3 animate-in fade-in zoom-in-95">
+          <div className="bg-muted/40 p-4 rounded-full border border-border">
+            <Wrench className="size-6 text-muted-foreground/80 animate-bounce" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold uppercase text-foreground">O seu pátio está vazio!</h3>
+            <p className="text-xs text-muted-foreground mt-0.5 max-w-sm geist-mono">
+              Não há nenhuma Ordem de Serviço cadastrada. Comece abrindo uma nova ou simule dados para testar.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 mt-2">
+            <Link href="/panel/orders/new">
+              <Button className="text-xs font-bold px-4 py-2 rounded-xl">
+                Nova Ordem de Serviço
+              </Button>
+            </Link>
+            <Button 
+              variant="outline"
+              onClick={enableDemoMode}
+              className="text-xs font-bold px-4 py-2 rounded-xl"
+            >
+              Ver Pátio com Dados de Demonstração
+            </Button>
           </div>
         </div>
       ) : filteredOrders.length === 0 ? (

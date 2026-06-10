@@ -126,6 +126,22 @@ export async function getDashboardDataAction() {
       };
     });
 
+    // 6. Indicadores reais para Onboarding Contextual
+    const dbMechanic = await db.query.user.findFirst({
+      where: (u, { eq, and }) => and(
+        eq(u.tenantId, tenantId),
+        eq(u.role, 'MECHANIC')
+      )
+    });
+    const hasMechanic = !!dbMechanic;
+
+    const waConfig = await db.query.whatsappConfig.findFirst({
+      where: (wc, { eq }) => eq(wc.tenantId, tenantId)
+    });
+    const isWhatsappConnected = waConfig?.status === 'CONNECTED';
+
+    const hasWorkOrder = allOrders.length > 0;
+
     return {
       success: true,
       data: {
@@ -136,6 +152,11 @@ export async function getDashboardDataAction() {
         lowStockParts: lowStockParts.slice(0, 5),
         statusCounts,
         recentOrders: recentOrdersWithTotals,
+        onboarding: {
+          hasMechanic,
+          isWhatsappConnected,
+          hasWorkOrder
+        }
       }
     };
   } catch (error: any) {

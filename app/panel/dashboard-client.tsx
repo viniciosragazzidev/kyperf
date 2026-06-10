@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Wrench, 
@@ -63,6 +63,11 @@ interface DashboardData {
     };
     [key: string]: any;
   }>;
+  onboarding?: {
+    hasMechanic: boolean;
+    isWhatsappConnected: boolean;
+    hasWorkOrder: boolean;
+  };
 }
 
 interface DashboardClientProps {
@@ -82,6 +87,26 @@ const statusConfig = {
 };
 
 export default function DashboardClient({ initialData, error }: DashboardClientProps) {
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showCommandBarHighlight, setShowCommandBarHighlight] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const welcomeShown = localStorage.getItem("kyperfix_welcome_shown");
+      if (!welcomeShown) {
+        setShowWelcomeModal(true);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleToggle = () => {
+      setShowCommandBarHighlight(false);
+    };
+    window.addEventListener("toggle-command-bar", handleToggle);
+    return () => window.removeEventListener("toggle-command-bar", handleToggle);
+  }, []);
+
   if (error || !initialData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center bg-red-500/5 rounded-3xl border border-red-500/20">
@@ -102,9 +127,41 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
     lowStockParts,
     statusCounts,
     recentOrders,
+    onboarding,
   } = initialData;
 
   const totalOrders = Object.values(statusCounts).reduce((a, b) => a + b, 0);
+
+  // Onboarding Steps calculation
+  const onboardingSteps = [
+    {
+      id: "mechanic",
+      label: "Cadastrar o primeiro funcionário/mecânico",
+      description: "Necessário para atribuir a execução dos serviços",
+      completed: onboarding?.hasMechanic || false,
+      href: "/panel/employees",
+      buttonText: "Adicionar Mecânico"
+    },
+    {
+      id: "whatsapp",
+      label: "Conectar o robô do WhatsApp",
+      description: "Para envio automático de orçamentos e status",
+      completed: onboarding?.isWhatsappConnected || false,
+      href: "/panel/settings/whatsapp",
+      buttonText: "Configurar WhatsApp"
+    },
+    {
+      id: "order",
+      label: "Abrir a primeira Ordem de Serviço de teste",
+      description: "Veja o fluxo operacional na prática",
+      completed: onboarding?.hasWorkOrder || false,
+      href: "/panel/orders/new",
+      buttonText: "Criar O.S. de Teste"
+    }
+  ];
+
+  const completedStepsCount = onboardingSteps.filter(s => s.completed).length;
+  const showOnboardingChecklist = completedStepsCount < onboardingSteps.length;
 
   // Formatter helpers
   const formatCurrency = (val: number) => {
@@ -121,6 +178,56 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans space-y-6">
       
+      {/* Modal de Boas-Vindas Contextual */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-card border border-border rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 relative"
+          >
+            <div className="text-center space-y-2">
+              <div className="size-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20 mx-auto">
+                <Wrench className="size-6 animate-pulse" />
+              </div>
+              <h2 className="text-lg font-black tracking-tight text-foreground">
+                Bem-vindo à KYPERFIX! 🚀
+              </h2>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Nós não somos um ERP operacional cinza, travado ou sem graça. A KYPERFIX foi construída para dar velocidade máxima no controle operacional do seu pátio.
+              </p>
+            </div>
+
+            <div className="bg-muted/30 border border-border/50 rounded-2xl p-3.5 text-xs text-foreground/80 space-y-2">
+              <p className="font-bold text-foreground flex items-center gap-1.5">
+                <CheckCircle2 className="size-4 text-emerald-500" />
+                Como funciona o seu guia de tela:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground text-[11px] pl-1">
+                <li>Complete o checklist inicial para destravar o painel</li>
+                <li>Clique na barra de busca (ou Cmd+K) para abrir o copiloto</li>
+                <li>Experimente colocar dados simulados no Kanban</li>
+              </ul>
+            </div>
+
+            <Button
+              onClick={() => {
+                setShowWelcomeModal(false);
+                localStorage.setItem("kyperfix_welcome_shown", "true");
+                setShowCommandBarHighlight(true);
+                // Auto hide highlight after 10s
+                setTimeout(() => {
+                  setShowCommandBarHighlight(false);
+                }, 10000);
+              }}
+              className="w-full font-bold py-2.5 h-9 rounded-xl text-xs"
+            >
+              Vamos lá!
+            </Button>
+          </motion.div>
+        </div>
+      )}
+
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -145,6 +252,114 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
           </div>
         </div>
       </div>
+
+      {/* Tooltip de Orientação do Command Bar */}
+      {showCommandBarHighlight && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-4 animate-bounce"
+        >
+          <div className="flex items-center gap-3">
+            <span className="bg-emerald-500/20 text-emerald-500 p-1.5 rounded-lg border border-emerald-500/35">
+              <span className="font-mono font-bold text-xs">⌘K</span>
+            </span>
+            <div className="grid">
+              <span className="text-xs font-bold text-foreground">Experimente o Cérebro do Sistema!</span>
+              <span className="text-[10px] text-muted-foreground">Pressione <kbd className="font-mono bg-muted px-1 border rounded text-foreground text-[9px]">Ctrl+K</kbd> (ou <kbd className="font-mono bg-muted px-1 border rounded text-foreground text-[9px]">Cmd+K</kbd>) ou clique na barra de busca acima para criar ordens ou buscar recursos em 1 clique.</span>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={() => setShowCommandBarHighlight(false)}
+            className="text-[10px] text-muted-foreground hover:text-foreground h-6 px-2 shrink-0"
+          >
+            Entendido
+          </Button>
+        </motion.div>
+      )}
+
+      {/* Checklist Inicial de Configuração */}
+      {showOnboardingChecklist && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card border border-emerald-500/20 rounded-3xl p-6 shadow-sm space-y-4 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 size-32 bg-emerald-500/5 rounded-bl-full pointer-events-none" />
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-650 flex items-center gap-2">
+                <CheckCircle2 className="size-4 animate-pulse text-emerald-500" />
+                Vamos preparar a KYPERFIX para rodar? 🚀
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Conclua estes 3 passos básicos para destravar todo o poder operacional e de faturamento da sua oficina.
+              </p>
+            </div>
+            <div className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-bold font-mono">
+              {completedStepsCount}/3 Concluídos
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="space-y-1">
+            <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border/20">
+              <div 
+                className="h-full bg-emerald-500 transition-all duration-500 ease-out rounded-full" 
+                style={{ width: `${(completedStepsCount / 3) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Steps List */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            {onboardingSteps.map((step) => (
+              <div 
+                key={step.id} 
+                className={cn(
+                  "p-3 rounded-2xl border transition-all flex flex-col justify-between gap-3 text-xs",
+                  step.completed 
+                    ? "bg-emerald-500/5 border-emerald-500/10 opacity-75" 
+                    : "bg-muted/30 border-border/50 hover:bg-muted/50"
+                )}
+              >
+                <div className="flex items-start gap-2.5">
+                  <span className={cn(
+                    "shrink-0 mt-0.5 rounded-full p-0.5",
+                    step.completed ? "text-emerald-500" : "text-muted-foreground"
+                  )}>
+                    {step.completed ? (
+                      <CheckCircle2 className="size-4.5 fill-emerald-500/20" />
+                    ) : (
+                      <div className="size-4.5 rounded-full border border-current" />
+                    )}
+                  </span>
+                  <div>
+                    <p className={cn("font-bold text-foreground", step.completed && "line-through")}>
+                      {step.label}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {step.description}
+                    </p>
+                  </div>
+                </div>
+
+                {!step.completed && (
+                  <Link href={step.href} className="w-full">
+                    <Button variant="default" className="w-full text-[10px] py-1.5 h-7 rounded-lg">
+                      {step.buttonText}
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* KPI Cards Grid */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

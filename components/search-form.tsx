@@ -15,7 +15,12 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
         <SidebarInput
           id="search"
           placeholder="Pesquise por algo..."
-          className="h-8 pl-8 placeholder:text-muted-foreground"
+          className="h-8 pl-8 placeholder:text-muted-foreground cursor-pointer"
+          onClick={(e) => {
+            e.preventDefault();
+            window.dispatchEvent(new CustomEvent("toggle-command-bar"));
+          }}
+          readOnly
         />
         <HugeiconsIcon icon={SearchIcon} strokeWidth={2} className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 opacity-50 select-none" />
       </div>
