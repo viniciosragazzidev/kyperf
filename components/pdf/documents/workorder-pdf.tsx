@@ -16,6 +16,8 @@ type OrderData = {
   notes?: string | null;
   diagnostic?: string | null;
   allocatedBox?: string | null;
+  budgetAccessCode?: string | null;
+  qrCodeUrl?: string | null;
   customer: { name: string; phone?: string | null; document?: string | null; email?: string | null; address?: string | null } | null;
   vehicle: { brand: string; model: string; plate: string; year?: number | null; engine?: string | null } | null;
   mechanic: { name: string } | null;
@@ -92,7 +94,11 @@ export function WorkOrderPDF({ order }: { order: OrderData }) {
           </>
         )}
 
-        <PdfFooter branch={order.branch} />
+        <PdfFooter 
+          branch={order.branch} 
+          qrCodeUrl={order.qrCodeUrl} 
+          budgetAccessCode={order.budgetAccessCode} 
+        />
       </Page>
     </Document>
   );

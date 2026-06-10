@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "@react-pdf/renderer";
+import { View, Text, StyleSheet, Image } from "@react-pdf/renderer";
 import { COLORS, sharedStyles } from "./pdf-styles";
 
 interface PdfFooterProps {
@@ -12,6 +12,8 @@ interface PdfFooterProps {
     email?: string | null;
     address?: string | null;
   } | null;
+  qrCodeUrl?: string | null;
+  budgetAccessCode?: string | null;
 }
 
 const s = StyleSheet.create({
@@ -43,11 +45,36 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   paymentCol: {
-    flex: 1.2,
-    marginRight: 40,
+    flex: 1.1,
+    marginRight: 20,
+  },
+  qrCol: {
+    flex: 0.8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 15,
+  },
+  qrTitle: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 7,
+    color: COLORS.black,
+    textTransform: "uppercase",
+    marginBottom: 3,
+    textAlign: "center",
+  },
+  qrImage: {
+    width: 48,
+    height: 48,
+    marginBottom: 3,
+  },
+  qrText: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 6.5,
+    color: COLORS.gray700,
+    textAlign: "center",
   },
   signCol: {
-    flex: 0.8,
+    flex: 1,
     alignItems: "center",
     justifyContent: "flex-end",
   },
@@ -119,6 +146,8 @@ export function PdfFooter({
   noteText,
   paymentMethod,
   branch,
+  qrCodeUrl,
+  budgetAccessCode,
 }: PdfFooterProps) {
   const payLabel = paymentMethod ? (PAYMENT_LABELS[paymentMethod] || paymentMethod) : null;
 
@@ -135,7 +164,7 @@ export function PdfFooter({
         </View>
       )}
 
-      {/* Middle row: Payment info left + signature right */}
+      {/* Middle row: Payment info left + QR Code center + signature right */}
       <View style={s.middleRow}>
         {/* Left side: Payment Info & Terms */}
         <View style={s.paymentCol}>
@@ -150,6 +179,17 @@ export function PdfFooter({
             Garantia legal de 90 dias sobre serviços e peças aplicadas. Veículos não retirados em até 48h após conclusão estão sujeitos a cobrança de permanência.
           </Text>
         </View>
+
+        {/* Center side: QR Code */}
+        {qrCodeUrl ? (
+          <View style={s.qrCol}>
+            <Text style={s.qrTitle}>Versão Online</Text>
+            <Image src={qrCodeUrl} style={s.qrImage} />
+            {budgetAccessCode && (
+              <Text style={s.qrText}>CÓDIGO: {budgetAccessCode}</Text>
+            )}
+          </View>
+        ) : null}
 
         {/* Right side: Signature */}
         <View style={s.signCol}>

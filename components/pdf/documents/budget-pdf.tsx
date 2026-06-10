@@ -133,23 +133,13 @@ export function BudgetPDF({ order }: { order: OrderData }) {
           </>
         )}
 
-        {/* QR Code de aprovação pública */}
-        {order.qrCodeUrl && (
-          <View style={s.qrContainer}>
-            <View style={s.qrTextContainer}>
-              <Text style={s.qrTitle}>APROVAÇÃO ONLINE RÁPIDA</Text>
-              <Text style={s.qrSubtitle}>Escaneie o QR Code ao lado para ver e aprovar os itens do seu orçamento online.</Text>
-              <Text style={s.qrCodeText}>CÓDIGO DE ACESSO: {order.budgetAccessCode}</Text>
-            </View>
-            <Image src={order.qrCodeUrl} style={s.qrImage} />
-          </View>
-        )}
-
         <PdfFooter
           validityDays={7}
           showSignatureLine
           signatureLabel="Assinatura do Cliente — Aprovação do Orçamento"
           branch={order.branch}
+          qrCodeUrl={order.qrCodeUrl}
+          budgetAccessCode={order.budgetAccessCode}
         />
       </Page>
     </Document>

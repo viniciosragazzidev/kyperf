@@ -17,6 +17,8 @@ type OrderData = {
   paymentMethod?: string | null;
   notes?: string | null;
   allocatedBox?: string | null;
+  budgetAccessCode?: string | null;
+  qrCodeUrl?: string | null;
   customer: { name: string; phone?: string | null; document?: string | null; email?: string | null; address?: string | null } | null;
   vehicle: { brand: string; model: string; plate: string; year?: number | null; engine?: string | null } | null;
   mechanic: { name: string } | null;
@@ -196,6 +198,8 @@ export function DeliveryPDF({ order }: { order: OrderData }) {
           noteText="Este documento serve como comprovante de entrega do veículo e dos serviços realizados."
           paymentMethod={order.paymentMethod}
           branch={order.branch}
+          qrCodeUrl={order.qrCodeUrl}
+          budgetAccessCode={order.budgetAccessCode}
         />
       </Page>
     </Document>
