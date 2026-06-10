@@ -460,7 +460,7 @@ export default function EmployeesPage() {
               </div>
 
               <form onSubmit={handleSaveEmployee} className="flex flex-col max-h-[85vh] overflow-hidden">
-                <ScrollArea className="flex-grow min-h-0 max-h-[60vh] w-full">
+                <ScrollArea className="flex-grow min-h-0 max-h-[60vh] w-full overflow-hidden">
                   <div className="p-5 space-y-4 pr-6 text-xs">
                     
                     {/* Nome */}

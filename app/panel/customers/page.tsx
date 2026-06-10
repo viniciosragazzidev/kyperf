@@ -599,7 +599,7 @@ export default function CustomersPage() {
               </div>
 
               <form onSubmit={handleSaveCustomer} className="flex flex-col max-h-[85vh] overflow-hidden">
-                <ScrollArea className="flex-grow min-h-0 max-h-[60vh] w-full">
+                <ScrollArea className="flex-grow min-h-0 max-h-[60vh] w-full overflow-hidden">
                   <div className="p-5 space-y-3.5 pr-6 text-xs">
                     {/* 1. Dados Pessoais do Cliente */}
                     <div className="space-y-3">

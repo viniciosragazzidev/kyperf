@@ -316,7 +316,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   )
 }
 
-function SidebarInput({
+export function SidebarInput({
   className,
   ...props
 }: React.ComponentProps<typeof Input>) {
@@ -325,7 +325,7 @@ function SidebarInput({
       data-slot="sidebar-input"
       data-sidebar="input"
       className={cn(
-        "h-8 w-full border-input bg-muted/20",
+        "h-8 w-full border-input bg-muted/20 pl-8 placeholder:text-muted-foreground",
         className
       )}
       {...props}
