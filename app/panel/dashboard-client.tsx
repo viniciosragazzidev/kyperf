@@ -220,7 +220,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                   setShowCommandBarHighlight(false);
                 }, 10000);
               }}
-              className="w-full font-bold py-2.5 h-9 rounded-xl text-xs"
+              className="w-full font-bold py-2.5 h-9 rounded-xl text-xs text-zinc-100 hover:text-white bg-zinc-900/90 dark:bg-zinc-950/90 border border-zinc-800/60 hover:bg-zinc-800/90 transition-all shadow-md cursor-pointer"
             >
               Vamos lá!
             </Button>
