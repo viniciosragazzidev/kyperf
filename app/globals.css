@@ -50,7 +50,7 @@
 
 :root {
   --header-height: 3rem;
-  --background: oklch(0.99 0.005 160);
+  --background: oklch(98.809% 0.00011 271.152);
   --foreground: oklch(0% 0 0);
   --card: oklch(1 0 0 / 0.8);
   --card-foreground: oklch(0.145 0 0);
