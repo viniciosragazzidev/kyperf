@@ -345,6 +345,7 @@ export const tenantsRelations = relations(tenants, ({ many, one }) => ({
   workOrders: many(workOrders),
   suppliers: many(suppliers),
   whatsappConfig: one(whatsappConfig),
+  statusHistories: many(workOrderStatusHistory),
 }));
 
 export const whatsappConfigRelations = relations(whatsappConfig, ({ one }) => ({
@@ -371,6 +372,7 @@ export const workOrdersRelations = relations(workOrders, ({ one, many }) => ({
   vehicle: one(vehicles, { fields: [workOrders.vehicleId], references: [vehicles.id] }),
   mechanic: one(user, { fields: [workOrders.mechanicId], references: [user.id] }),
   items: many(workOrderItems),
+  statusHistory: many(workOrderStatusHistory),
 }));
 
 export const customersRelations = relations(customers, ({ one, many }) => ({
@@ -427,3 +429,27 @@ export const servicePartsRelations = relations(serviceParts, ({ one }) => ({
   service: one(servicesCatalog, { fields: [serviceParts.serviceId], references: [servicesCatalog.id] }),
   part: one(partsInventory, { fields: [serviceParts.partId], references: [partsInventory.id] }),
 }));
+
+// ==========================================
+// HISTÓRICO DE STATUS E LOGS DA OS
+// ==========================================
+
+export const workOrderStatusHistory = pgTable('work_order_status_history', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  workOrderId: uuid('work_order_id').references(() => workOrders.id, { onDelete: 'cascade' }).notNull(),
+  status: orderStatusEnum('status').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  changedById: text('changed_by_id').references(() => user.id, { onDelete: 'set null' }),
+  notes: text('notes'),
+}, (table) => [
+  index('wo_status_history_tenant_idx').on(table.tenantId),
+  index('wo_status_history_wo_idx').on(table.workOrderId),
+]);
+
+export const workOrderStatusHistoryRelations = relations(workOrderStatusHistory, ({ one }) => ({
+  tenant: one(tenants, { fields: [workOrderStatusHistory.tenantId], references: [tenants.id] }),
+  workOrder: one(workOrders, { fields: [workOrderStatusHistory.workOrderId], references: [workOrders.id] }),
+  changedBy: one(user, { fields: [workOrderStatusHistory.changedById], references: [user.id] }),
+}));
+

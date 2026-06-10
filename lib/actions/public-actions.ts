@@ -59,6 +59,25 @@ export async function getPublicWorkOrderAction(id: string, cpf: string, accessCo
       where: (b) => eq(b.id, order.branchId),
     });
 
+    // Busca dados do mecânico
+    let mechanic = null;
+    if (order.mechanicId) {
+      mechanic = await db.query.user.findFirst({
+        where: (u) => eq(u.id, order.mechanicId!),
+        columns: {
+          name: true,
+          image: true,
+          specialties: true,
+        }
+      });
+    }
+
+    // Busca histórico de status
+    const statusHistory = await db.query.workOrderStatusHistory.findMany({
+      where: (h) => eq(h.workOrderId, order.id),
+      orderBy: (h, { asc }) => asc(h.createdAt),
+    });
+
     // Busca itens (peças e serviços)
     const items = await db.select({
       id: schema.workOrderItems.id,
@@ -108,6 +127,9 @@ export async function getPublicWorkOrderAction(id: string, cpf: string, accessCo
           cnpj: branch.cnpj,
           address: branch.address,
         } : null,
+        mechanic: mechanic || null,
+        statusHistory: statusHistory || [],
+        photoUrls: order.photoUrls || [],
         items,
       }
     };
@@ -187,6 +209,14 @@ export async function approvePublicBudgetAction(
           updatedAt: new Date(),
         })
         .where(eq(schema.workOrders.id, id));
+
+      // Registrar log de transição de status no histórico
+      await tx.insert(schema.workOrderStatusHistory).values({
+        tenantId: order.tenantId,
+        workOrderId: id,
+        status: 'IN_PROGRESS',
+        notes: "Orçamento aprovado digitalmente pelo cliente.",
+      });
     });
 
     return { success: true };

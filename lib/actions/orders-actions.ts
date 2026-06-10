@@ -290,6 +290,15 @@ export async function createWorkOrderAction(input: CreateWorkOrderInput) {
         throw new Error("Erro ao criar registro da O.S.");
       }
 
+      // Registrar log de status inicial no histórico
+      await tx.insert(schema.workOrderStatusHistory).values({
+        tenantId: user.tenantId!,
+        workOrderId: newOrder.id,
+        status: newOrder.status,
+        changedById: user.id,
+        notes: "Abertura da Ordem de Serviço.",
+      });
+
       // 4. Inserir itens da O.S. (se fornecidos)
       if (input.items && input.items.length > 0) {
         for (const item of input.items) {
@@ -359,6 +368,16 @@ export async function updateWorkOrderAction(input: UpdateWorkOrderInput) {
     const result = await db.transaction(async (tx) => {
       // Verifica se o status mudou para registrar statusChangedAt
       const statusChanged = input.status && input.status !== existingOrder.status;
+
+      if (statusChanged && input.status) {
+        await tx.insert(schema.workOrderStatusHistory).values({
+          tenantId: user.tenantId!,
+          workOrderId: existingOrder.id,
+          status: input.status,
+          changedById: user.id,
+          notes: "Atualização de status no painel de controle.",
+        });
+      }
 
       // 1. Atualizar Ordem de Serviço
       const [updatedOrder] = await tx.update(schema.workOrders)

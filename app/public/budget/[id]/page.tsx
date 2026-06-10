@@ -15,7 +15,14 @@ import {
   ChevronRight, 
   AlertCircle,
   Building2,
-  Info
+  Info,
+  Clock,
+  User,
+  Camera,
+  Image as ImageIcon,
+  X,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -67,6 +74,18 @@ interface PublicOrder {
     cnpj: string | null
     address: string | null
   } | null
+  mechanic: {
+    name: string
+    image: string | null
+    specialties: string[] | null
+  } | null
+  statusHistory: Array<{
+    id: string
+    status: string
+    createdAt: Date | string
+    notes: string | null
+  }>
+  photoUrls: string[] | null
   items: PublicItem[]
 }
 
@@ -81,7 +100,7 @@ export default function PublicBudgetPage({ params }: { params: Promise<{ id: str
   });
 
   // State Management
-  const [step, setStep] = useState<"auth" | "budget" | "success">("auth")
+  const [step, setStep] = useState<"auth" | "budget" | "tracking" | "success">("auth")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -92,6 +111,51 @@ export default function PublicBudgetPage({ params }: { params: Promise<{ id: str
   // Budget data state
   const [order, setOrder] = useState<PublicOrder | null>(null)
   const [approvedItems, setApprovedItems] = useState<string[]>([]) // IDs of approved items
+
+  // Extra Tracking states
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
+  const [showApprovedItemsList, setShowApprovedItemsList] = useState(false)
+
+  // Helper to determine status weight for 5 customer steps
+  const getStepStatus = (stepKey: string, currentStatus: string) => {
+    const statusWeight: Record<string, number> = {
+      'CHECK_IN': 1,
+      'AWAITING_BUDGET': 2,
+      'AWAITING_APPROVAL': 3,
+      'AWAITING_PARTS': 4,
+      'IN_PROGRESS': 5,
+      'TESTING_WASHING': 6,
+      'READY': 7,
+      'DELIVERED': 8,
+    }
+
+    const currentWeight = statusWeight[currentStatus] || 1
+
+    if (stepKey === "CHECK_IN") {
+      return currentWeight > 1 ? "completed" : "active"
+    }
+    if (stepKey === "BUDGET") {
+      if (currentWeight < 3) return "pending"
+      if (currentWeight === 3) return "active"
+      return "completed"
+    }
+    if (stepKey === "EXECUTION") {
+      if (currentWeight < 4) return "pending"
+      if (currentWeight === 4 || currentWeight === 5) return "active"
+      return "completed"
+    }
+    if (stepKey === "TESTING") {
+      if (currentWeight < 6) return "pending"
+      if (currentWeight === 6) return "active"
+      return "completed"
+    }
+    if (stepKey === "READY") {
+      if (currentWeight < 7) return "pending"
+      if (currentWeight === 7) return "active"
+      return "completed"
+    }
+    return "pending"
+  }
 
   // Formatters
   const formatCPF = (val: string) => {
@@ -156,7 +220,12 @@ export default function PublicBudgetPage({ params }: { params: Promise<{ id: str
           .map(item => item.id)
         setApprovedItems(initiallyApproved)
         
-        setStep("budget")
+        const isTrackingStatus = ["AWAITING_PARTS", "IN_PROGRESS", "TESTING_WASHING", "READY", "DELIVERED"].includes(orderData.status)
+        if (isTrackingStatus) {
+          setStep("tracking")
+        } else {
+          setStep("budget")
+        }
       } else {
         setError(res.error ?? "Erro ao autenticar. Verifique o CPF e o Código.")
       }
@@ -588,6 +657,365 @@ export default function PublicBudgetPage({ params }: { params: Promise<{ id: str
               </div>
             </motion.div>
           )}
+
+          {/* Step 4: Live Tracking Portal */}
+          {step === "tracking" && order && (
+            <motion.div
+              key="tracking-layout"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="w-full space-y-6 text-card-foreground"
+            >
+              {/* Header card */}
+              <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.04)] border border-border/50 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-emerald-500/10 text-emerald-500 p-2 rounded-xl border border-emerald-500/20">
+                    <Building2 className="size-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black text-foreground uppercase tracking-tight">
+                      {order.branch?.name || "Oficina KyperFix"}
+                    </h2>
+                    <p className="text-[10px] text-muted-foreground font-medium uppercase mt-0.5">
+                      {order.branch?.address || "Endereço não informado"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-left md:text-right">
+                    <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider animate-pulse">
+                      <span className="size-1.5 bg-emerald-500 rounded-full" />
+                      Status: {
+                        order.status === "AWAITING_PARTS" ? "Aguardando Peças" :
+                        order.status === "IN_PROGRESS" ? "Em Execução" :
+                        order.status === "TESTING_WASHING" ? "Testes e Lavagem" :
+                        order.status === "READY" ? "Pronto para Retirada" :
+                        order.status === "DELIVERED" ? "Entregue" : "Em Triagem"
+                      }
+                    </span>
+                    <span className="text-xs font-extrabold text-foreground font-mono block mt-1">
+                      OS #{String(order.osNumber).padStart(4, "0")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main content grid */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                
+                {/* Left side: Vehicle metadata, Mechanic details, collapsible approved list */}
+                <div className="md:col-span-4 space-y-6">
+                  
+                  {/* Vehicle Metadata */}
+                  <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.04)] border border-border/50 p-5 space-y-4 text-xs">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-dashed border-border pb-2 flex items-center gap-1.5">
+                      <Car className="size-3.5 text-emerald-500" />
+                      Informações do Veículo
+                    </h3>
+
+                    <div className="space-y-3 font-semibold">
+                      <div>
+                        <span className="text-[9px] text-muted-foreground uppercase font-bold block">Proprietário</span>
+                        <p className="text-foreground uppercase text-xs font-bold mt-0.5">
+                          {order.customer.name}
+                        </p>
+                      </div>
+
+                      {order.vehicle && (
+                        <div>
+                          <span className="text-[9px] text-muted-foreground uppercase font-bold block">Veículo</span>
+                          <p className="text-foreground uppercase text-xs font-bold mt-0.5">
+                            {order.vehicle.brand} {order.vehicle.model}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="bg-foreground text-background font-mono px-2 py-0.5 rounded-sm text-[9px] font-bold">
+                              {formatPlate(order.vehicle.plate)}
+                            </span>
+                            {order.vehicle.year && (
+                              <span className="text-[10px] text-muted-foreground">
+                                Ano {order.vehicle.year}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mechanic Profile */}
+                  <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.04)] border border-border/50 p-5 space-y-4">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-dashed border-border pb-2 flex items-center gap-1.5">
+                      <User className="size-3.5 text-emerald-500" />
+                      Mecânico Responsável
+                    </h3>
+
+                    {order.mechanic ? (
+                      <div className="flex items-start gap-3.5">
+                        {order.mechanic.image ? (
+                          <img 
+                            src={order.mechanic.image} 
+                            alt={order.mechanic.name} 
+                            className="size-11 rounded-full object-cover border border-border" 
+                          />
+                        ) : (
+                          <div className="size-11 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                            <User className="size-5" />
+                          </div>
+                        )}
+                        <div className="grid gap-1">
+                          <span className="text-xs font-extrabold text-foreground">{order.mechanic.name}</span>
+                          <p className="text-[9px] text-muted-foreground leading-normal font-semibold">
+                            Técnico encarregado dos serviços do seu veículo.
+                          </p>
+                          {order.mechanic.specialties && order.mechanic.specialties.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {order.mechanic.specialties.map((spec, i) => (
+                                <span key={i} className="text-[8px] font-bold uppercase tracking-tight bg-muted border border-border/50 px-1.5 py-0.5 rounded-md text-muted-foreground">
+                                  {spec}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 bg-muted/20 p-3 rounded-2xl border border-dashed border-border">
+                        <Wrench className="size-5 text-muted-foreground/60 animate-pulse shrink-0" />
+                        <div className="grid">
+                          <span className="text-[10px] font-bold text-foreground">Equipe KyperFix</span>
+                          <span className="text-[9px] text-muted-foreground">Aguardando alocação de mecânico de pátio.</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Collapsible Approved Items summary */}
+                  <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.04)] border border-border/50 p-5 space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowApprovedItemsList(!showApprovedItemsList)}
+                      className="w-full flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-dashed border-border pb-2 focus:outline-hidden"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <FileText className="size-3.5 text-emerald-500" />
+                        Serviços Contratados
+                      </span>
+                      {showApprovedItemsList ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {showApprovedItemsList && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="overflow-hidden space-y-3 pt-1 text-xs"
+                        >
+                          <div className="space-y-2 divide-y divide-dashed divide-border/40">
+                            {order.items.filter(it => it.isApproved === 1).map(item => {
+                              const name = item.customName || item.partName || item.serviceName || "Item"
+                              return (
+                                <div key={item.id} className="pt-2 flex justify-between items-center text-[11px] font-semibold">
+                                  <div className="grid">
+                                    <span className="text-foreground uppercase tracking-tight font-bold">{name}</span>
+                                    <span className="text-[9px] text-muted-foreground uppercase">QTD: {item.quantity} · {item.type === "PART" ? "Peça" : "Serviço"}</span>
+                                  </div>
+                                  <span className="font-mono text-foreground">{formatCurrency(parseFloat(item.unitSalePrice) * item.quantity)}</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="flex justify-between items-center pt-2 text-xs font-bold border-t border-dashed border-border/60">
+                      <span className="text-muted-foreground text-[10px] uppercase">Total Aprovado:</span>
+                      <span className="font-mono text-emerald-500 text-sm font-black">{formatCurrency(grandTotal)}</span>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Right side: Realtime Timeline and Photo gallery */}
+                <div className="md:col-span-8 space-y-6">
+                  
+                  {/* Timeline Tracker */}
+                  <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.04)] border border-border/50 p-5 space-y-5">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-dashed border-border pb-2 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="size-3.5 text-emerald-500" />
+                        Linha do Tempo de Manutenção
+                      </span>
+                      <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        Atualizado em tempo real
+                      </span>
+                    </h3>
+
+                    {/* Timeline vertical list */}
+                    <div className="relative pl-6 space-y-6 text-xs border-l border-border/60 ml-2 pt-1 pb-1">
+                      {[
+                        { key: "CHECK_IN", title: "Check-in do Veículo", desc: "Seu veículo deu entrada na oficina e foi realizada a triagem inicial com check-in fotográfico." },
+                        { key: "BUDGET", title: "Orçamento Técnico", desc: "Nossa equipe realizou o diagnóstico completo e registrou a lista de peças e serviços necessários." },
+                        { key: "EXECUTION", title: "Serviço em Execução", desc: "O mecânico responsável iniciou a execução dos consertos autorizados no pátio da oficina." },
+                        { key: "TESTING", title: "Testes de Qualidade & Limpeza", desc: "Após a execução, realizamos testes de rodagem para garantir o conserto e preparamos a higienização." },
+                        { key: "READY", title: "Pronto para Retirada", desc: "Seu veículo está pronto, testado e limpo. Aguardamos sua visita para faturamento e entrega." }
+                      ].map((stepItem, idx) => {
+                        const stepState = getStepStatus(stepItem.key, order.status);
+                        
+                        // Busca data de transição correspondente
+                        let transitionDate: Date | null = null;
+                        if (stepItem.key === "CHECK_IN") {
+                          const log = order.statusHistory.find(h => h.status === "CHECK_IN");
+                          transitionDate = log ? new Date(log.createdAt) : new Date(order.createdAt);
+                        } else if (stepItem.key === "BUDGET") {
+                          const log = order.statusHistory.find(h => ["AWAITING_APPROVAL", "AWAITING_PARTS", "IN_PROGRESS", "TESTING_WASHING", "READY", "DELIVERED"].includes(h.status));
+                          transitionDate = log ? new Date(log.createdAt) : null;
+                        } else if (stepItem.key === "EXECUTION") {
+                          const log = order.statusHistory.find(h => ["IN_PROGRESS", "AWAITING_PARTS"].includes(h.status));
+                          transitionDate = log ? new Date(log.createdAt) : null;
+                        } else if (stepItem.key === "TESTING") {
+                          const log = order.statusHistory.find(h => h.status === "TESTING_WASHING");
+                          transitionDate = log ? new Date(log.createdAt) : null;
+                        } else if (stepItem.key === "READY") {
+                          const log = order.statusHistory.find(h => ["READY", "DELIVERED"].includes(h.status));
+                          transitionDate = log ? new Date(log.createdAt) : null;
+                        }
+
+                        return (
+                          <div key={idx} className="relative group">
+                            
+                            {/* Dot icon indicator */}
+                            <div className={cn(
+                              "absolute -left-9.5 top-0.5 size-7 rounded-full flex items-center justify-center border transition-all z-10",
+                              stepState === "completed" ? "bg-emerald-500 border-emerald-500 text-white shadow-emerald-500/20" :
+                              stepState === "active" ? "bg-card border-emerald-500 text-emerald-500 shadow-md shadow-emerald-500/10 ring-4 ring-emerald-500/10" :
+                              "bg-muted border-border/80 text-muted-foreground/60"
+                            )}>
+                              {stepState === "completed" ? (
+                                <Check className="size-4 stroke-[3]" />
+                              ) : stepState === "active" ? (
+                                <Wrench className="size-3.5 animate-spin-slow text-emerald-500" />
+                              ) : (
+                                <div className="size-1.5 bg-muted-foreground/40 rounded-full" />
+                              )}
+                            </div>
+
+                            <div className="grid gap-0.5 pr-2">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <span className={cn(
+                                  "font-bold text-xs uppercase tracking-tight",
+                                  stepState === "completed" ? "text-foreground" :
+                                  stepState === "active" ? "text-emerald-500" :
+                                  "text-muted-foreground/60"
+                                )}>
+                                  {stepItem.title}
+                                </span>
+                                {transitionDate && (
+                                  <span className="text-[9px] font-mono text-muted-foreground/75 font-bold uppercase">
+                                    {transitionDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} às {transitionDate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                                  </span>
+                                )}
+                              </div>
+                              <p className={cn(
+                                "text-[10.5px] leading-relaxed font-semibold mt-0.5",
+                                stepState === "completed" ? "text-muted-foreground" :
+                                stepState === "active" ? "text-foreground/95 font-bold" :
+                                "text-muted-foreground/45"
+                              )}>
+                                {stepItem.desc}
+                              </p>
+                            </div>
+
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Photo Gallery */}
+                  <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.04)] border border-border/50 p-5 space-y-4">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-dashed border-border pb-2 flex items-center gap-1.5">
+                      <Camera className="size-3.5 text-emerald-500" />
+                      Galeria de Fotos do Serviço
+                    </h3>
+
+                    {order.photoUrls && order.photoUrls.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {order.photoUrls.map((photo, i) => (
+                          <div 
+                            key={i} 
+                            onClick={() => setSelectedPhoto(photo)}
+                            className="relative group aspect-4/3 overflow-hidden rounded-2xl border border-border/60 bg-muted/30 cursor-pointer shadow-sm hover:border-emerald-500/40 transition-all hover:scale-102"
+                          >
+                            <img 
+                              src={photo} 
+                              alt={`Foto do serviço ${i + 1}`} 
+                              className="size-full object-cover transition-transform group-hover:scale-105 duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                              <span className="bg-card/90 text-foreground text-[8px] font-extrabold uppercase px-2 py-1 rounded-md border border-border shadow-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                                Ampliar
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="border border-dashed border-border/80 rounded-2xl p-8 text-center text-xs space-y-2">
+                        <ImageIcon className="size-7 text-muted-foreground/40 mx-auto" />
+                        <p className="text-muted-foreground uppercase font-bold text-[9px] tracking-wider">Aguardando Fotos</p>
+                        <p className="text-muted-foreground/60 text-[10px] max-w-xs mx-auto leading-normal">
+                          Fotos do veículo em execução serão disponibilizadas nesta galeria conforme o mecânico atualize o andamento do serviço.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+              </div>
+
+            </motion.div>
+          )}
+
+          {/* Photo Lightbox Overlay */}
+          <AnimatePresence>
+            {selectedPhoto && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedPhoto(null)}
+                className="fixed inset-0 bg-black/90 z-100 flex items-center justify-center p-4 md:p-6 backdrop-blur-xs cursor-zoom-out"
+              >
+                <button 
+                  type="button" 
+                  onClick={() => setSelectedPhoto(null)} 
+                  className="absolute top-4 right-4 bg-zinc-800/80 hover:bg-zinc-700/80 text-white rounded-full p-2.5 border border-zinc-700 cursor-pointer transition-all active:scale-90 z-110"
+                >
+                  <X className="size-5" />
+                </button>
+                <motion.div
+                  initial={{ scale: 0.95, y: 10 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.95, y: 10 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative max-w-4xl max-h-[85vh] overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl flex items-center justify-center cursor-default"
+                >
+                  <img 
+                    src={selectedPhoto} 
+                    alt="Visualização ampliada do serviço" 
+                    className="max-w-full max-h-[85vh] object-contain"
+                  />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
         </AnimatePresence>
       </main>

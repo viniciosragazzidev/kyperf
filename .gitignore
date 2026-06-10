@@ -43,3 +43,5 @@ next-env.d.ts
 # openwa and scratch
 /openwa-data/
 /scratch/
+
+.vercel
