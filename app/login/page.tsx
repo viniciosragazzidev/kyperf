@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ToolsIcon } from "@hugeicons/core-free-icons";
 
+const GRID_MUL: [number, number] = [2, 1];
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +52,7 @@ export default function LoginPage() {
       <div className="fixed inset-0 z-0 opacity-50 pointer-events-none">
         <FaultyTerminal
           scale={1.8}
-          gridMul={[2, 1]}
+          gridMul={GRID_MUL}
           digitSize={1.2}
           timeScale={1.2}
           scanlineIntensity={0.5}

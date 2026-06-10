@@ -279,8 +279,47 @@ export default function FaultyTerminal({
   const timeOffsetRef = useRef(Math.random() * 100);
 
   const tintVec = useMemo(() => hexToRgb(tint), [tint]);
-
   const ditherValue = useMemo(() => (typeof dither === 'boolean' ? (dither ? 1 : 0) : dither), [dither]);
+
+  // Keep references to all dynamic props to avoid re-running the initialization effect
+  const scaleRef = useRef(scale);
+  const gridMulRef = useRef(gridMul);
+  const digitSizeRef = useRef(digitSize);
+  const timeScaleRef = useRef(timeScale);
+  const pauseRef = useRef(pause);
+  const scanlineIntensityRef = useRef(scanlineIntensity);
+  const glitchAmountRef = useRef(glitchAmount);
+  const flickerAmountRef = useRef(flickerAmount);
+  const noiseAmpRef = useRef(noiseAmp);
+  const chromaticAberrationRef = useRef(chromaticAberration);
+  const ditherValueRef = useRef(ditherValue);
+  const curvatureRef = useRef(curvature);
+  const tintVecRef = useRef(tintVec);
+  const mouseStrengthRef = useRef(mouseStrength);
+  const mouseReactRef = useRef(mouseReact);
+  const pageLoadAnimationRef = useRef(pageLoadAnimation);
+  const brightnessRef = useRef(brightness);
+
+  // Sync refs on every render
+  useEffect(() => {
+    scaleRef.current = scale;
+    gridMulRef.current = gridMul;
+    digitSizeRef.current = digitSize;
+    timeScaleRef.current = timeScale;
+    pauseRef.current = pause;
+    scanlineIntensityRef.current = scanlineIntensity;
+    glitchAmountRef.current = glitchAmount;
+    flickerAmountRef.current = flickerAmount;
+    noiseAmpRef.current = noiseAmp;
+    chromaticAberrationRef.current = chromaticAberration;
+    ditherValueRef.current = ditherValue;
+    curvatureRef.current = curvature;
+    tintVecRef.current = tintVec;
+    mouseStrengthRef.current = mouseStrength;
+    mouseReactRef.current = mouseReact;
+    pageLoadAnimationRef.current = pageLoadAnimation;
+    brightnessRef.current = brightness;
+  });
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const ctn = containerRef.current;
@@ -310,26 +349,25 @@ export default function FaultyTerminal({
         iResolution: {
           value: new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
         },
-        uScale: { value: scale },
-
-        uGridMul: { value: new Float32Array(gridMul) },
-        uDigitSize: { value: digitSize },
-        uScanlineIntensity: { value: scanlineIntensity },
-        uGlitchAmount: { value: glitchAmount },
-        uFlickerAmount: { value: flickerAmount },
-        uNoiseAmp: { value: noiseAmp },
-        uChromaticAberration: { value: chromaticAberration },
-        uDither: { value: ditherValue },
-        uCurvature: { value: curvature },
-        uTint: { value: new Color(tintVec[0], tintVec[1], tintVec[2]) },
+        uScale: { value: scaleRef.current },
+        uGridMul: { value: new Float32Array(gridMulRef.current) },
+        uDigitSize: { value: digitSizeRef.current },
+        uScanlineIntensity: { value: scanlineIntensityRef.current },
+        uGlitchAmount: { value: glitchAmountRef.current },
+        uFlickerAmount: { value: flickerAmountRef.current },
+        uNoiseAmp: { value: noiseAmpRef.current },
+        uChromaticAberration: { value: chromaticAberrationRef.current },
+        uDither: { value: ditherValueRef.current },
+        uCurvature: { value: curvatureRef.current },
+        uTint: { value: new Color(tintVecRef.current[0], tintVecRef.current[1], tintVecRef.current[2]) },
         uMouse: {
           value: new Float32Array([smoothMouseRef.current.x, smoothMouseRef.current.y])
         },
-        uMouseStrength: { value: mouseStrength },
-        uUseMouse: { value: mouseReact ? 1 : 0 },
-        uPageLoadProgress: { value: pageLoadAnimation ? 0 : 1 },
-        uUsePageLoadAnimation: { value: pageLoadAnimation ? 1 : 0 },
-        uBrightness: { value: brightness }
+        uMouseStrength: { value: mouseStrengthRef.current },
+        uUseMouse: { value: mouseReactRef.current ? 1 : 0 },
+        uPageLoadProgress: { value: pageLoadAnimationRef.current ? 0 : 1 },
+        uUsePageLoadAnimation: { value: pageLoadAnimationRef.current ? 1 : 0 },
+        uBrightness: { value: brightnessRef.current }
       }
     });
     programRef.current = program;
@@ -353,26 +391,48 @@ export default function FaultyTerminal({
     const update = (t: number) => {
       rafRef.current = requestAnimationFrame(update);
 
-      if (pageLoadAnimation && loadAnimationStartRef.current === 0) {
+      if (pageLoadAnimationRef.current && loadAnimationStartRef.current === 0) {
         loadAnimationStartRef.current = t;
       }
 
-      if (!pause) {
-        const elapsed = (t * 0.001 + timeOffsetRef.current) * timeScale;
+      // Update uniforms dynamically from refs to avoid restarting or flickering
+      program.uniforms.uScale.value = scaleRef.current;
+      program.uniforms.uGridMul.value[0] = gridMulRef.current[0];
+      program.uniforms.uGridMul.value[1] = gridMulRef.current[1];
+      program.uniforms.uDigitSize.value = digitSizeRef.current;
+      program.uniforms.uScanlineIntensity.value = scanlineIntensityRef.current;
+      program.uniforms.uGlitchAmount.value = glitchAmountRef.current;
+      program.uniforms.uFlickerAmount.value = flickerAmountRef.current;
+      program.uniforms.uNoiseAmp.value = noiseAmpRef.current;
+      program.uniforms.uChromaticAberration.value = chromaticAberrationRef.current;
+      program.uniforms.uDither.value = ditherValueRef.current;
+      program.uniforms.uCurvature.value = curvatureRef.current;
+      
+      program.uniforms.uTint.value[0] = tintVecRef.current[0];
+      program.uniforms.uTint.value[1] = tintVecRef.current[1];
+      program.uniforms.uTint.value[2] = tintVecRef.current[2];
+
+      program.uniforms.uMouseStrength.value = mouseStrengthRef.current;
+      program.uniforms.uUseMouse.value = mouseReactRef.current ? 1 : 0;
+      program.uniforms.uUsePageLoadAnimation.value = pageLoadAnimationRef.current ? 1 : 0;
+      program.uniforms.uBrightness.value = brightnessRef.current;
+
+      if (!pauseRef.current) {
+        const elapsed = (t * 0.001 + timeOffsetRef.current) * timeScaleRef.current;
         program.uniforms.iTime.value = elapsed;
         frozenTimeRef.current = elapsed;
       } else {
         program.uniforms.iTime.value = frozenTimeRef.current;
       }
 
-      if (pageLoadAnimation && loadAnimationStartRef.current > 0) {
+      if (pageLoadAnimationRef.current && loadAnimationStartRef.current > 0) {
         const animationDuration = 2000;
         const animationElapsed = t - loadAnimationStartRef.current;
         const progress = Math.min(animationElapsed / animationDuration, 1);
         program.uniforms.uPageLoadProgress.value = progress;
       }
 
-      if (mouseReact) {
+      if (mouseReactRef.current) {
         const dampingFactor = 0.08;
         const smoothMouse = smoothMouseRef.current;
         const mouse = mouseRef.current;
@@ -400,27 +460,7 @@ export default function FaultyTerminal({
       loadAnimationStartRef.current = 0;
       timeOffsetRef.current = Math.random() * 100;
     };
-  }, [
-    dpr,
-    pause,
-    timeScale,
-    scale,
-    gridMul,
-    digitSize,
-    scanlineIntensity,
-    glitchAmount,
-    flickerAmount,
-    noiseAmp,
-    chromaticAberration,
-    ditherValue,
-    curvature,
-    tintVec,
-    mouseReact,
-    mouseStrength,
-    pageLoadAnimation,
-    brightness,
-    handleMouseMove
-  ]);
+  }, [dpr, handleMouseMove, mouseReact]);
 
   return <div ref={containerRef} className={`faulty-terminal-container ${className}`} style={style} {...rest} />;
 }
