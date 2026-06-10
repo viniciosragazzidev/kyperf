@@ -92,7 +92,7 @@ const s = StyleSheet.create({
     borderRadius: 4,
     marginTop: 6,
     borderLeftWidth: 3,
-    borderLeftColor: COLORS.red,
+    borderLeftColor: COLORS.emerald,
   },
   grandLabel: {
     fontFamily: "Helvetica-Bold",

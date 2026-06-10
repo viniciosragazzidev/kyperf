@@ -67,7 +67,7 @@ const s = StyleSheet.create({
   logoIcon: {
     width: 22,
     height: 22,
-    backgroundColor: COLORS.red,
+    backgroundColor: COLORS.emerald,
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
@@ -134,7 +134,7 @@ const s = StyleSheet.create({
     width: 86,
     height: 54,
     borderLeftWidth: 3,
-    borderLeftColor: COLORS.red,
+    borderLeftColor: COLORS.emerald,
   },
   cardTotalLabel: {
     fontFamily: "Helvetica",
@@ -389,7 +389,7 @@ export function PdfHeader({
           {/* Card 3: OS Number */}
           <View style={s.cardLight}>
             <Text style={s.cardLightLabel}>OS Número</Text>
-            <Text style={[s.cardLightValue, { color: COLORS.red }]}>
+            <Text style={[s.cardLightValue, { color: COLORS.emerald }]}>
               #{String(osNumber).padStart(5, "0")}
             </Text>
           </View>
