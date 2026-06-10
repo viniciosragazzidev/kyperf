@@ -61,5 +61,20 @@ export const auth = betterAuth({
     plugins: [
         admin(),
         nextCookies()
-    ]
+    ],
+    databaseHooks: {
+        user: {
+            create: {
+                before: async (user) => {
+                    const mappedRole = user.role === "user" || !user.role ? "OWNER" : user.role;
+                    return {
+                        data: {
+                            ...user,
+                            role: mappedRole,
+                        },
+                    };
+                },
+            },
+        },
+    },
 });
