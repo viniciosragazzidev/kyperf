@@ -3,15 +3,15 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Package, 
-  Activity, 
-  Calendar, 
-  ArrowRight, 
-  Percent, 
-  Wrench, 
+import {
+  DollarSign,
+  TrendingUp,
+  Package,
+  Activity,
+  Calendar,
+  ArrowRight,
+  Percent,
+  Wrench,
   CreditCard,
   Briefcase
 } from "lucide-react"
@@ -83,7 +83,7 @@ export default function FinancePage() {
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans space-y-6">
-      
+
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -93,7 +93,7 @@ export default function FinancePage() {
             </span>
             Fluxo de Caixa
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Controle de receitas recebidas de Ordens de Serviço faturadas e margens brutas.
           </p>
         </div>
@@ -106,8 +106,8 @@ export default function FinancePage() {
               onClick={() => setPeriodDays(days)}
               className={cn(
                 "h-7 px-3 text-[10px] font-bold uppercase rounded-none transition-all cursor-pointer",
-                periodDays === days 
-                  ? "bg-foreground text-background shadow-xs" 
+                periodDays === days
+                  ? "bg-foreground text-background shadow-xs"
                   : "bg-transparent text-muted-foreground hover:text-foreground"
               )}
             >
@@ -123,10 +123,10 @@ export default function FinancePage() {
         </div>
       ) : data ? (
         <div className="space-y-6">
-          
+
           {/* KPI Dashboard */}
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
+
             {/* KPI 1: Faturamento */}
             <div className="relative group overflow-hidden bg-card p-5 rounded-3xl border border-border/50 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] hover:border-emerald-500/30 transition-all cursor-pointer text-card-foreground">
               <div className="absolute top-0 right-0 size-20 bg-emerald-500/5 rounded-bl-full" />
@@ -199,7 +199,7 @@ export default function FinancePage() {
 
           {/* Double Column content */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
+
             {/* Left column: Revenue Breakdown - 4 columns */}
             <section className="lg:col-span-4 bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] border border-border/50 overflow-hidden text-card-foreground p-5 space-y-4">
               <div className="flex items-center justify-between pb-3.5 border-b border-dashed border-border">
@@ -221,8 +221,8 @@ export default function FinancePage() {
                     </span>
                   </div>
                   <div className="h-2 w-full bg-muted/65 rounded-full overflow-hidden border border-border/10">
-                    <div 
-                      className="h-full bg-indigo-500 rounded-full" 
+                    <div
+                      className="h-full bg-indigo-500 rounded-full"
                       style={{ width: `${data.totalRevenue > 0 ? (data.servicesRevenue / data.totalRevenue) * 100 : 0}%` }}
                     />
                   </div>
@@ -239,8 +239,8 @@ export default function FinancePage() {
                     </span>
                   </div>
                   <div className="h-2 w-full bg-muted/65 rounded-full overflow-hidden border border-border/10">
-                    <div 
-                      className="h-full bg-emerald-500 rounded-full" 
+                    <div
+                      className="h-full bg-emerald-500 rounded-full"
                       style={{ width: `${data.totalRevenue > 0 ? (data.partsRevenue / data.totalRevenue) * 100 : 0}%` }}
                     />
                   </div>

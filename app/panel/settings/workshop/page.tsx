@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { 
-  Building2, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Check, 
-  Info 
+import {
+  Building2,
+  Phone,
+  Mail,
+  MapPin,
+  Check,
+  Info
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,9 +16,9 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 
 // Import Server Actions
-import { 
-  getWorkshopSettingsAction, 
-  updateWorkshopSettingsAction 
+import {
+  getWorkshopSettingsAction,
+  updateWorkshopSettingsAction
 } from "@/lib/actions/settings-actions"
 
 interface WorkshopBranch {
@@ -33,7 +33,7 @@ interface WorkshopBranch {
 export default function WorkshopSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  
+
   // Form State
   const [name, setName] = useState("")
   const [phone, setPhone] = useState("")
@@ -115,7 +115,7 @@ export default function WorkshopSettingsPage() {
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans space-y-6">
-      
+
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -125,7 +125,7 @@ export default function WorkshopSettingsPage() {
             </span>
             Dados da Oficina
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Gerencie as informações da sua filial matriz. Estes dados serão exibidos nos cabeçalhos dos PDFs gerados.
           </p>
         </div>
@@ -145,11 +145,11 @@ export default function WorkshopSettingsPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 text-xs font-semibold">
-            
+
             {/* Name */}
             <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nome Fantasia da Unidade *</Label>
-              <Input 
+              <Input
                 placeholder="EX: AUTO CENTER CAR MATRIZ"
                 className="w-full text-xs bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 px-3 font-bold uppercase outline-hidden"
                 required
@@ -161,7 +161,7 @@ export default function WorkshopSettingsPage() {
             {/* CNPJ */}
             <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">CNPJ da Filial</Label>
-              <Input 
+              <Input
                 placeholder="EX: 12.345.678/0001-90"
                 className="w-full text-xs bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 px-3 outline-hidden"
                 value={cnpj}
@@ -175,7 +175,7 @@ export default function WorkshopSettingsPage() {
                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Telefone de Contato</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                  <Input 
+                  <Input
                     placeholder="EX: (11) 99999-9999"
                     className="w-full text-xs bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 pl-10 pr-3 outline-hidden"
                     value={phone}
@@ -187,7 +187,7 @@ export default function WorkshopSettingsPage() {
                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">E-mail Corporativo</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                  <Input 
+                  <Input
                     type="email"
                     placeholder="EX: matriz@oficina.com"
                     className="w-full text-xs bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 pl-10 pr-3 outline-hidden"
@@ -203,7 +203,7 @@ export default function WorkshopSettingsPage() {
               <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Endereço Físico Completo</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input 
+                <Input
                   placeholder="EX: AVENIDA BRASIL, 1000 - CENTRO - RIO DE JANEIRO/RJ"
                   className="w-full text-xs bg-muted/20 focus:bg-card focus:ring-2 focus:ring-emerald-500/20 h-10 pl-10 pr-3 uppercase outline-hidden"
                   value={address}
@@ -221,7 +221,7 @@ export default function WorkshopSettingsPage() {
                 </p>
               </div>
 
-              <Button 
+              <Button
                 type="submit"
                 disabled={submitting}
                 className="w-full h-10 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-black uppercase tracking-wider flex items-center justify-center gap-2 text-[10px] cursor-pointer shadow-xs disabled:opacity-50"

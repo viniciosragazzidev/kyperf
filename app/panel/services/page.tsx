@@ -311,7 +311,7 @@ export default function ServicesPage() {
             </span>
             Catálogo de Serviços
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Defina precificação técnica de serviços, autopeças associadas e sobregravações personalizadas por veículo.
           </p>
         </div>

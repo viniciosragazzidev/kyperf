@@ -53,11 +53,11 @@ export function WorkOrderPDF({ order }: { order: OrderData }) {
           status={order.status}
           createdAt={order.createdAt}
           branch={order.branch}
-        />
-
-        <PdfClientVehicleBlock
           customer={order.customer}
           vehicle={order.vehicle}
+          items={order.items}
+          discount={order.discount}
+          surcharge={order.surcharge}
           fuelLevel={order.fuelLevel}
           currentMileage={order.currentMileage}
           mechanicName={order.mechanic?.name}
@@ -92,7 +92,7 @@ export function WorkOrderPDF({ order }: { order: OrderData }) {
           </>
         )}
 
-        <PdfFooter />
+        <PdfFooter branch={order.branch} />
       </Page>
     </Document>
   );

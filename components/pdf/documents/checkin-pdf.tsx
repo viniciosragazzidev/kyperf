@@ -122,9 +122,6 @@ export function CheckInPDF({ order }: { order: OrderData }) {
           status={order.status}
           createdAt={order.createdAt}
           branch={order.branch}
-        />
-
-        <PdfClientVehicleBlock
           customer={order.customer}
           vehicle={order.vehicle}
           fuelLevel={order.fuelLevel}
@@ -191,6 +188,7 @@ export function CheckInPDF({ order }: { order: OrderData }) {
         <PdfFooter
           noteText="O cliente declara que as informações acima conferem com o estado do veículo no momento da entrada na oficina."
           showSignatureLine={false}
+          branch={order.branch}
         />
       </Page>
     </Document>

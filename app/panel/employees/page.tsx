@@ -2,20 +2,20 @@
 
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Users, 
-  Plus, 
-  Search, 
-  Edit2, 
-  Check, 
-  Loader2, 
+import {
+  Users,
+  Plus,
+  Search,
+  Edit2,
+  Check,
+  Loader2,
   ClipboardList
 } from "lucide-react"
-import { 
-  getEmployeesAction, 
-  createEmployeeAction, 
+import {
+  getEmployeesAction,
+  createEmployeeAction,
   updateEmployeeAction,
-  getBranchesAction 
+  getBranchesAction
 } from "@/lib/actions/employees-actions"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -79,7 +79,7 @@ export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState<string>("ALL")
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
-  
+
   const [isLoading, setIsLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
 
@@ -207,15 +207,15 @@ export default function EmployeesPage() {
   }
 
   const filteredEmployees = employees.filter(emp => {
-    const matchesSearch = 
+    const matchesSearch =
       emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (emp.phone && emp.phone.includes(searchTerm))
-    
+
     const matchesRole = roleFilter === "ALL" || emp.role === roleFilter
-    const matchesStatus = 
-      statusFilter === "ALL" || 
-      (statusFilter === "ACTIVE" && emp.isActive === 1) || 
+    const matchesStatus =
+      statusFilter === "ALL" ||
+      (statusFilter === "ACTIVE" && emp.isActive === 1) ||
       (statusFilter === "INACTIVE" && emp.isActive === 0)
 
     return matchesSearch && matchesRole && matchesStatus
@@ -228,7 +228,7 @@ export default function EmployeesPage() {
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans">
-      
+
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -238,11 +238,11 @@ export default function EmployeesPage() {
             </span>
             Gestão de Equipe
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Gerencie mecânicos, atendentes e administradores. Defina comissões e acompanhe o pátio.
           </p>
         </div>
-        
+
         <div className="flex gap-2">
           <Button
             onClick={() => window.location.href = "/panel/employees/workload"}
@@ -299,7 +299,7 @@ export default function EmployeesPage() {
             className="w-full text-xs pl-8 pr-3 py-2 bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium text-foreground placeholder-muted-foreground/50"
           />
         </div>
-        
+
         <div className="flex gap-2 text-xs">
           <select
             value={roleFilter}
@@ -462,7 +462,7 @@ export default function EmployeesPage() {
               <form onSubmit={handleSaveEmployee} className="flex flex-col max-h-[85vh] overflow-hidden">
                 <ScrollArea className="flex-grow min-h-0 max-h-[60vh] w-full overflow-hidden">
                   <div className="p-5 space-y-4 pr-6 text-xs">
-                    
+
                     {/* Nome */}
                     <div className="space-y-1">
                       <Label className="text-[10px] font-medium text-muted-foreground">Nome Completo</Label>

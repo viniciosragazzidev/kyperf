@@ -94,11 +94,11 @@ export function BudgetPDF({ order }: { order: OrderData }) {
           status={order.status}
           createdAt={order.createdAt}
           branch={order.branch}
-        />
-
-        <PdfClientVehicleBlock
           customer={order.customer}
           vehicle={order.vehicle}
+          items={order.items}
+          discount={order.discount}
+          surcharge={order.surcharge}
           fuelLevel={order.fuelLevel}
           currentMileage={order.currentMileage}
           mechanicName={order.mechanic?.name}
@@ -149,6 +149,7 @@ export function BudgetPDF({ order }: { order: OrderData }) {
           validityDays={7}
           showSignatureLine
           signatureLabel="Assinatura do Cliente — Aprovação do Orçamento"
+          branch={order.branch}
         />
       </Page>
     </Document>

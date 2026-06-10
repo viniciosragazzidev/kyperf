@@ -2,28 +2,28 @@
 
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Package, 
-  Plus, 
-  Search, 
-  Trash2, 
-  Edit2, 
-  ChevronDown, 
-  ChevronUp, 
-  Loader2, 
-  Sparkles, 
-  Car, 
+import {
+  Package,
+  Plus,
+  Search,
+  Trash2,
+  Edit2,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Sparkles,
+  Car,
   Check,
   AlertTriangle,
   Info
 } from "lucide-react"
-import { 
-  getPartsAction, 
-  createPartAction, 
-  updatePartAction, 
-  deletePartAction, 
-  savePartOverrideAction, 
-  deletePartOverrideAction 
+import {
+  getPartsAction,
+  createPartAction,
+  updatePartAction,
+  deletePartAction,
+  savePartOverrideAction,
+  deletePartOverrideAction
 } from "@/lib/actions/parts-actions"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "sonner"
@@ -176,7 +176,7 @@ export default function PartsPage() {
     setFormDimension(part.dimension || "")
     setFormSize(part.size || "")
     setFormWeight(part.weight || "")
-    
+
     // Formata os preços para o input pt-BR
     const formattedCost = parseFloat(part.costPrice).toLocaleString("pt-BR", {
       minimumFractionDigits: 2, maximumFractionDigits: 2
@@ -184,7 +184,7 @@ export default function PartsPage() {
     const formattedSale = parseFloat(part.salePrice).toLocaleString("pt-BR", {
       minimumFractionDigits: 2, maximumFractionDigits: 2
     })
-    
+
     setFormCostPrice(formattedCost)
     setFormSalePrice(formattedSale)
     setIsModalOpen(true)
@@ -305,7 +305,7 @@ export default function PartsPage() {
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans">
-      
+
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -315,11 +315,11 @@ export default function PartsPage() {
             </span>
             Estoque de Peças & Insumos
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Gerencie componentes físicos, controle o nível crítico de estoque, adicione dimensões e customize preços por carro.
           </p>
         </div>
-        
+
         <Button
           onClick={handleOpenCreateModal}
           className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-full px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
@@ -397,11 +397,10 @@ export default function PartsPage() {
                       <td className="px-4 py-3 text-muted-foreground font-medium">{part.brand || "--"}</td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-1.5">
-                          <span className={`font-bold px-2 py-0.5 rounded-md text-[10px] geist-mono ${
-                            isLowStock 
-                              ? "bg-red-500/10 text-red-500" 
+                          <span className={`font-bold px-2 py-0.5 rounded-md text-[10px] geist-mono ${isLowStock
+                              ? "bg-red-500/10 text-red-500"
                               : "bg-emerald-500/10 text-emerald-500"
-                          }`}>
+                            }`}>
                             {part.quantity} un
                           </span>
                           {isLowStock && (
@@ -418,11 +417,10 @@ export default function PartsPage() {
                       <td className="px-4 py-3 text-center">
                         <Button
                           onClick={() => setExpandedPartId(isExpanded ? null : part.id)}
-                          className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
-                            part.overridesCount > 0
+                          className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${part.overridesCount > 0
                               ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/15"
                               : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
-                          }`}
+                            }`}
                         >
                           <Car className="size-3" />
                           <span>{part.overridesCount} {part.overridesCount === 1 ? "carro" : "carros"}</span>
@@ -448,7 +446,7 @@ export default function PartsPage() {
                         </div>
                       </td>
                     </tr>
-                    
+
                     {/* Linha Expandida de Preços Customizados de Peças por Carro */}
                     {isExpanded && (
                       <tr>

@@ -4,24 +4,24 @@ import React, { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Wrench, 
-  Plus, 
-  Search, 
-  Trash2, 
-  Edit2, 
-  Loader2, 
-  Check, 
-  AlertCircle, 
-  Info, 
-  Car, 
-  User, 
-  Calendar, 
-  Clock, 
-  FileText, 
-  DollarSign, 
-  ChevronRight, 
-  X, 
+import {
+  Wrench,
+  Plus,
+  Search,
+  Trash2,
+  Edit2,
+  Loader2,
+  Check,
+  AlertCircle,
+  Info,
+  Car,
+  User,
+  Calendar,
+  Clock,
+  FileText,
+  DollarSign,
+  ChevronRight,
+  X,
   Sparkles,
   ArrowRight,
   ShieldAlert,
@@ -30,12 +30,12 @@ import {
   AlertTriangle,
   Phone
 } from "lucide-react"
-import { 
-  getWorkOrdersAction, 
-  deleteWorkOrderAction, 
-  updateWorkOrderAction, 
+import {
+  getWorkOrdersAction,
+  deleteWorkOrderAction,
+  updateWorkOrderAction,
   getWorkOrderAction,
-  getMechanicsAction 
+  getMechanicsAction
 } from "@/lib/actions/orders-actions"
 import { sendDirectWhatsappAction } from "@/lib/actions/whatsapp-actions"
 import { toast } from "sonner"
@@ -381,15 +381,15 @@ export default function OrdersPage() {
     setSelectedOrderId(orderId)
     setIsLoadingDetails(true)
     setIsDrawerOpen(true)
-    
+
     const res = await getWorkOrderAction(orderId)
     setIsLoadingDetails(false)
-    
+
     if (res.success && res.data) {
       const details = res.data
       setSelectedOrderDetails(details)
       setDrawerItems(details.items || [])
-      
+
       // Preenche estados de edição rápida
       setEditStatus(details.status)
       setEditMechanicId(details.mechanicId || "")
@@ -580,7 +580,7 @@ export default function OrdersPage() {
 
   // Filtro de Busca & Status Tabs
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
+    const matchesSearch =
       order.osNumber.toString().includes(searchTerm) ||
       order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.vehiclePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -607,7 +607,7 @@ export default function OrdersPage() {
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans">
-      
+
       {/* 📋 SEO Friendly Page Title & Tags */}
       <h1 className="sr-only">Ordens de Serviço - Painel de Controle</h1>
 
@@ -622,7 +622,7 @@ export default function OrdersPage() {
               Ordens de Serviço (O.S.)
             </h2>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Monitore triagens, gerencie aprovações de orçamentos, acompanhe a esteira de boxes e faturamento.
           </p>
         </div>
@@ -767,11 +767,10 @@ export default function OrdersPage() {
                 className="text-[11px] font-bold px-3 py-1.5 rounded-full transition-all shrink-0 flex items-center gap-1.5"
               >
                 <span>{tab.label}</span>
-                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold ${
-                  active 
-                    ? "bg-primary/20 text-primary" 
-                    : "bg-muted-foreground/15 text-foreground"
-                }`}>
+                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold ${active
+                  ? "bg-primary/20 text-emerald-500"
+                  : "bg-muted-foreground/15 text-foreground"
+                  }`}>
                   {count}
                 </span>
               </Button>
@@ -831,7 +830,7 @@ export default function OrdersPage() {
                 Nova Ordem de Serviço
               </Button>
             </Link>
-            <Button 
+            <Button
               variant="outline"
               onClick={enableDemoMode}
               className="text-xs font-bold px-4 py-2 rounded-xl"
@@ -854,7 +853,7 @@ export default function OrdersPage() {
         </div>
       ) : (
         <div className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-[0_10px_40px_-20px_rgba(0,0,0,0.02)]">
-          
+
           {/* Tabela de Computadores (Desktop) */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -875,8 +874,8 @@ export default function OrdersPage() {
                   const statusInfo = STATUS_COLORS[order.status] || STATUS_COLORS.CHECK_IN
                   const payInfo = PAYMENT_COLORS[order.paymentStatus] || PAYMENT_COLORS.PENDING
                   return (
-                    <tr 
-                      key={order.id} 
+                    <tr
+                      key={order.id}
                       onClick={() => handleOpenDrawer(order.id)}
                       className="hover:bg-muted/15 transition-all cursor-pointer group"
                     >
@@ -892,7 +891,7 @@ export default function OrdersPage() {
                           </span>
                         </div>
                       </td>
-                      
+
                       {/* Cliente */}
                       <td className="p-4">
                         <span className="text-xs font-bold text-foreground block">{order.customerName}</span>
@@ -980,7 +979,7 @@ export default function OrdersPage() {
               const statusInfo = STATUS_COLORS[order.status] || STATUS_COLORS.CHECK_IN
               const payInfo = PAYMENT_COLORS[order.paymentStatus] || PAYMENT_COLORS.PENDING
               return (
-                <div 
+                <div
                   key={order.id}
                   onClick={() => handleOpenDrawer(order.id)}
                   className="p-4 active:bg-muted/10 space-y-3"
@@ -1029,7 +1028,7 @@ export default function OrdersPage() {
         {isDrawerOpen && (
           <>
             {/* Backdrop escurecido */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
@@ -1073,7 +1072,7 @@ export default function OrdersPage() {
                   </div>
                 ) : selectedOrderDetails ? (
                   <div className="p-4 md:p-5 space-y-6 pb-8">
-                    
+
                     {/* Status Atual Card */}
                     <div className="bg-muted/30 border border-border/55 rounded-2xl p-4 space-y-3">
                       <h4 className="text-[10px] uppercase font-extrabold tracking-wider text-muted-foreground flex items-center gap-1">
@@ -1098,7 +1097,7 @@ export default function OrdersPage() {
                             <option value="DELIVERED">Faturado & Entregue</option>
                           </select>
                         </div>
-                        
+
                         <div className="space-y-1">
                           <Label className="text-[9px] font-bold text-muted-foreground uppercase">Mecânico Alocado</Label>
                           <select
@@ -1214,17 +1213,17 @@ export default function OrdersPage() {
                     {((selectedOrderDetails.checklist && selectedOrderDetails.checklist !== "{}") || selectedOrderDetails.damages) && (
                       <div className="border border-border/50 rounded-2xl p-4 bg-muted/10 space-y-3">
                         <h4 className="text-[10px] uppercase font-extrabold tracking-wider text-muted-foreground">Triagem Física</h4>
-                        
+
                         {selectedOrderDetails.checklist && selectedOrderDetails.checklist !== "{}" && (
                           <div className="space-y-1.5">
                             <span className="text-[9px] font-bold text-muted-foreground uppercase block">Acessórios Triados</span>
                             <div className="flex flex-wrap gap-1">
                               {Object.entries(JSON.parse(selectedOrderDetails.checklist)).map(([key, val]: any) => {
                                 const states: Record<string, string> = { P: "Presente", A: "Ausente", N: "Não Se Aplica" }
-                                const badgeColors: Record<string, string> = { 
-                                  P: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", 
-                                  A: "bg-red-500/10 text-red-500 border-red-500/20", 
-                                  N: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20" 
+                                const badgeColors: Record<string, string> = {
+                                  P: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+                                  A: "bg-red-500/10 text-red-500 border-red-500/20",
+                                  N: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20"
                                 }
                                 return (
                                   <span key={key} className={`text-[9.5px] font-bold px-2 py-0.5 rounded-sm border ${badgeColors[val] || "bg-zinc-500/10 text-zinc-500"}`}>
@@ -1277,23 +1276,21 @@ export default function OrdersPage() {
                             const isApproved = item.isApproved === 1
                             const isRejected = item.isApproved === 2
                             return (
-                              <div 
+                              <div
                                 key={item.id}
-                                className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
-                                  isApproved 
-                                    ? "bg-emerald-500/5 border-emerald-500/20" 
-                                    : isRejected
-                                      ? "bg-red-500/5 border-red-500/20 opacity-60"
-                                      : "bg-muted/20 border-border/50"
-                                }`}
+                                className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${isApproved
+                                  ? "bg-emerald-500/5 border-emerald-500/20"
+                                  : isRejected
+                                    ? "bg-red-500/5 border-red-500/20 opacity-60"
+                                    : "bg-muted/20 border-border/50"
+                                  }`}
                               >
                                 <div className="space-y-0.5 pr-2 flex-1">
                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className={`text-[8.5px] font-bold px-1.5 py-0.25 rounded-md ${
-                                      item.type === 'PART' 
-                                        ? "bg-blue-500/10 text-blue-500" 
-                                        : "bg-purple-500/10 text-purple-500"
-                                    }`}>
+                                    <span className={`text-[8.5px] font-bold px-1.5 py-0.25 rounded-md ${item.type === 'PART'
+                                      ? "bg-blue-500/10 text-blue-500"
+                                      : "bg-purple-500/10 text-purple-500"
+                                      }`}>
                                       {item.type === 'PART' ? 'Peça' : 'Serviço'}
                                     </span>
                                     <span className="text-xs font-bold text-foreground">
@@ -1309,7 +1306,7 @@ export default function OrdersPage() {
                                   <span className="text-xs font-black text-foreground font-mono">
                                     R$ {itemTotal.toFixed(2)}
                                   </span>
-                                  
+
                                   {/* Toggles de Aprovação Rápidos */}
                                   <div className="inline-flex rounded-lg overflow-hidden border border-border/40 text-[9px] font-extrabold shrink-0">
                                     <Button
@@ -1348,7 +1345,7 @@ export default function OrdersPage() {
                               <span>Total Bruto:</span>
                               <span className="font-mono">R$ {drawerItems.reduce((acc: number, curr: any) => acc + (curr.quantity * parseFloat(curr.unitSalePrice)), 0).toFixed(2)}</span>
                             </div>
-                            
+
                             {parseFloat(selectedOrderDetails.discount || '0') > 0 && (
                               <div className="flex justify-between w-full max-w-[200px] text-[11px] text-red-500 font-medium">
                                 <span>Desconto:</span>
@@ -1414,15 +1411,15 @@ export default function OrdersPage() {
                           const phone = selectedOrderDetails?.customer?.phone || "";
                           const cleanPhone = phone.replace(/\D/g, "");
                           const formattedPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-                          
+
                           const urlPublic = `${window.location.origin}/public/budget/${selectedOrderId}`;
                           const accessCode = selectedOrderDetails?.budgetAccessCode || "";
                           const customerName = selectedOrderDetails?.customer?.name || "Cliente";
                           const osNum = String(selectedOrderDetails?.osNumber).padStart(4, '0');
-                          
+
                           const message = `Olá, ${customerName}! Segue o link para visualizar e aprovar o orçamento da sua Ordem de Serviço *#${osNum}*:\n\n*Link:* ${urlPublic}\n*Código de Acesso:* *${accessCode}*\n\nSe tiver qualquer dúvida, estamos à disposição!`;
                           const encodedMessage = encodeURIComponent(message);
-                          
+
                           window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`, '_blank');
                         } else {
                           toast.error("Erro ao enviar: " + res.error);

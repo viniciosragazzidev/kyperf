@@ -2,20 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { 
-  Wrench, 
-  TrendingUp, 
-  AlertTriangle, 
-  DollarSign, 
-  Activity, 
-  Clock, 
-  ArrowRight, 
-  ShieldAlert, 
-  FileText, 
-  CheckCircle2, 
-  MapPin, 
-  Package, 
-  Percent 
+import {
+  Wrench,
+  TrendingUp,
+  AlertTriangle,
+  DollarSign,
+  Activity,
+  Clock,
+  ArrowRight,
+  ShieldAlert,
+  FileText,
+  CheckCircle2,
+  MapPin,
+  Package,
+  Percent
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -177,7 +177,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans space-y-6">
-      
+
       {/* Modal de Boas-Vindas Contextual */}
       {showWelcomeModal && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -237,11 +237,11 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
             </span>
             Painel de Controle
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Visão geral em tempo real de operações, pátio e receitas da oficina.
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3 bg-card border border-border/50 p-2.5 rounded-2xl shadow-sm">
           <div className="size-9 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500 border border-emerald-500/20 shrink-0">
             <Activity className="size-4 animate-pulse" />
@@ -289,7 +289,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
           className="bg-card border border-emerald-500/20 rounded-3xl p-6 shadow-sm space-y-4 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 size-32 bg-emerald-500/5 rounded-bl-full pointer-events-none" />
-          
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-650 flex items-center gap-2">
@@ -308,8 +308,8 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
           {/* Progress Bar */}
           <div className="space-y-1">
             <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border/20">
-              <div 
-                className="h-full bg-emerald-500 transition-all duration-500 ease-out rounded-full" 
+              <div
+                className="h-full bg-emerald-500 transition-all duration-500 ease-out rounded-full"
                 style={{ width: `${(completedStepsCount / 3) * 100}%` }}
               />
             </div>
@@ -318,12 +318,12 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
           {/* Steps List */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
             {onboardingSteps.map((step) => (
-              <div 
-                key={step.id} 
+              <div
+                key={step.id}
                 className={cn(
                   "p-3 rounded-2xl border transition-all flex flex-col justify-between gap-3 text-xs",
-                  step.completed 
-                    ? "bg-emerald-500/5 border-emerald-500/10 opacity-75" 
+                  step.completed
+                    ? "bg-emerald-500/5 border-emerald-500/10 opacity-75"
                     : "bg-muted/30 border-border/50 hover:bg-muted/50"
                 )}
               >
@@ -364,7 +364,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
       {/* KPI Cards Grid */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: Active Work Orders */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
@@ -392,7 +392,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
         </motion.div>
 
         {/* KPI 2: Monthly Revenue */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.05 }}
@@ -419,7 +419,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
         </motion.div>
 
         {/* KPI 3: Average Ticket */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
@@ -446,14 +446,14 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
         </motion.div>
 
         {/* KPI 4: Low Stock Alert */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.15 }}
           className={cn(
             "relative group overflow-hidden bg-card p-5 rounded-3xl border transition-all cursor-pointer shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] text-card-foreground",
-            lowStockCount > 0 
-              ? "border-red-500/20 hover:border-red-500/40 shadow-red-500/5" 
+            lowStockCount > 0
+              ? "border-red-500/20 hover:border-red-500/40 shadow-red-500/5"
               : "border-border/50 hover:border-emerald-500/30"
           )}
         >
@@ -476,8 +476,8 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
             </div>
             <div className={cn(
               "size-9 rounded-xl flex items-center justify-center border",
-              lowStockCount > 0 
-                ? "bg-red-500/10 text-red-500 border-red-500/20 animate-pulse" 
+              lowStockCount > 0
+                ? "bg-red-500/10 text-red-500 border-red-500/20 animate-pulse"
                 : "bg-muted text-muted-foreground border-border"
             )}>
               <AlertTriangle className="size-5" />
@@ -494,10 +494,10 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
 
       {/* Main Content Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
+
         {/* Left Section: Status breakdown & Low stock list - 6 Columns */}
         <section className="lg:col-span-6 space-y-6">
-          
+
           {/* Status Breakdown Panel */}
           <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] border border-border/50 overflow-hidden text-card-foreground p-5 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-dashed border-border">
@@ -514,7 +514,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
               {Object.entries(statusCounts).map(([statusKey, count]) => {
                 const cfg = statusConfig[statusKey as keyof typeof statusConfig] || { label: statusKey, text: "text-muted-foreground", bar: "bg-zinc-400" };
                 const pct = totalOrders > 0 ? (count / totalOrders) * 100 : 0;
-                
+
                 return (
                   <div key={statusKey} className="space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
@@ -524,9 +524,9 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                         <span className="text-[10px] text-muted-foreground">({pct.toFixed(0)}%)</span>
                       </div>
                     </div>
-                    
+
                     <div className="h-2 w-full bg-muted/50 rounded-full overflow-hidden border border-border/20">
-                      <motion.div 
+                      <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
                         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -567,7 +567,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                   </div>
                 ))}
               </div>
-              
+
               <Link href="/panel/inventory/parts">
                 <Button className="w-full mt-2 py-2 bg-red-500/10 hover:bg-red-500/15 text-red-500 dark:text-red-400 font-bold uppercase text-[9px] rounded-none border border-red-500/20 transition-all active:scale-98">
                   Ir para Estoque de Peças
@@ -597,9 +597,9 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
               {recentOrders.length > 0 ? (
                 recentOrders.map(order => {
                   const cfg = statusConfig[order.status as keyof typeof statusConfig] || { label: order.status, bg: "bg-zinc-500/10", border: "border-zinc-500/20", text: "text-zinc-500" };
-                  
+
                   return (
-                    <div 
+                    <div
                       key={order.id}
                       className="group/item flex items-center justify-between p-3 bg-muted/20 hover:bg-muted/30 border border-border/50 rounded-2xl transition-all hover:-translate-y-0.5 shadow-xs text-foreground"
                     >
@@ -615,7 +615,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                             {cfg.label}
                           </span>
                         </div>
-                        
+
                         <div className="grid text-xs">
                           <span className="font-bold text-foreground uppercase tracking-tight">
                             {order.customer.name}
@@ -630,7 +630,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                         <span className="text-xs font-black text-emerald-500 font-mono">
                           {formatCurrency(order.totalPrice)}
                         </span>
-                        
+
                         <Link href="/panel/orders">
                           <Button className="text-[9px] font-bold uppercase text-muted-foreground hover:text-foreground border border-border px-2.5 py-1 rounded-none transition-all bg-card hover:bg-muted/40">
                             Acessar

@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { 
-  Percent, 
-  User, 
-  DollarSign, 
-  Calendar, 
-  Clock, 
-  Activity, 
-  X, 
+import {
+  Percent,
+  User,
+  DollarSign,
+  Calendar,
+  Clock,
+  Activity,
+  X,
   Info,
   ChevronRight,
   TrendingUp,
@@ -84,7 +84,7 @@ export default function CommissionsPage() {
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans space-y-6">
-      
+
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -94,7 +94,7 @@ export default function CommissionsPage() {
             </span>
             Relatório de Comissões
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Cálculo automatizado de comissões por produtividade com base na mão de obra executada.
           </p>
         </div>
@@ -107,8 +107,8 @@ export default function CommissionsPage() {
               onClick={() => setPeriodDays(days)}
               className={cn(
                 "h-7 px-3 text-[10px] font-bold uppercase rounded-none transition-all cursor-pointer",
-                periodDays === days 
-                  ? "bg-foreground text-background shadow-xs" 
+                periodDays === days
+                  ? "bg-foreground text-background shadow-xs"
                   : "bg-transparent text-muted-foreground hover:text-foreground"
               )}
             >
@@ -124,10 +124,10 @@ export default function CommissionsPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          
+
           {/* Summary Cards */}
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
+
             {/* KPI 1: Volume */}
             <div className="relative group overflow-hidden bg-card p-5 rounded-3xl border border-border/50 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] hover:border-emerald-500/30 transition-all cursor-pointer text-card-foreground">
               <div className="absolute top-0 right-0 size-20 bg-emerald-500/5 rounded-bl-full" />
@@ -166,7 +166,7 @@ export default function CommissionsPage() {
 
           {/* Double column layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
+
             {/* Left Column: Mechanics List - 7 Columns */}
             <section className="lg:col-span-7 bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] border border-border/50 overflow-hidden text-card-foreground p-5 space-y-4">
               <div className="flex items-center justify-between pb-3.5 border-b border-dashed border-border">
@@ -179,13 +179,13 @@ export default function CommissionsPage() {
               {reports.length > 0 ? (
                 <div className="space-y-3">
                   {reports.map(m => (
-                    <div 
+                    <div
                       key={m.id}
                       onClick={() => setSelectedMechanic(m)}
                       className={cn(
                         "p-4 border rounded-2xl transition-all cursor-pointer flex items-center justify-between group",
-                        selectedMechanic?.id === m.id 
-                          ? "bg-emerald-500/5 border-emerald-500/30 dark:bg-emerald-500/5" 
+                        selectedMechanic?.id === m.id
+                          ? "bg-emerald-500/5 border-emerald-500/30 dark:bg-emerald-500/5"
                           : "bg-muted/10 border-border/40 hover:bg-muted/20"
                       )}
                     >
@@ -227,7 +227,7 @@ export default function CommissionsPage() {
             <section className="lg:col-span-5">
               {selectedMechanic ? (
                 <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] border border-border/50 overflow-hidden text-card-foreground p-5 space-y-4 min-h-[400px]">
-                  
+
                   {/* Title & Header */}
                   <div className="flex justify-between items-start pb-3.5 border-b border-dashed border-border">
                     <div>
@@ -242,7 +242,7 @@ export default function CommissionsPage() {
                       </span>
                     </div>
 
-                    <button 
+                    <button
                       onClick={() => setSelectedMechanic(null)}
                       className="text-muted-foreground hover:text-foreground transition-colors p-1"
                     >
@@ -278,7 +278,7 @@ export default function CommissionsPage() {
                         {selectedMechanic.servicesList.map((srv, index) => {
                           const itemComm = (selectedMechanic.commissionRate / 100) * srv.value;
                           return (
-                            <div 
+                            <div
                               key={index}
                               className="p-3 bg-muted/10 border border-border/40 rounded-xl flex items-center justify-between text-xs font-medium"
                             >

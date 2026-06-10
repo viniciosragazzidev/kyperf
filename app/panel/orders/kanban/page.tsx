@@ -846,11 +846,10 @@ export default function KanbanPage() {
                 className="text-[11px] font-bold px-3 py-1.5 rounded-full transition-all shrink-0 flex items-center gap-1.5"
               >
                 <span>{tab.label}</span>
-                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold ${
-                  active 
-                    ? "bg-primary/20 text-primary" 
+                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold ${active
+                    ? "bg-primary/20 text-emerald-500"
                     : "bg-muted-foreground/15 text-foreground"
-                }`}>
+                  }`}>
                   {count}
                 </span>
               </Button>
@@ -939,7 +938,7 @@ export default function KanbanPage() {
                 Nova Ordem de Serviço
               </Button>
             </Link>
-            <Button 
+            <Button
               variant="outline"
               onClick={enableDemoMode}
               className="text-xs font-bold px-4 py-2 rounded-xl"

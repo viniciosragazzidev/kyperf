@@ -94,11 +94,11 @@ export function ConclusionPDF({ order }: { order: OrderData }) {
           status={order.status}
           createdAt={order.createdAt}
           branch={order.branch}
-        />
-
-        <PdfClientVehicleBlock
           customer={order.customer}
           vehicle={order.vehicle}
+          items={order.items}
+          discount={order.discount}
+          surcharge={order.surcharge}
           fuelLevel={order.fuelLevel}
           currentMileage={order.currentMileage}
           mechanicName={order.mechanic?.name}
@@ -142,7 +142,7 @@ export function ConclusionPDF({ order }: { order: OrderData }) {
           </>
         )}
 
-        <PdfFooter showSignatureLine signatureLabel="Assinatura do Cliente" />
+        <PdfFooter showSignatureLine signatureLabel="Assinatura do Cliente" branch={order.branch} />
       </Page>
     </Document>
   );

@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:text-primary active:bg-primary/30",
+          "bg-primary/10 text-emerald-600 dark:text-emerald-400 border-primary/20 hover:bg-primary/20 hover:text-primary active:bg-primary/30",
         none: "",
         outline:
           "border-border/60 bg-foreground/[0.02] text-foreground hover:bg-foreground/[0.06] hover:text-foreground active:bg-foreground/[0.1]",
@@ -42,24 +42,24 @@ const buttonVariants = cva(
 
 const transformToBadgeStyle = (className: string): string => {
   let classes = className.split(/\s+/);
-  
+
   let hasSolidBg = false;
   for (const c of classes) {
-    if (c.startsWith("bg-") && 
-        !c.includes("/") &&
-        !c.startsWith("bg-clip-") && 
-        !c.startsWith("bg-origin-") &&
-        !c.startsWith("bg-blend-") &&
-        c !== "bg-cover" && 
-        c !== "bg-contain" && 
-        c !== "bg-center" && 
-        c !== "bg-no-repeat" && 
-        c !== "bg-repeat" &&
-        c !== "bg-local" &&
-        c !== "bg-scroll" &&
-        c !== "bg-fixed" &&
-        c !== "bg-auto" &&
-        c !== "bg-transparent") {
+    if (c.startsWith("bg-") &&
+      !c.includes("/") &&
+      !c.startsWith("bg-clip-") &&
+      !c.startsWith("bg-origin-") &&
+      !c.startsWith("bg-blend-") &&
+      c !== "bg-cover" &&
+      c !== "bg-contain" &&
+      c !== "bg-center" &&
+      c !== "bg-no-repeat" &&
+      c !== "bg-repeat" &&
+      c !== "bg-local" &&
+      c !== "bg-scroll" &&
+      c !== "bg-fixed" &&
+      c !== "bg-auto" &&
+      c !== "bg-transparent") {
       hasSolidBg = true;
       break;
     }
@@ -79,9 +79,9 @@ const transformToBadgeStyle = (className: string): string => {
     }
 
     if (c === "bg-primary") {
-      return "bg-primary/10 border border-primary/20 text-primary";
+      return "bg-primary/10 border border-primary/20 text-emerald-600 dark:text-emerald-200";
     }
-    
+
     if (c === "bg-secondary") {
       return "bg-secondary/40 border border-secondary/20 text-secondary-foreground";
     }
@@ -116,13 +116,13 @@ const transformToBadgeStyle = (className: string): string => {
     }
 
     // Remove existing borders that might clash
-    if (c.startsWith("border-emerald-") || 
-        c.startsWith("border-green-") || 
-        c.startsWith("border-red-") || 
-        c.startsWith("border-amber-") || 
-        c.startsWith("border-blue-") || 
-        c.startsWith("border-primary") || 
-        c.startsWith("border-secondary")) {
+    if (c.startsWith("border-emerald-") ||
+      c.startsWith("border-green-") ||
+      c.startsWith("border-red-") ||
+      c.startsWith("border-amber-") ||
+      c.startsWith("border-blue-") ||
+      c.startsWith("border-primary") ||
+      c.startsWith("border-secondary")) {
       return "";
     }
 
@@ -135,15 +135,15 @@ const transformToBadgeStyle = (className: string): string => {
 const hasCustomBgOrHover = (className?: string | ((state: any) => string | undefined)) => {
   if (!className || typeof className !== "string") return false;
   const classes = className.split(/\s+/);
-  return classes.some(c => 
-    (c.startsWith("bg-") || c.startsWith("hover:bg-") || c.startsWith("dark:hover:bg-") || c.startsWith("focus:bg-")) && 
-    !c.startsWith("bg-clip-") && 
+  return classes.some(c =>
+    (c.startsWith("bg-") || c.startsWith("hover:bg-") || c.startsWith("dark:hover:bg-") || c.startsWith("focus:bg-")) &&
+    !c.startsWith("bg-clip-") &&
     !c.startsWith("bg-origin-") &&
     !c.startsWith("bg-blend-") &&
-    c !== "bg-cover" && 
-    c !== "bg-contain" && 
-    c !== "bg-center" && 
-    c !== "bg-no-repeat" && 
+    c !== "bg-cover" &&
+    c !== "bg-contain" &&
+    c !== "bg-center" &&
+    c !== "bg-no-repeat" &&
     c !== "bg-repeat" &&
     c !== "bg-local" &&
     c !== "bg-scroll" &&
@@ -160,7 +160,7 @@ function Button({
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   const transformedClassName = typeof className === "string" ? transformToBadgeStyle(className) : className;
   const resolvedVariant = variant === "default" && hasCustomBgOrHover(transformedClassName) ? "none" : variant;
-  
+
   return (
     <ButtonPrimitive
       data-slot="button"

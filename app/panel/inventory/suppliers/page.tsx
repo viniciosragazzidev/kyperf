@@ -5,28 +5,28 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { 
-  Building2, 
-  Search, 
-  Plus, 
-  Trash2, 
-  Edit, 
-  X, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  FileText 
+import {
+  Building2,
+  Search,
+  Plus,
+  Trash2,
+  Edit,
+  X,
+  Phone,
+  Mail,
+  MapPin,
+  FileText
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 // Import Server Actions
-import { 
-  getSuppliersAction, 
-  createSupplierAction, 
-  updateSupplierAction, 
-  deleteSupplierAction 
+import {
+  getSuppliersAction,
+  createSupplierAction,
+  updateSupplierAction,
+  deleteSupplierAction
 } from "@/lib/actions/suppliers-actions"
 
 interface Supplier {
@@ -176,7 +176,7 @@ export default function SuppliersPage() {
     return value
   }
 
-  const filteredSuppliers = suppliers.filter(s => 
+  const filteredSuppliers = suppliers.filter(s =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (s.cnpj && s.cnpj.includes(searchQuery)) ||
     (s.email && s.email.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -184,7 +184,7 @@ export default function SuppliersPage() {
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans space-y-6">
-      
+
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -194,7 +194,7 @@ export default function SuppliersPage() {
             </span>
             Gestão de Fornecedores
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Cadastro de parceiros comerciais e distribuidores de autopeças.
           </p>
         </div>
@@ -210,12 +210,12 @@ export default function SuppliersPage() {
 
       {/* Main Panel */}
       <div className="bg-card rounded-3xl shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] border border-border/50 overflow-hidden text-card-foreground p-5 space-y-4">
-        
+
         {/* Search & Statistics */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="relative w-full sm:max-w-xs">
             <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-            <Input 
+            <Input
               placeholder="BUSCAR FORNECEDOR OU CNPJ..."
               className="w-full text-xs border border-border rounded-lg pl-8 pr-3 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
               value={searchQuery}
@@ -275,13 +275,13 @@ export default function SuppliersPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="inline-flex items-center gap-1.5">
-                        <Button 
+                        <Button
                           onClick={() => openEditModal(s)}
                           className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-md border border-transparent hover:border-border transition-all"
                         >
                           <Edit className="size-3.5" />
                         </Button>
-                        <Button 
+                        <Button
                           onClick={() => handleDeleteClick(s.id)}
                           className="p-1 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-md border border-transparent hover:border-red-500/20 transition-all"
                         >
@@ -307,20 +307,20 @@ export default function SuppliersPage() {
       <AnimatePresence>
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs overflow-y-auto">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-card w-full max-w-md rounded-3xl shadow-xl border border-border overflow-hidden my-8"
             >
-              
+
               {/* Modal Header */}
               <div className="px-5 py-4 border-b border-dashed border-border flex items-center justify-between">
                 <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
                   <Building2 className="size-4 text-emerald-500" />
                   {editingId ? "Editar Fornecedor" : "Novo Fornecedor"}
                 </h3>
-                <Button 
+                <Button
                   onClick={() => setModalOpen(false)}
                   className="text-muted-foreground hover:text-foreground text-xs font-semibold"
                 >
@@ -331,11 +331,11 @@ export default function SuppliersPage() {
               {/* Form */}
               <form onSubmit={handleFormSubmit} className="flex flex-col">
                 <div className="p-5 space-y-3.5 pr-6">
-                  
+
                   {/* Name */}
                   <div className="space-y-1">
                     <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Nome / Razão Social *</Label>
-                    <Input 
+                    <Input
                       placeholder="EX: DISTRIBUIDORA DE AUTO PEÇAS SÃO PAULO"
                       className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground placeholder-muted-foreground/50 uppercase"
                       required
@@ -347,7 +347,7 @@ export default function SuppliersPage() {
                   {/* CNPJ */}
                   <div className="space-y-1">
                     <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">CNPJ</Label>
-                    <Input 
+                    <Input
                       placeholder="EX: 12.345.678/0001-90"
                       className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                       value={cnpj}
@@ -359,7 +359,7 @@ export default function SuppliersPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Telefone</Label>
-                      <Input 
+                      <Input
                         placeholder="EX: (11) 99999-9999"
                         className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
                         value={phone}
@@ -368,7 +368,7 @@ export default function SuppliersPage() {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">E-mail</Label>
-                      <Input 
+                      <Input
                         type="email"
                         placeholder="EX: contato@fornecedor.com"
                         className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
@@ -381,7 +381,7 @@ export default function SuppliersPage() {
                   {/* Address */}
                   <div className="space-y-1">
                     <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Endereço Completo</Label>
-                    <Input 
+                    <Input
                       placeholder="RUA DAS AUTOPEÇAS, 100 - SÃO PAULO/SP"
                       className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                       value={address}
@@ -393,14 +393,14 @@ export default function SuppliersPage() {
 
                 {/* Buttons */}
                 <div className="p-5 pt-3.5 flex justify-end gap-2 border-t border-dashed border-border bg-card">
-                  <Button 
-                    type="button" 
+                  <Button
+                    type="button"
                     onClick={() => setModalOpen(false)}
                     className="border border-border hover:bg-muted text-muted-foreground font-semibold text-xs rounded-none px-4 py-2 transition-colors"
                   >
                     Cancelar
                   </Button>
-                  <Button 
+                  <Button
                     type="submit"
                     disabled={submitting}
                     className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-none px-5 py-2 transition-colors border border-emerald-600/10 flex items-center gap-1"

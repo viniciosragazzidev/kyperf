@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { 
-  Users, 
-  LayoutDashboard, 
-  Wrench, 
+import {
+  Users,
+  LayoutDashboard,
+  Wrench,
   ArrowLeft,
   Clock
 } from "lucide-react"
@@ -46,23 +46,23 @@ interface MechanicWorkload {
 }
 
 const statusConfig: Record<string, { label: string, color: string, bg: string, border: string }> = {
-  AVAILABLE: { 
-    label: "Disponível", 
-    color: "text-emerald-500", 
-    bg: "bg-emerald-500/10", 
-    border: "border-emerald-500/20" 
+  AVAILABLE: {
+    label: "Disponível",
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20"
   },
-  BUSY: { 
-    label: "Trabalhando", 
-    color: "text-orange-500", 
-    bg: "bg-orange-500/10", 
-    border: "border-orange-500/20" 
+  BUSY: {
+    label: "Trabalhando",
+    color: "text-orange-500",
+    bg: "bg-orange-500/10",
+    border: "border-orange-500/20"
   },
-  AWAY: { 
-    label: "Ausente", 
-    color: "text-zinc-500", 
-    bg: "bg-zinc-500/10", 
-    border: "border-zinc-500/20" 
+  AWAY: {
+    label: "Ausente",
+    color: "text-zinc-500",
+    bg: "bg-zinc-500/10",
+    border: "border-zinc-500/20"
   },
 }
 
@@ -87,7 +87,7 @@ export default function WorkloadPage() {
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans">
-      
+
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -98,14 +98,14 @@ export default function WorkloadPage() {
             <ArrowLeft className="size-3" />
             <span>Voltar para Lista</span>
           </button>
-          
+
           <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <span className="bg-orange-500/10 text-orange-500 p-1.5 rounded-lg border border-orange-500/20">
               <LayoutDashboard className="size-4.5" />
             </span>
             Carga de Trabalho - Pátio
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Acompanhe em tempo real os carros que estão em cada rampa/box e a fila de serviços pendentes.
           </p>
         </div>
@@ -143,7 +143,7 @@ export default function WorkloadPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {workloads.map((mech) => {
             const status = statusConfig[mech.workStatus] || statusConfig.AVAILABLE
-            
+
             return (
               <motion.div
                 key={mech.mechanicId}
@@ -205,13 +205,13 @@ export default function WorkloadPage() {
                           </span>
                         </div>
                         <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
-                          <div 
-                            className="bg-orange-500 h-full rounded-full transition-all duration-500" 
-                            style={{ 
-                              width: `${mech.currentJob.itemsCount > 0 
-                                ? (mech.currentJob.approvedItemsCount / mech.currentJob.itemsCount) * 100 
-                                : 0}%` 
-                            }} 
+                          <div
+                            className="bg-orange-500 h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${mech.currentJob.itemsCount > 0
+                                ? (mech.currentJob.approvedItemsCount / mech.currentJob.itemsCount) * 100
+                                : 0}%`
+                            }}
                           />
                         </div>
                       </div>

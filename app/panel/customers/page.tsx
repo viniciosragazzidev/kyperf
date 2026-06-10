@@ -2,24 +2,24 @@
 
 import React, { useState, useEffect, Fragment } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Users, 
-  Plus, 
-  Search, 
-  Trash2, 
-  Edit2, 
-  Loader2, 
-  Sparkles, 
-  Car, 
+import {
+  Users,
+  Plus,
+  Search,
+  Trash2,
+  Edit2,
+  Loader2,
+  Sparkles,
+  Car,
   Check,
   AlertCircle,
   FileText
 } from "lucide-react"
-import { 
-  getCustomersAction, 
-  createCustomerAction, 
-  updateCustomerAction, 
-  deleteCustomerAction 
+import {
+  getCustomersAction,
+  createCustomerAction,
+  updateCustomerAction,
+  deleteCustomerAction
 } from "@/lib/actions/customers-actions"
 import { toast } from "sonner"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -434,7 +434,7 @@ export default function CustomersPage() {
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans">
-      
+
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -444,11 +444,11 @@ export default function CustomersPage() {
             </span>
             Gestão de Clientes
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 geist-mono">
+          <p className="text-xs text-muted-foreground mt-0.5 geist-mono pl-10">
             Cadastre os proprietários dos veículos, veja suas ordens de serviço e associe veículos de forma simplificada.
           </p>
         </div>
-        
+
         <Button
           onClick={handleOpenCreateModal}
           className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-none px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"

@@ -1,15 +1,14 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
-// ─── Clean Invoice Colour Palette ─────────────────────────────────────────────
 export const COLORS = {
-  black:     "#111111",
-  dark:      "#222222",
-  gray700:   "#444444",
-  gray500:   "#666666",
-  gray400:   "#888888",
-  gray200:   "#CCCCCC",
-  gray100:   "#F0F0F0",
-  gray50:    "#F7F7F7",
+  black:     "#121214",
+  dark:      "#1E1E24",
+  gray700:   "#3F3F46",
+  gray500:   "#71717A",
+  gray400:   "#A1A1AA",
+  gray200:   "#E4E4E7",
+  gray100:   "#F4F4F5",
+  gray50:    "#FAFAFA",
   white:     "#FFFFFF",
 
   // Status accent colours (kept for header accent stripe)
@@ -18,7 +17,7 @@ export const COLORS = {
   indigo:    "#4F46E5",
   pink:      "#DB2777",
   emerald:   "#059669",
-  red:       "#DC2626",
+  red:       "#E50914", // KyperFix brand red
 };
 
 // ─── Status → accent colour ────────────────────────────────────────────────────

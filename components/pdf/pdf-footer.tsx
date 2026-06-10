@@ -6,40 +6,70 @@ interface PdfFooterProps {
   signatureLabel?: string;
   validityDays?: number;
   noteText?: string;
+  paymentMethod?: string | null;
+  branch?: {
+    phone?: string | null;
+    email?: string | null;
+    address?: string | null;
+  } | null;
 }
 
 const s = StyleSheet.create({
   footer: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 48,
-    paddingBottom: 28,
-    paddingTop: 12,
+    bottom: 24,
+    left: 48,
+    right: 48,
   },
   noteBox: {
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: COLORS.gray200,
     borderRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 8,
+    backgroundColor: COLORS.gray50,
   },
   noteText: {
     fontFamily: "Helvetica",
-    fontSize: 8,
+    fontSize: 7.5,
     color: COLORS.gray500,
-    lineHeight: 1.6,
+    lineHeight: 1.4,
   },
-  bottomRow: {
+  middleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
+    marginBottom: 10,
+  },
+  paymentCol: {
+    flex: 1.2,
+    marginRight: 40,
   },
   signCol: {
-    alignItems: "flex-end",
-    width: "45%",
+    flex: 0.8,
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  sectionLabelSmall: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 7.5,
+    color: COLORS.black,
+    textTransform: "uppercase",
+    marginBottom: 3,
+  },
+  paymentText: {
+    fontFamily: "Helvetica",
+    fontSize: 7.5,
+    color: COLORS.gray500,
+    marginBottom: 6,
+    lineHeight: 1.3,
+  },
+  termsText: {
+    fontFamily: "Helvetica",
+    fontSize: 6.5,
+    color: COLORS.gray400,
+    lineHeight: 1.3,
   },
   signLine: {
     borderBottomWidth: 1,
@@ -49,40 +79,49 @@ const s = StyleSheet.create({
   },
   signLabel: {
     fontFamily: "Helvetica",
-    fontSize: 8,
-    color: COLORS.gray400,
+    fontSize: 7.5,
+    color: COLORS.gray500,
+    textAlign: "center",
   },
-  signName: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 9,
-    color: COLORS.dark,
-    marginBottom: 2,
+  contactRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderTopWidth: 0.5,
+    borderTopColor: COLORS.gray200,
+    paddingTop: 6,
   },
-  signNote: {
+  contactText: {
     fontFamily: "Helvetica",
     fontSize: 7,
     color: COLORS.gray400,
-    fontStyle: "italic",
-    marginTop: 2,
   },
   pageNum: {
     fontFamily: "Helvetica",
     fontSize: 7,
     color: COLORS.gray400,
   },
-  brand: {
-    fontFamily: "Helvetica",
-    fontSize: 7,
-    color: COLORS.gray200,
-  },
 });
+
+const PAYMENT_LABELS: Record<string, string> = {
+  CASH: "Dinheiro",
+  PIX: "PIX",
+  Pix: "PIX",
+  CREDIT_CARD: "Cartão de Crédito",
+  DEBIT_CARD: "Cartão de Débito",
+  BANK_TRANSFER: "Transferência Bancária",
+};
 
 export function PdfFooter({
   showSignatureLine = false,
   signatureLabel = "Assinatura do Cliente",
   validityDays,
   noteText,
+  paymentMethod,
+  branch,
 }: PdfFooterProps) {
+  const payLabel = paymentMethod ? (PAYMENT_LABELS[paymentMethod] || paymentMethod) : null;
+
   return (
     <View style={s.footer} fixed>
       {/* Note box */}
@@ -96,27 +135,46 @@ export function PdfFooter({
         </View>
       )}
 
-      {/* Bottom row: payment info left + signature right */}
-      <View style={s.bottomRow}>
-        {/* Page numbers */}
-        <View>
-          <Text
-            style={s.pageNum}
-            render={({ pageNumber, totalPages }) =>
-              `Página ${pageNumber} de ${totalPages}`
-            }
-            fixed
-          />
-          <Text style={s.brand}>KyperFix</Text>
+      {/* Middle row: Payment info left + signature right */}
+      <View style={s.middleRow}>
+        {/* Left side: Payment Info & Terms */}
+        <View style={s.paymentCol}>
+          <Text style={s.sectionLabelSmall}>Forma de Pagamento</Text>
+          <Text style={s.paymentText}>
+            {payLabel 
+              ? `Efetuar pagamento via ${payLabel}. Se necessário, solicite as chaves ou dados de faturamento.`
+              : "PIX (Chave CNPJ da Oficina), Cartões de Débito ou Crédito."}
+          </Text>
+          <Text style={s.sectionLabelSmall}>Termos & Condições</Text>
+          <Text style={s.termsText}>
+            Garantia legal de 90 dias sobre serviços e peças aplicadas. Veículos não retirados em até 48h após conclusão estão sujeitos a cobrança de permanência.
+          </Text>
         </View>
 
-        {/* Signature area */}
-        {showSignatureLine && (
-          <View style={s.signCol}>
-            <View style={s.signLine} />
-            <Text style={s.signLabel}>{signatureLabel}</Text>
-          </View>
-        )}
+        {/* Right side: Signature */}
+        <View style={s.signCol}>
+          {showSignatureLine && (
+            <View style={{ width: "100%", alignItems: "center" }}>
+              <View style={s.signLine} />
+              <Text style={s.signLabel}>{signatureLabel}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Bottom Contact info bar + Page number */}
+      <View style={s.contactRow}>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          {branch?.phone && <Text style={s.contactText}>Tel: {branch.phone}</Text>}
+          {branch?.email && <Text style={s.contactText}>E-mail: {branch.email}</Text>}
+          {branch?.address && <Text style={s.contactText}>End: {branch.address}</Text>}
+        </View>
+        <Text
+          style={s.pageNum}
+          render={({ pageNumber, totalPages }) =>
+            `Página ${pageNumber} de ${totalPages}`
+          }
+        />
       </View>
     </View>
   );
