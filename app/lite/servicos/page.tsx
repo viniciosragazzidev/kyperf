@@ -27,17 +27,17 @@ const Field = ({
   placeholder?: string; type?: string; required?: boolean; mono?: boolean; span?: boolean;
 }) => (
   <div className={span ? "col-span-2" : ""}>
-    <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5 uppercase">
-      {label}{required && <span className="text-red-500 ml-1">*</span>}
+    <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5 uppercase">
+      {label}{required && <span className="text-destructive ml-1">*</span>}
     </label>
     <input
       type={type}
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className={`w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm 
-                  text-gray-900 placeholder-gray-400 focus:border-emerald-500/50 focus:outline-none focus:ring-4 focus:ring-emerald-500/10
-                  transition-all ${mono ? "font-mono tracking-widest" : "font-sans"}`}
+      className={`w-full bg-muted/50 border border-border rounded-xl px-4 py-3.5 text-sm 
+                  text-foreground placeholder-muted-foreground/60 focus:border-primary/50 focus:outline-none focus:ring-4 focus:ring-primary/10
+                  transition-all ${mono ? "font-mono tracking-widest uppercase" : "font-sans"}`}
     />
   </div>
 );
@@ -109,18 +109,16 @@ export default function ServicosPage() {
   );
 
   return (
-    <div className="min-h-full flex flex-col bg-[#F8FAFC]">
+    <div className="min-h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-5 flex items-center justify-between shrink-0">
+      <div className="bg-card border-b border-border/60 px-8 py-5 flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 font-mono tracking-tight">SERVIÇOS CADASTRADOS</h1>
-          <p className="text-gray-500 text-sm mt-0.5 font-mono">{services.length} serviços no catálogo</p>
+          <h1 className="text-2xl font-black text-foreground font-mono tracking-tight">SERVIÇOS CADASTRADOS</h1>
+          <p className="text-muted-foreground text-sm mt-0.5 font-mono">{services.length} serviços no catálogo</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 
-                     border border-emerald-200 text-emerald-700 px-5 py-3 rounded-xl 
-                     text-sm font-bold font-mono transition-all shadow-sm"
+          className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary px-5 py-3 rounded-xl text-sm font-bold font-mono transition-all shadow-sm"
         >
           <Plus className="size-4" />
           NOVO SERVIÇO
@@ -128,16 +126,14 @@ export default function ServicosPage() {
       </div>
 
       {/* Search */}
-      <div className="px-8 py-4 bg-white border-b border-gray-200 shrink-0">
+      <div className="px-8 py-4 bg-card border-b border-border/60 shrink-0">
         <div className="relative max-w-lg">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por nome do serviço ou descrição..."
-            className="w-full pl-11 pr-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-xl
-                       text-gray-900 placeholder-gray-400 focus:border-emerald-500/40 focus:ring-4 focus:ring-emerald-500/10 focus:outline-none 
-                       font-mono transition-all"
+            className="w-full pl-11 pr-4 py-3 text-sm bg-muted/50 border border-border rounded-xl text-foreground placeholder-muted-foreground/60 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 focus:outline-none font-mono transition-all"
           />
         </div>
       </div>
@@ -146,15 +142,15 @@ export default function ServicosPage() {
       <div className="flex-1 overflow-y-auto p-8">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="size-10 text-emerald-600 animate-spin" />
+            <Loader2 className="size-10 text-primary animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20 border border-dashed border-gray-300 rounded-2xl bg-white">
-            <Wrench className="size-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-xl text-gray-600 font-mono">
+          <div className="text-center py-20 border border-dashed border-border rounded-2xl bg-card">
+            <Wrench className="size-16 text-muted-foreground/30 mx-auto mb-4" />
+            <p className="text-xl text-muted-foreground font-mono">
               {search ? "Nenhum serviço encontrado" : "Nenhum serviço cadastrado"}
             </p>
-            <p className="text-gray-400 text-sm mt-2 font-mono">
+            <p className="text-muted-foreground/60 text-sm mt-2 font-mono">
               {search ? "Tente buscar com outro termo" : "Clique em NOVO SERVIÇO para adicionar"}
             </p>
           </div>
@@ -163,29 +159,28 @@ export default function ServicosPage() {
             {filtered.map(service => (
               <div
                 key={service.id}
-                className="bg-white rounded-2xl border border-gray-200 px-6 py-5 
-                           hover:border-emerald-500/30 hover:shadow-md transition-all shadow-sm flex items-center justify-between gap-4"
+                className="bg-card rounded-2xl border border-border/60 px-6 py-5 hover:border-primary/45 hover:shadow-md transition-all shadow-xs flex items-center justify-between gap-4"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-gray-900 text-lg truncate uppercase font-mono">{service.name}</p>
+                  <p className="font-black text-foreground text-lg truncate uppercase font-mono">{service.name}</p>
                   {service.description && (
-                    <p className="text-gray-500 text-sm mt-1">{service.description}</p>
+                    <p className="text-muted-foreground text-sm mt-1">{service.description}</p>
                   )}
                   <div className="flex items-center gap-3 mt-2 flex-wrap">
-                    <span className="flex items-center gap-1 text-xs text-gray-600 font-mono bg-gray-100 px-2 py-0.5 rounded-md">
-                      <Clock className="size-3.5 text-gray-400" /> {service.estimatedTimeMinutes} min
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-md">
+                      <Clock className="size-3.5 text-muted-foreground/50" /> {service.estimatedTimeMinutes} min
                     </span>
                   </div>
                 </div>
                 <div className="text-right shrink-0 flex items-center gap-4">
                   <div>
-                    <p className="text-emerald-700 font-black text-xl font-mono">{fmt(service.basePrice)}</p>
-                    <p className="text-gray-400 text-[10px] font-bold font-mono uppercase">Preço Base</p>
+                    <p className="text-primary font-black text-xl font-mono">{fmt(service.basePrice)}</p>
+                    <p className="text-muted-foreground text-[10px] font-bold font-mono uppercase">Preço Base</p>
                   </div>
                   <button
                     onClick={() => handleDelete(service.id)}
                     disabled={deletingId === service.id}
-                    className="p-3 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-xl transition-all border border-transparent hover:border-red-100"
+                    className="p-3 hover:bg-destructive/10 text-muted-foreground/45 hover:text-destructive rounded-xl transition-all border border-transparent hover:border-destructive/20"
                     title="Excluir Serviço"
                   >
                     {deletingId === service.id ? (
@@ -204,17 +199,16 @@ export default function ServicosPage() {
       {/* Modal Novo Serviço */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setShowForm(false)} />
-          <div className="relative bg-white border border-gray-200 rounded-3xl shadow-2xl 
-                          w-full max-w-xl max-h-[90vh] overflow-y-auto">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-xs" onClick={() => setShowForm(false)} />
+          <div className="relative bg-card border border-border rounded-3xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
 
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-7 py-5 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-card border-b border-border px-7 py-5 flex items-center justify-between z-10">
               <div>
-                <h2 className="text-lg font-black text-gray-900 font-mono">NOVO SERVIÇO</h2>
-                <p className="text-gray-500 text-xs font-mono mt-0.5">Cadastre o serviço no catálogo</p>
+                <h2 className="text-lg font-black text-foreground font-mono">NOVO SERVIÇO</h2>
+                <p className="text-muted-foreground text-xs font-mono mt-0.5">Cadastre o serviço no catálogo</p>
               </div>
               <button onClick={() => setShowForm(false)}
-                      className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 hover:text-gray-700 transition-colors">
+                      className="p-2 hover:bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-colors">
                 <X className="size-5" />
               </button>
             </div>
@@ -222,7 +216,7 @@ export default function ServicosPage() {
             <form onSubmit={handleSubmit} className="p-7 space-y-6">
               
               <div>
-                <p className="text-[10px] font-bold text-emerald-600 font-mono tracking-widest mb-4 flex items-center gap-2">
+                <p className="text-[10px] font-bold text-primary font-mono tracking-widest mb-4 flex items-center gap-2">
                   <Wrench className="size-3" /> INFORMAÇÕES BÁSICAS
                 </p>
                 <div className="grid grid-cols-2 gap-3">
@@ -230,33 +224,31 @@ export default function ServicosPage() {
                   <Field label="Preço Base (R$)" value={form.basePrice} onChange={set("basePrice")} placeholder="Ex: 120.00" required mono />
                   <Field label="Tempo Estimado (Minutos)" value={form.estimatedTimeMinutes} onChange={set("estimatedTimeMinutes")} type="number" placeholder="Ex: 45" required />
                   <div className="col-span-2">
-                    <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5 uppercase">Descrição</label>
+                    <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5 uppercase">Descrição</label>
                     <textarea
                       value={form.description}
                       onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
                       placeholder="Descrição detalhada do serviço..."
                       rows={3}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm 
-                                 text-gray-900 placeholder-gray-400 focus:border-emerald-500/50 focus:outline-none focus:ring-4 focus:ring-emerald-500/10
-                                 transition-all font-sans resize-none"
+                      className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3.5 text-sm text-foreground placeholder-muted-foreground/60 focus:border-primary/50 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-sans resize-none"
                     />
                   </div>
                 </div>
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-mono font-medium">
+                <div className="bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3 text-destructive text-sm font-mono font-medium">
                   ⚠ {error}
                 </div>
               )}
 
-              <div className="flex gap-3 pt-4 border-t border-gray-100">
+              <div className="flex gap-3 pt-4 border-t border-border">
                 <button type="button" onClick={() => setShowForm(false)}
-                        className="flex-1 bg-white border border-gray-300 text-gray-700 rounded-xl py-3.5 text-sm font-bold font-mono hover:bg-gray-50 transition-colors shadow-sm">
+                        className="flex-1 bg-card border border-border text-foreground rounded-xl py-3.5 text-sm font-bold font-mono hover:bg-muted/50 transition-colors shadow-xs">
                   Cancelar
                 </button>
                 <button type="submit" disabled={isPending}
-                        className="flex-1 bg-[#065f46] hover:bg-[#047857] shadow-lg shadow-[#065f46]/20 text-white rounded-xl py-3.5 text-sm font-black font-mono disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                        className="flex-1 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-primary-foreground rounded-xl py-3.5 text-sm font-black font-mono disabled:opacity-50 transition-all flex items-center justify-center gap-2">
                   {isPending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
                   CADASTRAR SERVIÇO
                 </button>

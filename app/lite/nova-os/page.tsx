@@ -208,28 +208,28 @@ export default function NovaOSPage() {
 
   if (done) {
     return (
-      <div className="flex items-center justify-center min-h-full p-8 bg-[#F8FAFC]">
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-10 max-w-md w-full text-center flex flex-col items-center">
-          <div className="size-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4 shrink-0">
-            <CheckCircle2 className="size-12 text-emerald-600" strokeWidth={1.5} />
+      <div className="flex items-center justify-center min-h-full p-8 bg-background">
+        <div className="bg-card rounded-3xl shadow-xl border border-border p-10 max-w-md w-full text-center flex flex-col items-center">
+          <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 shrink-0">
+            <CheckCircle2 className="size-12 text-primary" strokeWidth={1.5} />
           </div>
-          <h2 className="text-3xl font-black text-gray-900 mb-1 font-mono">OS #{osNum}</h2>
-          <p className="text-gray-500 text-sm mb-6 font-mono">Ordem de serviço criada com sucesso!</p>
+          <h2 className="text-3xl font-black text-foreground mb-1 font-mono">OS #{osNum}</h2>
+          <p className="text-muted-foreground text-sm mb-6 font-mono">Ordem de serviço criada com sucesso!</p>
           
-          <div className="bg-gray-50 rounded-2xl p-4 mb-6 border border-gray-200 w-full flex flex-col items-center">
-            <label className="block text-[10px] font-black text-gray-400 font-mono tracking-widest mb-2 uppercase self-start">Tipo de Impressão</label>
+          <div className="bg-muted/40 rounded-2xl p-4 mb-6 border border-border w-full flex flex-col items-center">
+            <label className="block text-[10px] font-black text-muted-foreground font-mono tracking-widest mb-2 uppercase self-start">Tipo de Impressão</label>
             <div className="flex gap-2 w-full mb-4">
               <button 
                 type="button"
                 onClick={() => setPrintType("ENTRADA")}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-black font-mono border transition-all ${printType === "ENTRADA" ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-gray-500 border-gray-200"}`}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-black font-mono border transition-all ${printType === "ENTRADA" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border"}`}
               >
                 ENTRADA
               </button>
               <button 
                 type="button"
                 onClick={() => setPrintType("SAIDA")}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-black font-mono border transition-all ${printType === "SAIDA" ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-gray-500 border-gray-200"}`}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-black font-mono border transition-all ${printType === "SAIDA" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border"}`}
               >
                 SAÍDA
               </button>
@@ -243,17 +243,16 @@ export default function NovaOSPage() {
             )}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 w-full">
             <button
               onClick={resetForm}
-              className="w-full bg-[#065f46] text-white rounded-2xl py-5 text-xl font-bold hover:bg-[#047857] transition-all shadow-md font-mono"
+              className="w-full bg-primary text-primary-foreground rounded-2xl py-5 text-xl font-bold hover:bg-primary/90 transition-all shadow-md font-mono"
             >
               + CRIAR OUTRA O.S.
             </button>
             <Link
               href="/lite/patio"
-              className="flex items-center justify-center gap-2 w-full bg-white border-2 border-gray-200 
-                         rounded-2xl py-5 text-xl font-bold text-gray-700 hover:bg-gray-50 transition-all font-mono shadow-sm"
+              className="flex items-center justify-center gap-2 w-full bg-card border-2 border-border rounded-2xl py-5 text-xl font-bold text-foreground hover:bg-muted transition-all font-mono shadow-xs"
             >
               VER PÁTIO
             </Link>
@@ -263,40 +262,40 @@ export default function NovaOSPage() {
     );
   }
 
-  const fieldClass = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 focus:outline-none transition-all";
+  const fieldClass = "w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder-muted-foreground/60 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all";
 
   return (
-    <div className="min-h-full p-6 md:p-10 bg-[#F8FAFC]">
+    <div className="min-h-full p-6 md:p-10 bg-background">
       {/* Header */}
       <div className="mb-8 max-w-4xl mx-auto">
-        <Link href="/lite/patio" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-800 text-sm font-bold font-mono mb-4 transition-colors">
+        <Link href="/lite/patio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm font-bold font-mono mb-4 transition-colors">
           <ArrowLeft className="size-4" /> VOLTAR AO PÁTIO
         </Link>
-        <h1 className="text-3xl font-black text-gray-900 font-mono tracking-tight">NOVA O.S.</h1>
-        <p className="text-gray-500 text-base mt-1 font-mono">Preencha as informações do veículo, cliente e triagem.</p>
+        <h1 className="text-3xl font-black text-foreground font-mono tracking-tight">NOVA O.S.</h1>
+        <p className="text-muted-foreground text-base mt-1 font-mono">Preencha as informações do veículo, cliente e triagem.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl px-6 py-4 text-red-700 font-bold font-mono shadow-sm">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-2xl px-6 py-4 text-destructive font-bold font-mono shadow-xs">
             ⚠ {error}
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Veículo */}
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-7 space-y-5">
+          <div className="bg-card rounded-3xl shadow-xs border border-border p-7 space-y-5">
             <div className="flex items-center gap-3 mb-2">
-              <div className="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100">
-                <Car className="size-6 text-emerald-600" />
+              <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
+                <Car className="size-6 text-primary" />
               </div>
-              <h2 className="text-lg font-black text-gray-900 font-mono">VEÍCULO</h2>
+              <h2 className="text-lg font-black text-foreground font-mono">VEÍCULO</h2>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">
-                  PLACA <span className="text-red-500">*</span>
+                <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">
+                  PLACA <span className="text-destructive">*</span>
                 </label>
                 <input
                   value={form.plate}
@@ -308,25 +307,25 @@ export default function NovaOSPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">MARCA</label>
+                  <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">MARCA</label>
                   <input value={form.brand} onChange={set("brand")} placeholder="Ex: Fiat" className={fieldClass} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">MODELO</label>
+                  <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">MODELO</label>
                   <input value={form.model} onChange={set("model")} placeholder="Ex: Uno" className={fieldClass} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">ANO</label>
+                  <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">ANO</label>
                   <input value={form.year} onChange={set("year")} type="number" placeholder="Ex: 2020" className={fieldClass} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">KM ATUAL</label>
+                  <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">KM ATUAL</label>
                   <input value={form.mileage} onChange={set("mileage")} type="number" placeholder="Ex: 50000" className={fieldClass} />
                 </div>
               </div>
               
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">NÍVEL DE COMBUSTÍVEL</label>
+                <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">NÍVEL DE COMBUSTÍVEL</label>
                 <div className="flex gap-2">
                   {["Reserva", "1/4", "1/2", "3/4", "Cheio"].map(lvl => (
                     <button
@@ -334,8 +333,8 @@ export default function NovaOSPage() {
                       onClick={() => setForm(p => ({...p, fuelLevel: lvl}))}
                       className={`flex-1 py-2 rounded-lg text-xs font-bold font-mono transition-all border ${
                         form.fuelLevel === lvl 
-                          ? "bg-emerald-50 border-emerald-200 text-emerald-700" 
-                          : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-white"
+                          ? "bg-primary/10 border-primary/20 text-primary" 
+                          : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
                       }`}
                     >
                       {lvl}
@@ -347,18 +346,18 @@ export default function NovaOSPage() {
           </div>
 
           {/* Cliente */}
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-7 space-y-5 relative">
+          <div className="bg-card rounded-3xl shadow-xs border border-border p-7 space-y-5 relative">
             <div className="flex items-center gap-3 mb-2">
-              <div className="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100">
-                <Users className="size-6 text-emerald-600" />
+              <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
+                <Users className="size-6 text-primary" />
               </div>
-              <h2 className="text-lg font-black text-gray-900 font-mono">CLIENTE</h2>
+              <h2 className="text-lg font-black text-foreground font-mono">CLIENTE</h2>
             </div>
 
             <div className="space-y-4">
               <div className="relative">
-                <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">
-                  NOME COMPLETO <span className="text-red-500">*</span>
+                <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">
+                  NOME COMPLETO <span className="text-destructive">*</span>
                 </label>
                 <div className="relative">
                   <input 
@@ -371,20 +370,20 @@ export default function NovaOSPage() {
                   {showSuggestions && customerSuggestions.length > 0 && (
                     <div 
                       ref={suggestionsRef}
-                      className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden max-h-60 overflow-y-auto"
+                      className="absolute z-50 left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-xl overflow-hidden max-h-60 overflow-y-auto"
                     >
                       {customerSuggestions.map(c => (
                         <button
                           key={c.id}
                           type="button"
                           onClick={() => selectCustomer(c)}
-                          className="w-full text-left px-5 py-4 hover:bg-emerald-50 border-b border-gray-100 last:border-0 transition-colors group flex items-center justify-between"
+                          className="w-full text-left px-5 py-4 hover:bg-primary/10 border-b border-border/40 last:border-0 transition-colors group flex items-center justify-between"
                         >
                           <div>
-                            <p className="font-bold text-gray-900 group-hover:text-emerald-700">{c.name}</p>
-                            <p className="text-xs text-gray-500 font-mono">{formatPhone(c.phone)}</p>
+                            <p className="font-bold text-foreground group-hover:text-primary">{c.name}</p>
+                            <p className="text-xs text-muted-foreground font-mono">{formatPhone(c.phone)}</p>
                           </div>
-                          <Search className="size-4 text-gray-300 group-hover:text-emerald-500" />
+                          <Search className="size-4 text-muted-foreground/40 group-hover:text-primary" />
                         </button>
                       ))}
                     </div>
@@ -392,18 +391,18 @@ export default function NovaOSPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">
-                  WHATSAPP <span className="text-red-500">*</span>
+                <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">
+                  WHATSAPP <span className="text-destructive">*</span>
                 </label>
                 <input value={form.customerPhone} onChange={e => setForm(p => ({...p, customerPhone: formatPhone(e.target.value)}))} placeholder="(21) 99999-9999" type="tel" className={fieldClass} />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">CPF / CNPJ</label>
+                <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">CPF / CNPJ</label>
                 <input value={form.customerDocument} onChange={set("customerDocument")} placeholder="000.000.000-00" className={fieldClass} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">ENDEREÇO</label>
+                  <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">ENDEREÇO</label>
                   <input value={form.customerAddress} onChange={set("customerAddress")} placeholder="Rua, Número, Bairro" className={fieldClass} />
                 </div>
               </div>
@@ -412,45 +411,45 @@ export default function NovaOSPage() {
         </div>
 
         {/* Triagem */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-7 space-y-5">
+        <div className="bg-card rounded-3xl shadow-xs border border-border p-7 space-y-5">
           <div className="flex items-center gap-3 mb-2">
-            <div className="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100">
-              <ClipboardList className="size-6 text-emerald-600" />
+            <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
+              <ClipboardList className="size-6 text-primary" />
             </div>
-            <h2 className="text-lg font-black text-gray-900 font-mono">TRIAGEM & CHECK-IN</h2>
+            <h2 className="text-lg font-black text-foreground font-mono">TRIAGEM & CHECK-IN</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">SINTOMAS (QUEIXA DO CLIENTE)</label>
+              <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">SINTOMAS (QUEIXA DO CLIENTE)</label>
               <textarea value={form.symptoms} onChange={set("symptoms")} rows={3} placeholder="O que está acontecendo com o veículo?" className={`${fieldClass} resize-none`} />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">DIAGNÓSTICO PRÉVIO</label>
+              <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">DIAGNÓSTICO PRÉVIO</label>
               <textarea value={form.diagnostic} onChange={set("diagnostic")} rows={3} placeholder="Qual a avaliação inicial do mecânico?" className={`${fieldClass} resize-none`} />
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-3">CHECKLIST DE ITENS</label>
+            <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-3">CHECKLIST DE ITENS</label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 {k:'step', l:'Estepe'}, {k:'macaco', l:'Macaco'}, {k:'chaveRoda', l:'Ch. de Roda'}, {k:'antena', l:'Antena'},
                 {k:'radio', l:'Rádio'}, {k:'tapetes', l:'Tapetes'}, {k:'calotas', l:'Calotas'}
               ].map(item => (
-                <div key={item.k} className="flex items-center justify-between bg-gray-50 border border-gray-200 p-2 rounded-xl">
-                  <span className="text-xs font-bold text-gray-600 font-mono">{item.l}</span>
-                  <div className="flex bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div key={item.k} className="flex items-center justify-between bg-muted/50 border border-border p-2 rounded-xl">
+                  <span className="text-xs font-bold text-muted-foreground font-mono">{item.l}</span>
+                  <div className="flex bg-card rounded-lg border border-border overflow-hidden">
                     {['P','A','N'].map(opt => (
                       <button
                         key={opt} type="button"
                         onClick={() => setChecklist(p => ({...p, [item.k]: opt}))}
                         className={`w-7 h-6 text-[10px] font-black transition-colors ${
                           (checklist as any)[item.k] === opt
-                            ? opt === 'P' ? "bg-emerald-100 text-emerald-700" 
-                            : opt === 'A' ? "bg-red-100 text-red-700" 
-                            : "bg-gray-200 text-gray-700"
-                            : "text-gray-400 hover:bg-gray-50"
+                            ? opt === 'P' ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" 
+                            : opt === 'A' ? "bg-red-500/20 text-red-600 dark:text-red-400" 
+                            : "bg-muted text-muted-foreground"
+                            : "text-muted-foreground/40 hover:bg-muted/30"
                         }`}
                       >
                         {opt}
@@ -464,31 +463,31 @@ export default function NovaOSPage() {
         </div>
 
         {/* Orçamento (Items) */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-7 space-y-5">
+        <div className="bg-card rounded-3xl shadow-xs border border-border p-7 space-y-5">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
-              <div className="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100">
-                <Wrench className="size-6 text-emerald-600" />
+              <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
+                <Wrench className="size-6 text-primary" />
               </div>
-              <h2 className="text-lg font-black text-gray-900 font-mono">ITENS (Peças e Serviços)</h2>
+              <h2 className="text-lg font-black text-foreground font-mono">ITENS (Peças e Serviços)</h2>
             </div>
             <button
               type="button"
               onClick={() => setItems(p => [...p, {type: 'SERVICE', name: '', quantity: 1, unitSalePrice: '0'}])}
-              className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold font-mono hover:bg-gray-800 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold font-mono hover:bg-primary/90 transition-colors shadow-xs"
             >
               <Plus className="size-3.5" /> ADICIONAR ITEM
             </button>
           </div>
 
           {items.length === 0 ? (
-            <div className="py-8 text-center border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
-              <p className="text-gray-500 font-mono text-sm">Nenhum item adicionado à O.S.</p>
+            <div className="py-8 text-center border-2 border-dashed border-border rounded-2xl bg-muted/30">
+              <p className="text-muted-foreground font-mono text-sm">Nenhum item adicionado à O.S.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {items.map((item, idx) => (
-                <div key={idx} className="flex flex-col sm:flex-row gap-3 bg-gray-50 border border-gray-200 p-4 rounded-2xl">
+                <div key={idx} className="flex flex-col sm:flex-row gap-3 bg-muted/30 border border-border p-4 rounded-2xl">
                   <select
                     value={item.type}
                     onChange={e => {
@@ -496,7 +495,7 @@ export default function NovaOSPage() {
                       newItems[idx].type = e.target.value as any;
                       setItems(newItems);
                     }}
-                    className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold font-mono outline-none focus:border-emerald-500 text-gray-900"
+                    className="bg-card border border-border rounded-xl px-3 py-2 text-xs font-bold font-mono outline-none focus:border-primary text-foreground"
                   >
                     <option value="SERVICE">SERVIÇO</option>
                     <option value="PART">PEÇA</option>
@@ -513,7 +512,7 @@ export default function NovaOSPage() {
                         setActiveSuggestionIdx(idx);
                       }}
                       placeholder="Descrição do item..."
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm font-mono outline-none focus:border-emerald-500 text-gray-900"
+                      className="w-full bg-card border border-border rounded-xl px-4 py-2 text-sm font-mono outline-none focus:border-primary text-foreground"
                       autoComplete="off"
                     />
                     {activeSuggestionIdx === idx && (
@@ -535,7 +534,7 @@ export default function NovaOSPage() {
                         setItems(newItems);
                       }}
                       placeholder="Qtd"
-                      className="w-16 bg-white border border-gray-200 rounded-xl px-2 py-2 text-sm font-mono text-center outline-none focus:border-emerald-500 text-gray-900"
+                      className="w-16 bg-card border border-border rounded-xl px-2 py-2 text-sm font-mono text-center outline-none focus:border-primary text-foreground"
                     />
                     <input
                       type="number"
@@ -546,12 +545,12 @@ export default function NovaOSPage() {
                         setItems(newItems);
                       }}
                       placeholder="Valor Un."
-                      className="w-24 bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-mono text-right outline-none focus:border-emerald-500 text-gray-900"
+                      className="w-24 bg-card border border-border rounded-xl px-3 py-2 text-sm font-mono text-right outline-none focus:border-primary text-foreground"
                     />
                     <button
                       type="button"
                       onClick={() => setItems(p => p.filter((_, i) => i !== idx))}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100"
+                      className="p-2 text-muted-foreground/45 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors border border-transparent hover:border-destructive/20"
                     >
                       <Trash2 className="size-5" />
                     </button>
@@ -563,25 +562,25 @@ export default function NovaOSPage() {
         </div>
 
         {/* Financeiro */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-7 space-y-5">
+        <div className="bg-card rounded-3xl shadow-xs border border-border p-7 space-y-5">
           <div className="flex items-center gap-3 mb-2">
-            <div className="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100">
-              <DollarSign className="size-6 text-emerald-600" />
+            <div className="bg-primary/10 p-2.5 rounded-xl border border-primary/20">
+              <DollarSign className="size-6 text-primary" />
             </div>
-            <h2 className="text-lg font-black text-gray-900 font-mono">FINANCEIRO</h2>
+            <h2 className="text-lg font-black text-foreground font-mono">FINANCEIRO</h2>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">DESCONTO (R$)</label>
+              <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">DESCONTO (R$)</label>
               <input type="number" value={form.discount} onChange={set("discount")} className={fieldClass} />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">ACRÉSCIMO (R$)</label>
+              <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">ACRÉSCIMO (R$)</label>
               <input type="number" value={form.surcharge} onChange={set("surcharge")} className={fieldClass} />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">FORMA DE PAGAMENTO</label>
+              <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">FORMA DE PAGAMENTO</label>
               <select value={form.paymentMethod} onChange={e => setForm(p => ({...p, paymentMethod: e.target.value}))} className={fieldClass}>
                 <option value="Pix">Pix</option>
                 <option value="Cartão de Crédito">Cartão de Crédito</option>
@@ -590,14 +589,14 @@ export default function NovaOSPage() {
               </select>
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">STATUS PAGAMENTO</label>
+              <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">STATUS PAGAMENTO</label>
               <select value={form.paymentStatus} onChange={e => setForm(p => ({...p, paymentStatus: e.target.value}))} className={fieldClass}>
                 <option value="PENDING">Pendente</option>
                 <option value="PAID">Pago</option>
               </select>
             </div>
             <div className="col-span-2 sm:col-span-4">
-              <label className="block text-[10px] font-bold text-gray-500 font-mono tracking-widest mb-1.5">GARANTIA</label>
+              <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">GARANTIA</label>
               <input value={form.warranty} onChange={set("warranty")} placeholder="Ex: 90 dias para serviços" className={fieldClass} />
             </div>
           </div>
@@ -606,9 +605,7 @@ export default function NovaOSPage() {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full bg-[#065f46] text-white rounded-3xl py-6 text-2xl font-black font-mono tracking-widest
-                     hover:bg-[#047857] transition-all flex items-center justify-center gap-3
-                     disabled:opacity-60 shadow-xl shadow-[#065f46]/20 border border-[#047857]"
+          className="w-full bg-primary text-primary-foreground rounded-3xl py-6 text-2xl font-black font-mono tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-3 disabled:opacity-60 shadow-xl shadow-primary/20 border border-primary/80"
         >
           {isPending
             ? <><Loader2 className="size-7 animate-spin" /> SALVANDO...</>
@@ -640,7 +637,7 @@ function SuggestionsDropdown({
 
   return (
     <div 
-      className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto"
+      className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto"
       onMouseDown={e => e.stopPropagation()} // Evita fechar ao clicar no dropdown
     >
       {suggestions.map((s, i) => (
@@ -648,10 +645,10 @@ function SuggestionsDropdown({
           key={i}
           type="button"
           onClick={() => onSelect({ name: s.name, price: s.salePrice || s.basePrice || "0" })}
-          className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-xs font-mono text-gray-900 border-b border-gray-100 last:border-0 transition-colors flex justify-between items-center"
+          className="w-full text-left px-4 py-2.5 hover:bg-primary/10 text-xs font-mono text-foreground border-b border-border/40 last:border-0 transition-colors flex justify-between items-center"
         >
           <span className="font-bold truncate">{s.name}</span>
-          <span className="text-emerald-700 font-black shrink-0 ml-2">
+          <span className="text-primary font-black shrink-0 ml-2">
             {parseFloat(s.salePrice || s.basePrice || "0").toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </span>
         </button>
