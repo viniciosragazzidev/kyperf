@@ -711,25 +711,17 @@ export default function KanbanPage() {
               <Button
                 key={tab.key}
                 onClick={() => setStatusFilter(tab.key)}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all shrink-0 flex items-center gap-1.5 relative h-auto border-0 shadow-none ${active
-                  ? "bg-foreground text-background scale-102 hover:bg-foreground/90"
-                  : "bg-muted/30 hover:bg-muted/60 text-muted-foreground"
-                  }`}
+                variant={active ? "default" : "outline"}
+                className="text-[11px] font-bold px-3 py-1.5 rounded-full transition-all shrink-0 flex items-center gap-1.5"
               >
                 <span>{tab.label}</span>
-                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold ${active
-                  ? "bg-background/25 text-background"
-                  : "bg-muted-foreground/15 text-foreground"
-                  }`}>
+                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold ${
+                  active 
+                    ? "bg-primary/20 text-primary" 
+                    : "bg-muted-foreground/15 text-foreground"
+                }`}>
                   {count}
                 </span>
-                {active && (
-                  <motion.div
-                    layoutId="activeTabIndicator"
-                    className="absolute inset-0 rounded-full border-2 border-purple-500 pointer-events-none"
-                    transition={springConfig}
-                  />
-                )}
               </Button>
             )
           })}
