@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { ClipboardList, PlusCircle, Package, Users, MessageCircle, LogOut, Wrench, FileText, Car } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const navItems = [
   {
@@ -55,6 +57,7 @@ export default function LiteSidebar() {
               <div className="text-primary text-[10px] font-bold mt-0.5 tracking-widest font-mono">· LITE ·</div>
             </div>
           </div>
+          <AnimatedThemeToggler className="flex size-9 items-center justify-center rounded-xl border border-sidebar-border bg-sidebar-accent/50 hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-foreground transition-all duration-150" />
         </div>
 
         {/* Switch Mode Toggle */}
@@ -72,38 +75,40 @@ export default function LiteSidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-5 space-y-5 overflow-y-auto">
-        {navItems.map(({ group, items }) => (
-          <div key={group}>
-            <p className="text-sidebar-foreground/40 text-[10px] font-bold tracking-[0.2em] font-mono mb-2 px-3">
-              {group}
-            </p>
-            <div className="space-y-0.5">
-              {items.map(({ href, icon: Icon, label }) => {
-                const active = pathname === href || pathname.startsWith(href + "/");
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`
-                      flex items-center gap-3 px-3 py-3.5 rounded-xl text-base font-semibold
-                      transition-all duration-150 min-h-[52px]
-                      ${active
-                        ? "bg-primary/10 text-primary border border-primary/20 font-bold"
-                        : "text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground border border-transparent"
-                      }
-                    `}
-                  >
-                    <Icon className={`size-5 shrink-0 ${active ? "text-primary" : "text-sidebar-foreground/45"}`} strokeWidth={2} />
-                    <span className="text-[15px] font-mono">{label}</span>
-                    {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
-                  </Link>
-                );
-              })}
+      <ScrollArea className="flex-1 px-3 py-5">
+        <nav className="space-y-5">
+          {navItems.map(({ group, items }) => (
+            <div key={group}>
+              <p className="text-sidebar-foreground/40 text-[10px] font-bold tracking-[0.2em] font-mono mb-2 px-3">
+                {group}
+              </p>
+              <div className="space-y-0.5">
+                {items.map(({ href, icon: Icon, label }) => {
+                  const active = pathname === href || pathname.startsWith(href + "/");
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      className={`
+                        flex items-center gap-3 px-3 py-3.5 rounded-xl text-base font-semibold
+                        transition-all duration-150 min-h-[52px]
+                        ${active
+                          ? "bg-primary/10 text-primary border border-primary/20 font-bold"
+                          : "text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground border border-transparent"
+                        }
+                      `}
+                    >
+                      <Icon className={`size-5 shrink-0 ${active ? "text-primary" : "text-sidebar-foreground/45"}`} strokeWidth={2} />
+                      <span className="text-[15px] font-mono">{label}</span>
+                      {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
-      </nav>
+          ))}
+        </nav>
+      </ScrollArea>
 
       {/* Footer */}
       <div className="px-3 pb-5 border-t border-sidebar-border pt-3">

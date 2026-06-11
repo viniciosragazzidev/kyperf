@@ -227,6 +227,7 @@ export default function OrdensPage() {
               orderId={printingOrder.id}
               osNumber={printingOrder.osNumber}
               status={printType === "ENTRADA" ? "CHECK_IN" : "DELIVERED"}
+              noAnimation={true}
             />
           </div>
         </div>

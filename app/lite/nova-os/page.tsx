@@ -239,6 +239,7 @@ export default function NovaOSPage() {
                 orderId={createdOrderId}
                 osNumber={osNum}
                 status={printType === "ENTRADA" ? "CHECK_IN" : "DELIVERED"}
+                noAnimation={true}
               />
             )}
           </div>
