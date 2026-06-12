@@ -130,13 +130,38 @@ export async function deleteServiceAction(id: string) {
       throw new Error("Usuário não possui empresa vinculada.");
     }
 
-    await db.delete(schema.servicesCatalog)
-      .where(
-        and(
-          eq(schema.servicesCatalog.id, id),
-          eq(schema.servicesCatalog.tenantId, user.tenantId)
-        )
-      );
+    await db.transaction(async (tx) => {
+      // 1. Obter o serviço para pegar o nome
+      const service = await tx.query.servicesCatalog.findFirst({
+        where: (s, { eq, and }) => and(
+          eq(s.id, id),
+          eq(s.tenantId, user.tenantId!)
+        ),
+      });
+
+      if (!service) {
+        throw new Error("Serviço não encontrado.");
+      }
+
+      // 2. Atualizar todos os itens de ordem de serviço vinculados
+      // Para manter a cópia ativa na OS, definimos customName como o nome do serviço
+      // e limpamos o serviceId (desvinculando do catálogo)
+      await tx.update(schema.workOrderItems)
+        .set({
+          customName: service.name,
+          serviceId: null
+        })
+        .where(eq(schema.workOrderItems.serviceId, id));
+
+      // 3. Deletar o serviço do catálogo
+      await tx.delete(schema.servicesCatalog)
+        .where(
+          and(
+            eq(schema.servicesCatalog.id, id),
+            eq(schema.servicesCatalog.tenantId, user.tenantId!)
+          )
+        );
+    });
 
     return { success: true };
   } catch (error: any) {

@@ -90,7 +90,7 @@ export default function ServicosPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Excluir este serviço definitivamente?")) return;
+    if (!confirm("Tem certeza que deseja deletar este serviço do catálogo?\n\nSe este serviço estiver em alguma O.S. ativa ou concluída, a cópia dele será mantida intacta lá, mas ele não estará mais disponível para novas ordens de serviço.")) return;
     setDeletingId(id);
     const r = await deleteServiceAction(id);
     setDeletingId(null);

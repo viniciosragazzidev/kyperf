@@ -130,6 +130,7 @@ export async function getPublicWorkOrderAction(id: string, cpf: string, accessCo
         mechanic: mechanic || null,
         statusHistory: statusHistory || [],
         photoUrls: order.photoUrls || [],
+        allocatedBox: order.allocatedBox,
         items,
       }
     };

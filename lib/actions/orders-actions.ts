@@ -302,11 +302,60 @@ export async function createWorkOrderAction(input: CreateWorkOrderInput) {
       // 4. Inserir itens da O.S. (se fornecidos)
       if (input.items && input.items.length > 0) {
         for (const item of input.items) {
+          let finalPartId = item.type === 'PART' ? (item.partId || null) : null;
+          let finalServiceId = item.type === 'SERVICE' ? (item.serviceId || null) : null;
+
+          // Auto-registro de peças avulsas no estoque em background
+          if (item.type === 'PART' && !finalPartId && item.customName) {
+            const existingPart = await tx.query.partsInventory.findFirst({
+              where: (pi, { eq, and }) => and(
+                eq(pi.tenantId, user.tenantId!),
+                eq(pi.name, item.customName!)
+              )
+            });
+            if (existingPart) {
+              finalPartId = existingPart.id;
+            } else {
+              const [newPart] = await tx.insert(schema.partsInventory).values({
+                tenantId: user.tenantId!,
+                branchId: activeBranchId!,
+                name: item.customName!,
+                sku: `AVULSO-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+                quantity: 0,
+                minQuantity: 1,
+                costPrice: item.unitCostPrice || '0.00',
+                salePrice: item.unitSalePrice || '0.00',
+              }).returning();
+              if (newPart) finalPartId = newPart.id;
+            }
+          }
+
+          // Auto-registro de serviços avulsos no catálogo em background
+          if (item.type === 'SERVICE' && !finalServiceId && item.customName) {
+            const existingService = await tx.query.servicesCatalog.findFirst({
+              where: (sc, { eq, and }) => and(
+                eq(sc.tenantId, user.tenantId!),
+                eq(sc.name, item.customName!)
+              )
+            });
+            if (existingService) {
+              finalServiceId = existingService.id;
+            } else {
+              const [newService] = await tx.insert(schema.servicesCatalog).values({
+                tenantId: user.tenantId!,
+                name: item.customName!,
+                estimatedTimeMinutes: 60,
+                basePrice: item.unitSalePrice || '0.00',
+              }).returning();
+              if (newService) finalServiceId = newService.id;
+            }
+          }
+
           await tx.insert(schema.workOrderItems).values({
             workOrderId: newOrder.id,
             type: item.type,
-            partId: item.type === 'PART' ? (item.partId || null) : null,
-            serviceId: item.type === 'SERVICE' ? (item.serviceId || null) : null,
+            partId: finalPartId,
+            serviceId: finalServiceId,
             customName: item.customName || null,
             quantity: item.quantity,
             unitCostPrice: item.unitCostPrice,
@@ -417,11 +466,60 @@ export async function updateWorkOrderAction(input: UpdateWorkOrderInput) {
 
         if (input.items.length > 0) {
           for (const item of input.items) {
+            let finalPartId = item.type === 'PART' ? (item.partId || null) : null;
+            let finalServiceId = item.type === 'SERVICE' ? (item.serviceId || null) : null;
+
+            // Auto-registro de peças avulsas no estoque em background
+            if (item.type === 'PART' && !finalPartId && item.customName) {
+              const existingPart = await tx.query.partsInventory.findFirst({
+                where: (pi, { eq, and }) => and(
+                  eq(pi.tenantId, user.tenantId!),
+                  eq(pi.name, item.customName!)
+                )
+              });
+              if (existingPart) {
+                finalPartId = existingPart.id;
+              } else {
+                const [newPart] = await tx.insert(schema.partsInventory).values({
+                  tenantId: user.tenantId!,
+                  branchId: existingOrder.branchId || user.branchId!,
+                  name: item.customName!,
+                  sku: `AVULSO-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+                  quantity: 0,
+                  minQuantity: 1,
+                  costPrice: item.unitCostPrice || '0.00',
+                  salePrice: item.unitSalePrice || '0.00',
+                }).returning();
+                if (newPart) finalPartId = newPart.id;
+              }
+            }
+
+            // Auto-registro de serviços avulsos no catálogo em background
+            if (item.type === 'SERVICE' && !finalServiceId && item.customName) {
+              const existingService = await tx.query.servicesCatalog.findFirst({
+                where: (sc, { eq, and }) => and(
+                  eq(sc.tenantId, user.tenantId!),
+                  eq(sc.name, item.customName!)
+                )
+              });
+              if (existingService) {
+                finalServiceId = existingService.id;
+              } else {
+                const [newService] = await tx.insert(schema.servicesCatalog).values({
+                  tenantId: user.tenantId!,
+                  name: item.customName!,
+                  estimatedTimeMinutes: 60,
+                  basePrice: item.unitSalePrice || '0.00',
+                }).returning();
+                if (newService) finalServiceId = newService.id;
+              }
+            }
+
             await tx.insert(schema.workOrderItems).values({
               workOrderId: input.id,
               type: item.type,
-              partId: item.type === 'PART' ? (item.partId || null) : null,
-              serviceId: item.type === 'SERVICE' ? (item.serviceId || null) : null,
+              partId: finalPartId,
+              serviceId: finalServiceId,
               customName: item.customName || null,
               quantity: item.quantity,
               unitCostPrice: item.unitCostPrice,
@@ -629,6 +727,42 @@ export async function deleteWorkOrderAction(id: string) {
       .where(eq(schema.workOrders.id, id));
 
     return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getYardOrdersAction() {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user.tenantId) {
+      throw new Error("Usuário não possui empresa vinculada.");
+    }
+
+    const orders = await db.select({
+      id: schema.workOrders.id,
+      osNumber: schema.workOrders.osNumber,
+      status: schema.workOrders.status,
+      createdAt: schema.workOrders.createdAt,
+      statusChangedAt: schema.workOrders.statusChangedAt,
+      customerName: schema.customers.name,
+      customerPhone: schema.customers.phone,
+      vehiclePlate: schema.vehicles.plate,
+      vehicleBrand: schema.vehicles.brand,
+      vehicleModel: schema.vehicles.model,
+      mechanicName: schema.user.name,
+      allocatedBox: schema.workOrders.allocatedBox,
+    })
+    .from(schema.workOrders)
+    .innerJoin(schema.customers, eq(schema.workOrders.customerId, schema.customers.id))
+    .innerJoin(schema.vehicles, eq(schema.workOrders.vehicleId, schema.vehicles.id))
+    .leftJoin(schema.user, eq(schema.workOrders.mechanicId, schema.user.id))
+    .where(eq(schema.workOrders.tenantId, user.tenantId!))
+    .orderBy(desc(schema.workOrders.createdAt));
+
+    const activeOrders = orders.filter(o => o.status !== 'DELIVERED');
+
+    return { success: true, data: activeOrders };
   } catch (error: any) {
     return { success: false, error: error.message };
   }

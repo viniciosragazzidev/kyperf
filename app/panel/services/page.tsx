@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 // Import Server Actions
 import {
@@ -421,7 +422,9 @@ export default function ServicesPage() {
               {selectedServiceId ? "Editar Registro" : "Cadastrar Novo Procedimento"}
             </h3>
 
-            {/* Basic Info */}
+            <ScrollArea className="h-[52vh] pr-2">
+              <div className="space-y-4 pr-1">
+                {/* Basic Info */}
             <div className="grid gap-4">
               <div className="space-y-1">
                 <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Nome do Procedimento *</Label>
@@ -620,6 +623,8 @@ export default function ServicesPage() {
                 </div>
               ) : null}
             </div>
+              </div>
+            </ScrollArea>
 
             {/* Totals & Submit */}
             <div className="space-y-4 pt-4 border-t border-dashed border-border">
@@ -671,7 +676,7 @@ export default function ServicesPage() {
       <ConfirmDialog
         isOpen={deleteConfirmOpen}
         title="Excluir Serviço"
-        message="Tem certeza que deseja deletar este serviço do catálogo? Esta ação não pode ser desfeita."
+        message="Tem certeza que deseja deletar este serviço do catálogo? Se este serviço estiver em alguma O.S. ativa ou concluída, a cópia dele será mantida intacta lá, mas ele não estará mais disponível para novas ordens de serviço."
         confirmText="Excluir"
         cancelText="Cancelar"
         onConfirm={handleConfirmDeleteService}

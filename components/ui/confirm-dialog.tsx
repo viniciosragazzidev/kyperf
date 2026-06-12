@@ -36,11 +36,18 @@ export function ConfirmDialog({
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 w-screen h-screen z-55 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="fixed top-0 left-0 w-full h-[100vh] z-[9999] flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs"
+        >
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.93, opacity: 0, y: 10 }}
+            transition={{ type: "spring", stiffness: 380, damping: 22, mass: 0.8 }}
             className="bg-card w-full max-w-sm rounded-3xl shadow-xl border border-border p-6 space-y-4"
           >
             <div className="flex items-center gap-3">
@@ -67,7 +74,7 @@ export function ConfirmDialog({
               </button>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>,
     document.body

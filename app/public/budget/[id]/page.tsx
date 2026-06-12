@@ -86,6 +86,7 @@ interface PublicOrder {
     notes: string | null
   }>
   photoUrls: string[] | null
+  allocatedBox: string | null
   items: PublicItem[]
 }
 
@@ -860,7 +861,7 @@ export default function PublicBudgetPage({ params }: { params: Promise<{ id: str
                       {[
                         { key: "CHECK_IN", title: "Check-in do Veículo", desc: "Seu veículo deu entrada na oficina e foi realizada a triagem inicial com check-in fotográfico." },
                         { key: "BUDGET", title: "Orçamento Técnico", desc: "Nossa equipe realizou o diagnóstico completo e registrou a lista de peças e serviços necessários." },
-                        { key: "EXECUTION", title: "Serviço em Execução", desc: "O mecânico responsável iniciou a execução dos consertos autorizados no pátio da oficina." },
+                        { key: "EXECUTION", title: "Serviço em Execução", desc: order.allocatedBox ? `Seu veículo está na doca ${order.allocatedBox} - Instalação de peças e execução de serviços em andamento.` : "O mecânico responsável iniciou a execução dos consertos autorizados no pátio da oficina." },
                         { key: "TESTING", title: "Testes de Qualidade & Limpeza", desc: "Após a execução, realizamos testes de rodagem para garantir o conserto e preparamos a higienização." },
                         { key: "READY", title: "Pronto para Retirada", desc: "Seu veículo está pronto, testado e limpo. Aguardamos sua visita para faturamento e entrega." }
                       ].map((stepItem, idx) => {

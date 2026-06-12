@@ -15,12 +15,17 @@ import {
   CheckCircle2,
   MapPin,
   Package,
-  Percent
+  Percent,
+  Play,
+  Database
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { RollingNumber } from "@/components/ui/rolling-number";
+import { MotionCard, MotionContainer, MotionItem } from "@/components/ui/motion-layout";
 
 interface DashboardData {
   activeOrdersCount: number;
@@ -90,12 +95,72 @@ const statusConfig = {
 export default function DashboardClient({ initialData, error }: DashboardClientProps) {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showCommandBarHighlight, setShowCommandBarHighlight] = useState(false);
+  const [isSimulationMode, setIsSimulationMode] = useState(false);
+  const [simulatedOrders, setSimulatedOrders] = useState<any[]>([]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const welcomeShown = localStorage.getItem("kyperfix_welcome_shown");
       if (!welcomeShown) {
         setShowWelcomeModal(true);
+      }
+
+      const mode = localStorage.getItem("kyperfix_simulation_mode") === "true";
+      setIsSimulationMode(mode);
+
+      const stored = localStorage.getItem("kyperfix_simulated_orders");
+      if (stored) {
+        setSimulatedOrders(JSON.parse(stored));
+      } else {
+        const initialSimulated = [
+          {
+            id: "sim-order-1",
+            osNumber: 9901,
+            status: "IN_PROGRESS",
+            createdAt: new Date(Date.now() - 30 * 60000).toISOString(),
+            statusChangedAt: new Date(Date.now() - 30 * 60000).toISOString(),
+            customerName: "Carlos Souza",
+            customerPhone: "21999999991",
+            vehiclePlate: "CIV9E12",
+            vehicleBrand: "Honda",
+            vehicleModel: "Civic",
+            mechanicName: "Roberto",
+            allocatedBox: "Rampa 1",
+            totalPrice: 1200
+          },
+          {
+            id: "sim-order-2",
+            osNumber: 9902,
+            status: "AWAITING_APPROVAL",
+            createdAt: new Date(Date.now() - 10 * 60000).toISOString(),
+            statusChangedAt: new Date(Date.now() - 10 * 60000).toISOString(),
+            customerName: "Ana Maria",
+            customerPhone: "21999999992",
+            vehiclePlate: "TOY4A12",
+            vehicleBrand: "Toyota",
+            vehicleModel: "Corolla",
+            mechanicName: null,
+            allocatedBox: "Rampa 2",
+            totalPrice: 750
+          },
+          {
+            id: "sim-order-3",
+            osNumber: 9903,
+            status: "READY",
+            createdAt: new Date(Date.now() - 5 * 3600000).toISOString(),
+            statusChangedAt: new Date(Date.now() - 5 * 3600000).toISOString(),
+            customerName: "Pedro Santos",
+            customerPhone: "21999999993",
+            vehiclePlate: "CHE5O24",
+            vehicleBrand: "Chevrolet",
+            vehicleModel: "Onix",
+            mechanicName: "Bruno",
+            allocatedBox: "Box 1",
+            totalPrice: 450
+          }
+        ];
+        localStorage.setItem("kyperfix_simulated_orders", JSON.stringify(initialSimulated));
+        setSimulatedOrders(initialSimulated);
       }
     }
   }, []);
@@ -105,8 +170,36 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
       setShowCommandBarHighlight(false);
     };
     window.addEventListener("toggle-command-bar", handleToggle);
-    return () => window.removeEventListener("toggle-command-bar", handleToggle);
+
+    const handleSimChange = () => {
+      const mode = localStorage.getItem("kyperfix_simulation_mode") === "true";
+      setIsSimulationMode(mode);
+      const stored = localStorage.getItem("kyperfix_simulated_orders");
+      if (stored) {
+        setSimulatedOrders(JSON.parse(stored));
+      }
+    };
+    window.addEventListener("kyperfix-simulation-changed", handleSimChange);
+
+    return () => {
+      window.removeEventListener("toggle-command-bar", handleToggle);
+      window.removeEventListener("kyperfix-simulation-changed", handleSimChange);
+    };
   }, []);
+
+  const handleEnterSimulation = () => {
+    localStorage.setItem("kyperfix_simulation_mode", "true");
+    setIsSimulationMode(true);
+    window.dispatchEvent(new Event("kyperfix-simulation-changed"));
+    toast.success("Modo de Simulação ativo! Explore o painel e o pátio.");
+  };
+
+  const handleExitSimulation = () => {
+    localStorage.setItem("kyperfix_simulation_mode", "false");
+    setIsSimulationMode(false);
+    window.dispatchEvent(new Event("kyperfix-simulation-changed"));
+    toast.success("Retornou ao modo de produção real.");
+  };
 
   if (error || !initialData) {
     return (
@@ -120,7 +213,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
     );
   }
 
-  const {
+  let {
     activeOrdersCount,
     monthlyRevenue,
     ticketMedio,
@@ -130,6 +223,61 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
     recentOrders,
     onboarding,
   } = initialData;
+
+  if (isSimulationMode) {
+    const simStatusCounts = {
+      CHECK_IN: 0,
+      AWAITING_BUDGET: 0,
+      AWAITING_APPROVAL: 0,
+      AWAITING_PARTS: 0,
+      IN_PROGRESS: 0,
+      TESTING_WASHING: 0,
+      READY: 0,
+      DELIVERED: 0,
+    };
+
+    simulatedOrders.forEach(o => {
+      if (o.status in simStatusCounts) {
+        simStatusCounts[o.status as keyof typeof simStatusCounts]++;
+      }
+    });
+
+    activeOrdersCount = simulatedOrders.filter(o => o.status !== "DELIVERED").length;
+    monthlyRevenue = 12000 + simulatedOrders.reduce((acc, o) => acc + (o.totalPrice || 0), 0);
+    ticketMedio = simulatedOrders.length > 0 
+      ? simulatedOrders.reduce((acc, o) => acc + (o.totalPrice || 0), 0) / simulatedOrders.length
+      : 0;
+    lowStockCount = 2;
+    lowStockParts = [
+      {
+        id: "sim-p1",
+        name: "Pastilha de Freio Civic",
+        sku: "PF-CIV-002",
+        quantity: 1,
+        minQuantity: 5,
+        brand: "Cobreq",
+      },
+      {
+        id: "sim-p2",
+        name: "Filtro de Óleo Corolla",
+        sku: "FO-COR-012",
+        quantity: 0,
+        minQuantity: 3,
+        brand: "Fram",
+      }
+    ];
+    statusCounts = simStatusCounts;
+    recentOrders = simulatedOrders.map(o => ({
+      id: o.id,
+      osNumber: o.osNumber,
+      status: o.status,
+      paymentStatus: "PENDING",
+      createdAt: o.createdAt,
+      totalPrice: o.totalPrice || 500,
+      customer: { name: o.customerName },
+      vehicle: { brand: o.vehicleBrand, model: o.vehicleModel, plate: o.vehiclePlate }
+    })).sort((a, b) => b.osNumber - a.osNumber);
+  }
 
   const totalOrders = Object.values(statusCounts).reduce((a, b) => a + b, 0);
 
@@ -243,16 +391,92 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
           </p>
         </div>
 
-        <div className="flex items-center gap-3 bg-card border border-border/50 p-2.5 rounded-2xl shadow-sm">
-          <div className="size-9 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500 border border-emerald-500/20 shrink-0">
-            <Activity className="size-4 animate-pulse" />
-          </div>
-          <div className="grid">
-            <span className="text-[9px] text-muted-foreground uppercase font-bold">Status do Sistema</span>
-            <span className="text-[10px] text-foreground font-bold font-mono">FILIAL MATRIZ ➜ ONLINE</span>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={isSimulationMode ? handleExitSimulation : handleEnterSimulation}
+            variant={isSimulationMode ? "default" : "outline"}
+            className={cn(
+              "text-xs font-bold py-1 px-3 h-9 rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer",
+              isSimulationMode 
+                ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-650/20" 
+                : "bg-card text-muted-foreground hover:text-foreground border-border/50"
+            )}
+          >
+            <Play className={cn("size-3.5", isSimulationMode ? "fill-white" : "")} />
+            {isSimulationMode ? "Simulação Ativa" : "Demonstração / Simulação"}
+          </Button>
+
+          <div className="flex items-center gap-3 bg-card border border-border/50 p-2.5 rounded-2xl shadow-sm">
+            <div className="size-9 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500 border border-emerald-500/20 shrink-0">
+              <Activity className="size-4 animate-pulse" />
+            </div>
+            <div className="grid">
+              <span className="text-[9px] text-muted-foreground uppercase font-bold">Status do Sistema</span>
+              <span className="text-[10px] text-foreground font-bold font-mono">FILIAL MATRIZ ➜ ONLINE</span>
+            </div>
           </div>
         </div>
       </div>
+
+      {isSimulationMode && (
+        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3 text-left">
+            <span className="bg-amber-500/20 text-amber-600 p-1.5 rounded-lg border border-amber-500/35">
+              <AlertTriangle className="size-4 animate-pulse" />
+            </span>
+            <div className="grid">
+              <span className="text-xs font-bold text-foreground">Você está no Modo de Simulação/Demonstração</span>
+              <span className="text-[10px] text-muted-foreground">
+                As ordens de serviço, receitas e estoque exibidos são fictícios e salvos localmente no seu navegador para você experimentar o sistema livremente.
+              </span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="xs"
+              onClick={() => {
+                localStorage.removeItem("kyperfix_simulated_orders");
+                window.dispatchEvent(new Event("kyperfix-simulation-changed"));
+                toast.success("Dados da simulação resetados.");
+              }}
+              className="text-[10px] font-bold text-amber-600 hover:text-amber-700 bg-amber-500/5 hover:bg-amber-500/10 border-amber-500/20 h-7 px-3 shrink-0"
+            >
+              Resetar Dados
+            </Button>
+            <Button
+              variant="default"
+              size="xs"
+              onClick={handleExitSimulation}
+              className="text-[10px] font-bold bg-amber-500 hover:bg-amber-600 text-white h-7 px-3 shrink-0"
+            >
+              Sair da Simulação
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!isSimulationMode && totalOrders === 0 && (
+        <div className="bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <span className="bg-emerald-500/10 text-emerald-500 p-2 rounded-xl border border-emerald-500/20 shrink-0">
+              <Wrench className="size-5" />
+            </span>
+            <div className="grid">
+              <span className="text-sm font-bold text-foreground">Sua oficina está vazia. Que tal simular o fluxo? 🚀</span>
+              <span className="text-xs text-muted-foreground mt-0.5">
+                Experimente o Modo de Simulação para ver como o pátio reativo, os alertas de retenção física, o faturamento e o inventário se comportam com dados de demonstração.
+              </span>
+            </div>
+          </div>
+          <Button
+            onClick={handleEnterSimulation}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs px-4 py-2 h-9 rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
+          >
+            Iniciar Simulação
+          </Button>
+        </div>
+      )}
 
       {/* Tooltip de Orientação do Command Bar */}
       {showCommandBarHighlight && (
@@ -363,135 +587,141 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
       )}
 
       {/* KPI Cards Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <MotionContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: Active Work Orders */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="relative group overflow-hidden bg-card p-5 rounded-3xl border border-border/50 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] hover:border-cyan-500/30 transition-all cursor-pointer text-card-foreground"
-        >
-          <div className="absolute top-0 right-0 size-20 bg-cyan-500/5 rounded-bl-full group-hover:bg-cyan-500/10 transition-all" />
-          <div className="flex items-start justify-between">
-            <div className="space-y-3">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">OS em Andamento</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl font-black text-cyan-500 dark:text-cyan-450 tracking-tight">{activeOrdersCount}</span>
-                <span className="text-[10px] text-muted-foreground font-medium">ativas</span>
+        <MotionItem>
+          <MotionCard
+            className="relative group overflow-hidden bg-card p-5 rounded-3xl border border-border/50 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] hover:border-cyan-500/30 transition-all cursor-pointer text-card-foreground h-full"
+          >
+            <div className="absolute top-0 right-0 size-20 bg-cyan-500/5 rounded-bl-full group-hover:bg-cyan-500/10 transition-all" />
+            <div className="flex items-start justify-between">
+              <div className="space-y-3">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">OS em Andamento</span>
+                <div className="flex items-baseline gap-1.5">
+                  <RollingNumber
+                    value={activeOrdersCount}
+                    decimals={0}
+                    className="text-3xl font-black text-cyan-500 dark:text-cyan-450 tracking-tight"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-medium">ativas</span>
+                </div>
+              </div>
+              <div className="size-9 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-500 border border-cyan-500/20">
+                <Wrench className="size-5" />
               </div>
             </div>
-            <div className="size-9 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-500 border border-cyan-500/20">
-              <Wrench className="size-5" />
+            <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-dashed border-border pt-3">
+              <Link href="/panel/orders/kanban" className="flex items-center gap-1 hover:text-cyan-500 transition-colors">
+                Acessar Quadro Kanban
+                <ArrowRight className="size-3 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-dashed border-border pt-3">
-            <Link href="/panel/orders/kanban" className="flex items-center gap-1 hover:text-cyan-500 transition-colors">
-              Acessar Quadro Kanban
-              <ArrowRight className="size-3 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-        </motion.div>
+          </MotionCard>
+        </MotionItem>
 
         {/* KPI 2: Monthly Revenue */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.05 }}
-          className="relative group overflow-hidden bg-card p-5 rounded-3xl border border-border/50 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] hover:border-emerald-500/30 transition-all cursor-pointer text-card-foreground"
-        >
-          <div className="absolute top-0 right-0 size-20 bg-emerald-500/5 rounded-bl-full group-hover:bg-emerald-500/10 transition-all" />
-          <div className="flex items-start justify-between">
-            <div className="space-y-3">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Faturamento Mensal</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-black text-emerald-500 dark:text-emerald-400 tracking-tight">
-                  {formatCurrency(monthlyRevenue).replace("R$", "")}
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium">BRL</span>
+        <MotionItem>
+          <MotionCard
+            className="relative group overflow-hidden bg-card p-5 rounded-3xl border border-border/50 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] hover:border-emerald-500/30 transition-all cursor-pointer text-card-foreground h-full"
+          >
+            <div className="absolute top-0 right-0 size-20 bg-emerald-500/5 rounded-bl-full group-hover:bg-emerald-500/10 transition-all" />
+            <div className="flex items-start justify-between">
+              <div className="space-y-3">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Faturamento Mensal</span>
+                <div className="flex items-baseline gap-1.5">
+                  <RollingNumber
+                    value={monthlyRevenue}
+                    decimals={2}
+                    className="text-2xl font-black text-emerald-500 dark:text-emerald-400 tracking-tight"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-medium">BRL</span>
+                </div>
+              </div>
+              <div className="size-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                <DollarSign className="size-5" />
               </div>
             </div>
-            <div className="size-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-              <DollarSign className="size-5" />
+            <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-dashed border-border pt-3">
+              <span className="text-muted-foreground">Apenas OS finalizadas e pagas</span>
             </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-dashed border-border pt-3">
-            <span className="text-muted-foreground">Apenas OS finalizadas e pagas</span>
-          </div>
-        </motion.div>
+          </MotionCard>
+        </MotionItem>
 
         {/* KPI 3: Average Ticket */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="relative group overflow-hidden bg-card p-5 rounded-3xl border border-border/50 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] hover:border-amber-500/30 transition-all cursor-pointer text-card-foreground"
-        >
-          <div className="absolute top-0 right-0 size-20 bg-amber-500/5 rounded-bl-full group-hover:bg-amber-500/10 transition-all" />
-          <div className="flex items-start justify-between">
-            <div className="space-y-3">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Ticket Médio por OS</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-black text-amber-500 dark:text-amber-400 tracking-tight">
-                  {formatCurrency(ticketMedio).replace("R$", "")}
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium">BRL</span>
+        <MotionItem>
+          <MotionCard
+            className="relative group overflow-hidden bg-card p-5 rounded-3xl border border-border/50 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] hover:border-amber-500/30 transition-all cursor-pointer text-card-foreground h-full"
+          >
+            <div className="absolute top-0 right-0 size-20 bg-amber-500/5 rounded-bl-full group-hover:bg-amber-500/10 transition-all" />
+            <div className="flex items-start justify-between">
+              <div className="space-y-3">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Ticket Médio por OS</span>
+                <div className="flex items-baseline gap-1.5">
+                  <RollingNumber
+                    value={ticketMedio}
+                    decimals={2}
+                    className="text-2xl font-black text-amber-500 dark:text-amber-400 tracking-tight"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-medium">BRL</span>
+                </div>
+              </div>
+              <div className="size-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                <TrendingUp className="size-5" />
               </div>
             </div>
-            <div className="size-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20">
-              <TrendingUp className="size-5" />
+            <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-dashed border-border pt-3">
+              <span className="text-muted-foreground">Média geral do pátio</span>
             </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-dashed border-border pt-3">
-            <span className="text-muted-foreground">Média geral do pátio</span>
-          </div>
-        </motion.div>
+          </MotionCard>
+        </MotionItem>
 
         {/* KPI 4: Low Stock Alert */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-          className={cn(
-            "relative group overflow-hidden bg-card p-5 rounded-3xl border transition-all cursor-pointer shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] text-card-foreground",
-            lowStockCount > 0
-              ? "border-red-500/20 hover:border-red-500/40 shadow-red-500/5"
-              : "border-border/50 hover:border-emerald-500/30"
-          )}
-        >
-          <div className={cn(
-            "absolute top-0 right-0 size-20 rounded-bl-full transition-all",
-            lowStockCount > 0 ? "bg-red-500/5 group-hover:bg-red-500/10" : "bg-zinc-500/5"
-          )} />
-          <div className="flex items-start justify-between">
-            <div className="space-y-3">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Estoque Crítico</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className={cn(
-                  "text-3xl font-black tracking-tight",
-                  lowStockCount > 0 ? "text-red-500 dark:text-red-400" : "text-foreground"
-                )}>
-                  {lowStockCount}
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium">itens</span>
+        <MotionItem>
+          <MotionCard
+            className={cn(
+              "relative group overflow-hidden bg-card p-5 rounded-3xl border transition-all cursor-pointer shadow-[0_10px_50px_-12px_rgba(0,0,0,0.05)] text-card-foreground h-full",
+              lowStockCount > 0
+                ? "border-red-500/20 hover:border-red-500/40 shadow-red-500/5"
+                : "border-border/50 hover:border-emerald-500/30"
+            )}
+          >
+            <div className={cn(
+              "absolute top-0 right-0 size-20 rounded-bl-full transition-all",
+              lowStockCount > 0 ? "bg-red-500/5 group-hover:bg-red-500/10" : "bg-zinc-500/5"
+            )} />
+            <div className="flex items-start justify-between">
+              <div className="space-y-3">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Estoque Crítico</span>
+                <div className="flex items-baseline gap-1.5">
+                  <RollingNumber
+                    value={lowStockCount}
+                    decimals={0}
+                    className={cn(
+                      "text-3xl font-black tracking-tight",
+                      lowStockCount > 0 ? "text-red-500 dark:text-red-400" : "text-foreground"
+                    )}
+                  />
+                  <span className="text-[10px] text-muted-foreground font-medium">itens</span>
+                </div>
+              </div>
+              <div className={cn(
+                "size-9 rounded-xl flex items-center justify-center border",
+                lowStockCount > 0
+                  ? "bg-red-500/10 text-red-500 border-red-500/20 animate-pulse"
+                  : "bg-muted text-muted-foreground border-border"
+              )}>
+                <AlertTriangle className="size-5" />
               </div>
             </div>
-            <div className={cn(
-              "size-9 rounded-xl flex items-center justify-center border",
-              lowStockCount > 0
-                ? "bg-red-500/10 text-red-500 border-red-500/20 animate-pulse"
-                : "bg-muted text-muted-foreground border-border"
-            )}>
-              <AlertTriangle className="size-5" />
+            <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-dashed border-border pt-3">
+              <Link href="/panel/inventory/parts" className="flex items-center gap-1 hover:text-red-500 transition-colors">
+                Visualizar Inventário
+                <ArrowRight className="size-3 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-dashed border-border pt-3">
-            <Link href="/panel/inventory/parts" className="flex items-center gap-1 hover:text-red-500 transition-colors">
-              Visualizar Inventário
-              <ArrowRight className="size-3 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-        </motion.div>
-      </section>
+          </MotionCard>
+        </MotionItem>
+      </MotionContainer>
 
       {/* Main Content Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -511,13 +741,13 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
               </span>
             </div>
 
-            <div className="space-y-3.5">
+            <MotionContainer className="space-y-3.5" staggerChildren={0.03}>
               {Object.entries(statusCounts).map(([statusKey, count]) => {
                 const cfg = statusConfig[statusKey as keyof typeof statusConfig] || { label: statusKey, text: "text-muted-foreground", bar: "bg-zinc-400" };
                 const pct = totalOrders > 0 ? (count / totalOrders) * 100 : 0;
 
                 return (
-                  <div key={statusKey} className="space-y-1">
+                  <MotionItem key={statusKey} className="space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-foreground font-semibold">{cfg.label}</span>
                       <div className="flex items-center gap-2">
@@ -530,14 +760,14 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
                         className={cn("h-full rounded-full", cfg.bar)}
                       />
                     </div>
-                  </div>
+                  </MotionItem>
                 );
               })}
-            </div>
+            </MotionContainer>
           </div>
 
           {/* Low Stock Alerts list */}
@@ -594,51 +824,52 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
               </Link>
             </div>
 
-            <div className="space-y-3">
+            <MotionContainer className="space-y-3" staggerChildren={0.04}>
               {recentOrders.length > 0 ? (
                 recentOrders.map(order => {
                   const cfg = statusConfig[order.status as keyof typeof statusConfig] || { label: order.status, bg: "bg-zinc-500/10", border: "border-zinc-500/20", text: "text-zinc-500" };
 
                   return (
-                    <div
-                      key={order.id}
-                      className="group/item flex items-center justify-between p-3 bg-muted/20 hover:bg-muted/30 border border-border/50 rounded-2xl transition-all hover:-translate-y-0.5 shadow-xs text-foreground"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-xs text-foreground font-mono tracking-tighter">
-                            #{String(order.osNumber).padStart(4, "0")}
-                          </span>
-                          <span className={cn(
-                            "text-[8px] font-black uppercase px-2 py-0.5 border rounded-full",
-                            cfg.bg, cfg.border, cfg.text
-                          )}>
-                            {cfg.label}
-                          </span>
+                    <MotionItem key={order.id}>
+                      <div
+                        className="group/item flex items-center justify-between p-3 bg-muted/20 hover:bg-muted/30 border border-border/50 rounded-2xl transition-all hover:-translate-y-0.5 shadow-xs text-foreground"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-xs text-foreground font-mono tracking-tighter">
+                              #{String(order.osNumber).padStart(4, "0")}
+                            </span>
+                            <span className={cn(
+                              "text-[8px] font-black uppercase px-2 py-0.5 border rounded-full",
+                              cfg.bg, cfg.border, cfg.text
+                            )}>
+                              {cfg.label}
+                            </span>
+                          </div>
+
+                          <div className="grid text-xs">
+                            <span className="font-bold text-foreground uppercase tracking-tight">
+                              {order.customer.name}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {order.vehicle.brand} {order.vehicle.model} · <span className="text-foreground/80 font-bold font-mono">{formatPlate(order.vehicle.plate)}</span>
+                            </span>
+                          </div>
                         </div>
 
-                        <div className="grid text-xs">
-                          <span className="font-bold text-foreground uppercase tracking-tight">
-                            {order.customer.name}
+                        <div className="text-right flex flex-col items-end gap-1.5">
+                          <span className="text-xs font-black text-emerald-500 font-mono">
+                            {formatCurrency(order.totalPrice)}
                           </span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {order.vehicle.brand} {order.vehicle.model} · <span className="text-foreground/80 font-bold font-mono">{formatPlate(order.vehicle.plate)}</span>
-                          </span>
+
+                          <Link href="/panel/orders">
+                            <Button className="text-[9px] font-bold uppercase text-muted-foreground hover:text-foreground border border-border px-2.5 py-1 rounded-none transition-all bg-card hover:bg-muted/40">
+                              Acessar
+                            </Button>
+                          </Link>
                         </div>
                       </div>
-
-                      <div className="text-right flex flex-col items-end gap-1.5">
-                        <span className="text-xs font-black text-emerald-500 font-mono">
-                          {formatCurrency(order.totalPrice)}
-                        </span>
-
-                        <Link href="/panel/orders">
-                          <Button className="text-[9px] font-bold uppercase text-muted-foreground hover:text-foreground border border-border px-2.5 py-1 rounded-none transition-all bg-card hover:bg-muted/40">
-                            Acessar
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
+                    </MotionItem>
                   );
                 })
               ) : (
@@ -649,7 +880,7 @@ export default function DashboardClient({ initialData, error }: DashboardClientP
                   </p>
                 </div>
               )}
-            </div>
+            </MotionContainer>
           </div>
         </section>
       </div>

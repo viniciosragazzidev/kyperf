@@ -388,6 +388,36 @@ function NewWorkOrderForm() {
   // Status da OS e Timeline
   const [osStatus, setOsStatus] = useState<'CHECK_IN' | 'AWAITING_BUDGET' | 'AWAITING_APPROVAL' | 'AWAITING_PARTS' | 'IN_PROGRESS' | 'TESTING_WASHING' | 'READY' | 'DELIVERED'>('CHECK_IN')
 
+  // Lançador Rápido (Pragmatic Flow System Protocol)
+  const [quickItemType, setQuickItemType] = useState<'PART' | 'SERVICE'>('SERVICE')
+  const [quickItemName, setQuickItemName] = useState("")
+  const [quickItemCost, setQuickItemCost] = useState("0")
+  const [quickItemSale, setQuickItemSale] = useState("0")
+  const [quickItemId, setQuickItemId] = useState("")
+  const [showQuickItemDropdown, setShowQuickItemDropdown] = useState(false)
+
+  const handleLaunchQuickItem = () => {
+    if (!quickItemName.trim()) return
+    setOsItems((prev) => [
+      ...prev,
+      {
+        type: quickItemType,
+        itemId: quickItemId || "",
+        name: quickItemName.trim(),
+        quantity: 1,
+        unitCostPrice: quickItemType === 'PART' ? quickItemCost || "0" : "0",
+        unitSalePrice: quickItemSale || "0",
+        isApproved: 1, // Pré-aprovado por padrão quando lançado pelo mecânico/operador
+        hasOverride: false
+      }
+    ])
+    setQuickItemName("")
+    setQuickItemCost("0")
+    setQuickItemSale("0")
+    setQuickItemId("")
+    setShowQuickItemDropdown(false)
+  }
+
   // Refs para cliques fora
   const clientSearchRef = useRef<HTMLDivElement>(null)
   const itemsContainerRef = useRef<HTMLDivElement>(null)
@@ -1668,6 +1698,140 @@ function NewWorkOrderForm() {
                 <Plus className="size-3" />
                 Adicionar Item
               </Button>
+            </div>
+
+            {/* Lançador Rápido (Pragmatic Flow System Protocol) */}
+            <div className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 dark:border-emerald-500/30 rounded-3xl space-y-3">
+              <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-450 uppercase tracking-wider flex items-center gap-1">
+                <Plus className="size-3.5" /> Lançador Rápido (Inserção Direta)
+              </span>
+              <div className="flex flex-wrap md:flex-nowrap items-end gap-3 text-xs">
+                {/* Tipo */}
+                <div className="space-y-1 w-24 shrink-0">
+                  <Label className="text-[9px] font-bold text-muted-foreground uppercase">Tipo</Label>
+                  <select 
+                    value={quickItemType} 
+                    onChange={(e) => {
+                      setQuickItemType(e.target.value as 'PART' | 'SERVICE')
+                      setQuickItemName("")
+                      setQuickItemCost("0")
+                      setQuickItemSale("0")
+                      setQuickItemId("")
+                    }}
+                    className="w-full h-8.5 text-[11px] border border-border rounded-lg bg-card px-2.5 font-bold text-foreground focus:outline-hidden"
+                  >
+                    <option value="SERVICE">Serviço</option>
+                    <option value="PART">Peça</option>
+                  </select>
+                </div>
+                {/* Nome/Busca */}
+                <div className="flex-1 min-w-[200px] relative space-y-1">
+                  <Label className="text-[9px] font-bold text-muted-foreground uppercase">Descrição / Nome do Item</Label>
+                  <Input
+                    type="text"
+                    placeholder={quickItemType === 'PART' ? "Digite para buscar ou criar peça..." : "Digite para buscar ou criar serviço..."}
+                    value={quickItemName}
+                    onChange={(e) => {
+                      setQuickItemName(e.target.value)
+                      setQuickItemId("")
+                      setShowQuickItemDropdown(true)
+                    }}
+                    onFocus={() => setShowQuickItemDropdown(true)}
+                    className="w-full h-8.5 text-xs bg-card border border-border rounded-lg px-2.5 font-semibold text-foreground"
+                  />
+                  
+                  {/* Dropdown Auto-complete */}
+                  {showQuickItemDropdown && quickItemName.trim() !== "" && (
+                    <div className="absolute left-0 top-15 bg-card border border-border rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto text-xs w-[280px] sm:w-[380px]">
+                      {quickItemType === 'PART' ? (
+                        catalogParts
+                          .filter(p => p.name.toLowerCase().includes(quickItemName.toLowerCase()))
+                          .map(p => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => {
+                                setQuickItemName(p.name)
+                                setQuickItemCost(p.costPrice)
+                                setQuickItemSale(p.salePrice)
+                                setQuickItemId(p.id)
+                                setShowQuickItemDropdown(false)
+                              }}
+                              className="w-full text-left px-3 py-1.5 hover:bg-muted font-medium flex items-center justify-between border-b border-border/30 last:border-0 cursor-pointer"
+                            >
+                              <span>{p.name} ({p.brand})</span>
+                              <span className="text-[10px] font-bold text-emerald-500 font-mono">R$ {p.salePrice}</span>
+                            </button>
+                          ))
+                      ) : (
+                        catalogServices
+                          .filter(s => s.name.toLowerCase().includes(quickItemName.toLowerCase()))
+                          .map(s => (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => {
+                                setQuickItemName(s.name)
+                                setQuickItemCost("0")
+                                setQuickItemSale(s.basePrice)
+                                setQuickItemId(s.id)
+                                setShowQuickItemDropdown(false)
+                              }}
+                              className="w-full text-left px-3 py-1.5 hover:bg-muted font-medium flex items-center justify-between border-b border-border/30 last:border-0 cursor-pointer"
+                            >
+                              <span>{s.name}</span>
+                              <span className="text-[10px] font-bold text-emerald-500 font-mono">R$ {s.basePrice}</span>
+                            </button>
+                          ))
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowQuickItemDropdown(false)}
+                        className="w-full text-center py-1 bg-muted/30 text-[9px] font-bold hover:bg-muted text-muted-foreground border-t border-border cursor-pointer"
+                      >
+                        Fechar Lista
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Preço Custo */}
+                {quickItemType === 'PART' && (
+                  <div className="space-y-1 w-28 shrink-0">
+                    <Label className="text-[9px] font-bold text-muted-foreground uppercase">Custo (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={quickItemCost}
+                      onChange={(e) => setQuickItemCost(e.target.value)}
+                      className="w-full h-8.5 text-xs bg-card border border-border rounded-lg px-2 font-mono font-bold"
+                    />
+                  </div>
+                )}
+
+                {/* Preço Venda */}
+                <div className="space-y-1 w-28 shrink-0">
+                  <Label className="text-[9px] font-bold text-muted-foreground uppercase">Venda (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={quickItemSale}
+                    onChange={(e) => setQuickItemSale(e.target.value)}
+                    className="w-full h-8.5 text-xs bg-card border border-border rounded-lg px-2 font-mono font-bold text-emerald-500"
+                  />
+                </div>
+
+                {/* Botão de Lançamento */}
+                <Button
+                  type="button"
+                  onClick={handleLaunchQuickItem}
+                  className="h-8.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] px-4 rounded-lg shrink-0 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="size-3.5" /> Lançar
+                </Button>
+              </div>
             </div>
 
             {osStatus === 'CHECK_IN' && osItems.length === 0 && (
