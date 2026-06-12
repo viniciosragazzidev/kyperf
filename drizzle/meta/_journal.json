@@ -43,6 +43,13 @@
       "when": 1781111300417,
       "tag": "0005_steep_ozymandias",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781306180639,
+      "tag": "0006_fantastic_madelyne_pryor",
+      "breakpoints": true
     }
   ]
 }

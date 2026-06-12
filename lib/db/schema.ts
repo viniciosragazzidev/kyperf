@@ -84,6 +84,7 @@ export const user = pgTable('user', {
   image: text('image'),
   createdAt: timestamp('created_at').notNull(),
   updatedAt: timestamp('updated_at').notNull(),
+  isDev: boolean('is_dev').default(false).notNull(),
   
   // Custom multi-tenant fields
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
