@@ -23,10 +23,7 @@ export default function Home() {
         <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-zinc-950/40 backdrop-blur-md">
           <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                <Wrench className="size-4 text-emerald-400" />
-              </div>
-              <span className="text-sm font-black tracking-widest font-mono text-zinc-100">KYPERFIX</span>
+              <img src="/logo.svg" alt="KyperFix Logo" className="h-8 w-auto object-contain logo-invert" />
             </div>
             
             <div className="flex items-center gap-4">
