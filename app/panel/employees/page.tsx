@@ -247,15 +247,15 @@ export default function EmployeesPage() {
           <Button
             onClick={() => window.location.href = "/panel/employees/workload"}
             variant="outline"
-            className="flex items-center gap-1.5 font-bold text-xs rounded-none px-4 py-2 transition-all active:scale-95 shrink-0"
+            className="flex items-center gap-1.5 font-extrabold text-xs rounded-none px-5 py-2.5 h-auto transition-all active:scale-95 shrink-0"
           >
             <span>Carga de Trabalho</span>
           </Button>
           <Button
             onClick={handleOpenCreateModal}
-            className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-none px-4 py-2 transition-all active:scale-95 shrink-0"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-none px-5 py-2.5 h-auto transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0"
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             <span>Cadastrar Colaborador</span>
           </Button>
         </div>

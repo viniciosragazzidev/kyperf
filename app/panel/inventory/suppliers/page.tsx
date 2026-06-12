@@ -201,9 +201,9 @@ export default function SuppliersPage() {
 
         <Button
           onClick={openCreateModal}
-          className="flex items-center gap-1.5 bg-foreground hover:bg-foreground/90 text-background font-bold text-xs rounded-none px-4 py-2 transition-all shadow-sm active:scale-95 shrink-0"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-none px-5 py-2.5 h-auto transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0"
         >
-          <Plus className="size-3.5" />
+          <Plus className="size-4" />
           <span>Novo Fornecedor</span>
         </Button>
       </div>
