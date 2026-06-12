@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { usePathname } from "next/navigation"
+import Link from "next/link"
 import {
   Collapsible,
   CollapsibleContent,
@@ -62,7 +63,7 @@ export function NavMain({
                   {hoveredIndex === index && !isActive && (
                     <motion.div
                       layoutId={`hover-bg-${label}`}
-                      className="absolute inset-0 z-0 rounded-md bg-sidebar-accent"
+                      className="absolute inset-0 z-0"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -75,12 +76,13 @@ export function NavMain({
                   )}
                 </AnimatePresence>
                 
-                <SidebarMenuButton
-                  tooltip={item.title}
-                  isActive={isActive}
-                  className="target-hover-effect target-hover-trigger hover:bg-transparent! w-full relative z-10"
-                  render={item.items?.length ? <CollapsibleTrigger /> : <a href={item.url} />}
-                >
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    isActive={isActive}
+                    data-active={isActive}
+                    className="target-hover-effect target-hover-trigger hover:bg-transparent! w-full relative z-10"
+                    render={item.items?.length ? <CollapsibleTrigger /> : <Link href={item.url} />}
+                  >
                   {item.icon}
                   <span>{item.title}</span>
                   {item.items?.length ? (
@@ -99,9 +101,9 @@ export function NavMain({
                       return (
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton 
-                            render={<a href={subItem.url} />}
+                            render={<Link href={subItem.url} />}
                             data-active={isSubActive}
-                            className="data-active:bg-sidebar-accent/50 data-active:text-sidebar-accent-foreground"
+                            className={`target-hover-effect target-hover-trigger ${isSubActive ? "bg-primary/50 text-primary-foreground" : ""}`}
                           >
                             <span>{subItem.title}</span>
                           </SidebarMenuSubButton>

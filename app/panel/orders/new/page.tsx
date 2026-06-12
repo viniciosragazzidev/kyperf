@@ -25,6 +25,13 @@ import {
 } from "lucide-react"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -913,7 +920,8 @@ function NewWorkOrderForm() {
   const isUserAdmin = currentUser?.role === 'OWNER' || currentUser?.role === 'MANAGER'
 
   return (
-    <div className="flex-1 p-4 md:p-6 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans pb-56 md:pb-48">
+    <div className="flex-1 bg-[#FAF9F6] dark:bg-zinc-950 min-h-screen font-sans flex flex-col">
+      <div className="flex-1 p-4 md:p-6 pb-24">
       
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
@@ -1353,23 +1361,26 @@ function NewWorkOrderForm() {
                     className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-medium"
                   />
                 ) : (
-                  <select
+                  <Select
                     disabled={!selectedFipeModelCode}
                     value={fipeYears.find(y => y.name.startsWith(vehYear))?.code || ""}
-                    onChange={(e) => handleFipeYearChange(e.target.value)}
-                    className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-medium uppercase"
+                    onValueChange={(val) => handleFipeYearChange(val)}
                   >
-                    <option value="">-- SELECIONE --</option>
-                    {loadingYears ? (
-                      <option disabled>Carregando...</option>
-                    ) : (
-                      fipeYears.map(y => (
-                        <option key={y.code} value={y.code}>
-                          {y.name}
-                        </option>
-                      ))
-                    )}
-                  </select>
+                    <SelectTrigger className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-medium uppercase">
+                      <SelectValue placeholder="-- SELECIONE --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {loadingYears ? (
+                        <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                      ) : (
+                        fipeYears.map(y => (
+                          <SelectItem key={y.code} value={y.code}>
+                            {y.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 )}
               </div>
               <div className="space-y-1">
@@ -1657,18 +1668,22 @@ function NewWorkOrderForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-[9px] font-bold text-muted-foreground uppercase">Mecânico Alocado</Label>
-                <select
-                  value={selectedMechanicId}
-                  onChange={(e) => setSelectedMechanicId(e.target.value)}
-                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-semibold"
+                <Select
+                value={selectedMechanicId || "none"}
+                onValueChange={(val) => setSelectedMechanicId(val === "none" ? "" : val)}
                 >
-                  <option value="">Nenhum mecânico alocado</option>
-                  {mechanics.map((mech) => (
-                    <option key={mech.id} value={mech.id}>
-                      {mech.name} (Comissão: {mech.commissionRate}%)
-                    </option>
-                  ))}
-                </select>
+                <SelectTrigger className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-semibold">
+                  <SelectValue placeholder="Nenhum mecânico alocado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum mecânico alocado</SelectItem>
+                    {mechanics.map((mech) => (
+                      <SelectItem key={mech.id} value={mech.id}>
+                        {mech.name} (Comissão: {mech.commissionRate}%)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1">
@@ -1709,20 +1724,24 @@ function NewWorkOrderForm() {
                 {/* Tipo */}
                 <div className="space-y-1 w-24 shrink-0">
                   <Label className="text-[9px] font-bold text-muted-foreground uppercase">Tipo</Label>
-                  <select 
+                  <Select 
                     value={quickItemType} 
-                    onChange={(e) => {
-                      setQuickItemType(e.target.value as 'PART' | 'SERVICE')
+                    onValueChange={(val) => {
+                      setQuickItemType(val as 'PART' | 'SERVICE')
                       setQuickItemName("")
                       setQuickItemCost("0")
                       setQuickItemSale("0")
                       setQuickItemId("")
                     }}
-                    className="w-full h-8.5 text-[11px] border border-border rounded-lg bg-card px-2.5 font-bold text-foreground focus:outline-hidden"
                   >
-                    <option value="SERVICE">Serviço</option>
-                    <option value="PART">Peça</option>
-                  </select>
+                    <SelectTrigger className="w-full h-8.5 text-[11px] border border-border rounded-lg bg-card px-2.5 font-bold text-foreground focus:outline-hidden">
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="SERVICE">Serviço</SelectItem>
+                      <SelectItem value="PART">Peça</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 {/* Nome/Busca */}
                 <div className="flex-1 min-w-[200px] relative space-y-1">
@@ -2172,30 +2191,38 @@ function NewWorkOrderForm() {
             <div className="grid grid-cols-2 gap-2 text-xs border-t border-dashed border-border pt-4">
               <div className="space-y-1">
                 <Label className="text-[9px] font-bold text-muted-foreground uppercase">Forma de Pagamento</Label>
-                <select
+                <Select
                   value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-semibold"
+                  onValueChange={(val) => setPaymentMethod(val)}
                 >
-                  <option value="Pix">Pix</option>
-                  <option value="Cartão de Crédito">Cartão de Crédito</option>
-                  <option value="Cartão de Débito">Cartão de Débito</option>
-                  <option value="Boleto">Boleto Bancário</option>
-                  <option value="Dinheiro">Dinheiro</option>
-                </select>
+                  <SelectTrigger className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-semibold">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pix">Pix</SelectItem>
+                    <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                    <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
+                    <SelectItem value="Boleto">Boleto Bancário</SelectItem>
+                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1">
                 <Label className="text-[9px] font-bold text-muted-foreground uppercase">Status Pagamento</Label>
-                <select
+                <Select
                   value={paymentStatus}
-                  onChange={(e) => setPaymentStatus(e.target.value as any)}
-                  className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-bold"
+                  onValueChange={(val) => setPaymentStatus(val as any)}
                 >
-                  <option value="PENDING">Pendente</option>
-                  <option value="PAID">Pago</option>
-                  <option value="LATE">Atrasado</option>
-                </select>
+                  <SelectTrigger className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground font-bold">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pendente</SelectItem>
+                    <SelectItem value="PAID">Pago</SelectItem>
+                    <SelectItem value="LATE">Atrasado</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -2225,10 +2252,11 @@ function NewWorkOrderForm() {
         </div>
       </form>
       )}
+      </div>
 
       {/* 🕹️ Footer Fixo com Barra de Status e Ações Primárias (Estilo Jeet) */}
       {!editId && mechanics.length === 0 ? null : (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-t border-border p-4 shadow-[0_-5px_30px_rgba(0,0,0,0.05)]">
+        <div className="sticky bottom-0 z-40 bg-background/80 backdrop-blur-md border-t border-border p-4 shadow-[0_-5px_30px_rgba(0,0,0,0.05)]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           
           {/* Esteira Horizontal de Status */}

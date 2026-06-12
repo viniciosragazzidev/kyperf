@@ -4,6 +4,13 @@ import { useEffect, useState, useTransition } from "react";
 import { getLiteVehiclesAction, getLiteCustomersAction } from "@/lib/actions/lite-actions";
 import { createVehicleAction, deleteVehicleAction } from "@/lib/actions/vehicles-actions";
 import { Search, Car, User, Loader2, Plus, X, Trash2, Phone, Hash } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 type Vehicle = {
   id: string;
@@ -273,18 +280,18 @@ export default function VeiculosPage() {
                 <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5 uppercase">
                   PROPRIETÁRIO / CLIENTE <span className="text-destructive ml-1">*</span>
                 </label>
-                <select
-                  value={form.customerId}
-                  onChange={e => set("customerId")(e.target.value)}
-                  className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3.5 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-sans"
-                >
-                  <option value="">Selecione um cliente...</option>
-                  {customers.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({fmtPhone(c.phone)})
-                    </option>
-                  ))}
-                </select>
+                <Select value={form.customerId} onValueChange={val => set("customerId")(val)}>
+                  <SelectTrigger className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3.5 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-sans">
+                    <SelectValue placeholder="Selecione um cliente..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name} ({fmtPhone(c.phone)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Ficha técnica */}

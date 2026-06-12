@@ -40,6 +40,13 @@ import {
 } from "@/lib/actions/orders-actions"
 import { sendDirectWhatsappAction } from "@/lib/actions/whatsapp-actions"
 import { toast } from "sonner"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -1113,49 +1120,61 @@ export default function KanbanPage() {
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div className="space-y-1">
                           <Label className="text-[9px] font-bold text-muted-foreground uppercase">Etapa do Fluxo</Label>
-                          <select
+                          <Select
                             value={editStatus}
-                            onChange={(e) => setEditStatus(e.target.value)}
-                            className="w-full text-xs border border-border rounded-lg px-2 py-1.5 bg-card text-foreground font-bold focus:outline-hidden"
+                            onValueChange={(val) => setEditStatus(val as any)}
                           >
-                            <option value="CHECK_IN">Check-in / Triagem</option>
-                            <option value="AWAITING_BUDGET">Aguardando Orçamento</option>
-                            <option value="AWAITING_APPROVAL">Aguardando Aprovação</option>
-                            <option value="AWAITING_PARTS">Aguardando Peças</option>
-                            <option value="IN_PROGRESS">Em Execução</option>
-                            <option value="TESTING_WASHING">Teste / Lavagem</option>
-                            <option value="READY">Pronto para Entrega</option>
-                            <option value="DELIVERED">Faturado & Entregue</option>
-                          </select>
+                            <SelectTrigger className="w-full text-xs border border-border rounded-lg px-2 py-1.5 bg-card text-foreground font-bold focus:outline-hidden">
+                              <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="CHECK_IN">Check-in / Triagem</SelectItem>
+                              <SelectItem value="AWAITING_BUDGET">Aguardando Orçamento</SelectItem>
+                              <SelectItem value="AWAITING_APPROVAL">Aguardando Aprovação</SelectItem>
+                              <SelectItem value="AWAITING_PARTS">Aguardando Peças</SelectItem>
+                              <SelectItem value="IN_PROGRESS">Em Execução</SelectItem>
+                              <SelectItem value="TESTING_WASHING">Teste / Lavagem</SelectItem>
+                              <SelectItem value="READY">Pronto para Entrega</SelectItem>
+                              <SelectItem value="DELIVERED">Faturado & Entregue</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         <div className="space-y-1">
                           <Label className="text-[9px] font-bold text-muted-foreground uppercase">Mecânico Alocado</Label>
-                          <select
-                            value={editMechanicId}
-                            onChange={(e) => setEditMechanicId(e.target.value)}
-                            className="w-full text-xs border border-border rounded-lg px-2 py-1.5 bg-card text-foreground font-semibold focus:outline-hidden"
+                          <Select
+                            value={editMechanicId || "none"}
+                            onValueChange={(val) => setEditMechanicId(val === "none" ? "" : val)}
                           >
-                            <option value="">-- Sem mecânico alocado --</option>
-                            {mechanics.map((mech) => (
-                              <option key={mech.id} value={mech.id}>{mech.name}</option>
-                            ))}
-                          </select>
+                            <SelectTrigger className="w-full text-xs border border-border rounded-lg px-2 py-1.5 bg-card text-foreground font-semibold focus:outline-hidden">
+                              <SelectValue placeholder="-- Sem mecânico alocado --" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">-- Sem mecânico alocado --</SelectItem>
+                              {mechanics.map((mech) => (
+                                <SelectItem key={mech.id} value={mech.id}>{mech.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3 text-xs pt-1.5">
                         <div className="space-y-1">
                           <Label className="text-[9px] font-bold text-muted-foreground uppercase">Status Financeiro</Label>
-                          <select
+                          <Select
                             value={editPaymentStatus}
-                            onChange={(e) => setEditPaymentStatus(e.target.value)}
-                            className="w-full text-xs border border-border rounded-lg px-2 py-1.5 bg-card text-foreground font-bold focus:outline-hidden"
+                            onValueChange={(val) => setEditPaymentStatus(val as any)}
                           >
-                            <option value="PENDING">Pendente</option>
-                            <option value="PAID">Pago</option>
-                            <option value="LATE">Atrasado</option>
-                          </select>
+                            <SelectTrigger className="w-full text-xs border border-border rounded-lg px-2 py-1.5 bg-card text-foreground font-bold focus:outline-hidden">
+                              <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PENDING">Pendente</SelectItem>
+                              <SelectItem value="PAID">Pago</SelectItem>
+                              <SelectItem value="LATE">Atrasado</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         <div className="space-y-1">

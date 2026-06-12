@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -831,19 +838,22 @@ export default function VehiclesPage() {
                   {/* Customer Dropdown */}
                   <div className="space-y-1">
                     <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Proprietário *</Label>
-                    <select 
-                      className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground uppercase"
+                    <Select 
                       required
                       value={customerId}
-                      onChange={(e) => setCustomerId(e.target.value)}
+                      onValueChange={(val) => setCustomerId(val)}
                     >
-                      <option value="">-- SELECIONE UM CLIENTE --</option>
-                      {customers.map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} ({c.phone})
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="w-full text-xs border border-border rounded-lg px-2.5 py-1.5 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground uppercase">
+                        <SelectValue placeholder="-- SELECIONE UM CLIENTE --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customers.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name} ({c.phone})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Plate input */}

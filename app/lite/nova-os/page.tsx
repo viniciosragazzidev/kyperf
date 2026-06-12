@@ -7,6 +7,13 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2, ArrowLeft, Car, Users, Wrench, ClipboardList, DollarSign, Plus, Trash2, Printer, Search } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const ThermalPrinterCard = dynamic(
   () => import("@/components/pdf/thermal-printer-card").then((m) => ({ default: m.ThermalPrinterCard })),
@@ -489,18 +496,22 @@ export default function NovaOSPage() {
             <div className="space-y-3">
               {items.map((item, idx) => (
                 <div key={idx} className="flex flex-col sm:flex-row gap-3 bg-muted/30 border border-border p-4 rounded-2xl">
-                  <select
+                  <Select
                     value={item.type}
-                    onChange={e => {
+                    onValueChange={val => {
                       const newItems = [...items];
-                      newItems[idx].type = e.target.value as any;
+                      newItems[idx].type = val as any;
                       setItems(newItems);
                     }}
-                    className="bg-card border border-border rounded-xl px-3 py-2 text-xs font-bold font-mono outline-none focus:border-primary text-foreground"
                   >
-                    <option value="SERVICE">SERVIÇO</option>
-                    <option value="PART">PEÇA</option>
-                  </select>
+                    <SelectTrigger className="w-full sm:w-32 bg-card border border-border rounded-xl px-3 py-2 text-xs font-bold font-mono outline-none focus:border-primary text-foreground">
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="SERVICE">SERVIÇO</SelectItem>
+                      <SelectItem value="PART">PEÇA</SelectItem>
+                    </SelectContent>
+                  </Select>
                   
                   <div className="relative flex-1">
                     <input
@@ -582,19 +593,29 @@ export default function NovaOSPage() {
             </div>
             <div>
               <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">FORMA DE PAGAMENTO</label>
-              <select value={form.paymentMethod} onChange={e => setForm(p => ({...p, paymentMethod: e.target.value}))} className={fieldClass}>
-                <option value="Pix">Pix</option>
-                <option value="Cartão de Crédito">Cartão de Crédito</option>
-                <option value="Cartão de Débito">Cartão de Débito</option>
-                <option value="Dinheiro">Dinheiro</option>
-              </select>
+              <Select value={form.paymentMethod} onValueChange={val => setForm(p => ({...p, paymentMethod: val}))}>
+                <SelectTrigger className={fieldClass}>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pix">Pix</SelectItem>
+                  <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                  <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
+                  <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">STATUS PAGAMENTO</label>
-              <select value={form.paymentStatus} onChange={e => setForm(p => ({...p, paymentStatus: e.target.value}))} className={fieldClass}>
-                <option value="PENDING">Pendente</option>
-                <option value="PAID">Pago</option>
-              </select>
+              <Select value={form.paymentStatus} onValueChange={val => setForm(p => ({...p, paymentStatus: val}))}>
+                <SelectTrigger className={fieldClass}>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Pendente</SelectItem>
+                  <SelectItem value="PAID">Pago</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="col-span-2 sm:col-span-4">
               <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">GARANTIA</label>

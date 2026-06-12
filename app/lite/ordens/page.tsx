@@ -6,6 +6,13 @@ import { getWorkOrderAction } from "@/lib/actions/orders-actions";
 import { Search, FileText, Loader2, Printer, Car, User, Calendar, Hash, Edit, X, DollarSign, ClipboardList, Wrench, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const ThermalPrinterCard = dynamic(
   () => import("@/components/pdf/thermal-printer-card").then((m) => ({ default: m.ThermalPrinterCard })),
@@ -591,18 +598,22 @@ function EditOSModal({
               <div className="space-y-3">
                 {items.map((item, idx) => (
                   <div key={idx} className="flex flex-col sm:flex-row gap-2.5 bg-card border border-border p-3.5 rounded-xl relative">
-                    <select
+                    <Select
                       value={item.type}
-                      onChange={e => {
+                      onValueChange={val => {
                         const newItems = [...items];
-                        newItems[idx].type = e.target.value as any;
+                        newItems[idx].type = val as any;
                         setItems(newItems);
                       }}
-                      className="bg-muted border border-border rounded-lg px-2 py-1.5 text-xs font-bold font-mono text-foreground outline-none"
                     >
-                      <option value="SERVICE">SERVIÇO</option>
-                      <option value="PART">PEÇA</option>
-                    </select>
+                      <SelectTrigger className="w-full sm:w-32 bg-muted border border-border rounded-lg px-2 py-1.5 text-xs font-bold font-mono text-foreground outline-none">
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SERVICE">SERVIÇO</SelectItem>
+                        <SelectItem value="PART">PEÇA</SelectItem>
+                      </SelectContent>
+                    </Select>
                     
                     <div className="relative flex-1">
                       <input
@@ -681,20 +692,30 @@ function EditOSModal({
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">FORMA PAGAMENTO</label>
-                <select value={form.paymentMethod} onChange={e => setForm(p => ({ ...p, paymentMethod: e.target.value }))} className={fieldClass}>
-                  <option value="Pix">Pix</option>
-                  <option value="Cartão de Crédito">Cartão de Crédito</option>
-                  <option value="Cartão de Débito">Cartão de Débito</option>
-                  <option value="Dinheiro">Dinheiro</option>
-                </select>
+                <Select value={form.paymentMethod} onValueChange={val => setForm(p => ({ ...p, paymentMethod: val }))}>
+                  <SelectTrigger className={fieldClass}>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pix">Pix</SelectItem>
+                    <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                    <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
+                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">STATUS PAGAMENTO</label>
-                <select value={form.paymentStatus} onChange={e => setForm(p => ({ ...p, paymentStatus: e.target.value as any }))} className={fieldClass}>
-                  <option value="PENDING">Pendente</option>
-                  <option value="PAID">Pago</option>
-                  <option value="LATE">Atrasado</option>
-                </select>
+                <Select value={form.paymentStatus} onValueChange={val => setForm(p => ({ ...p, paymentStatus: val as any }))}>
+                  <SelectTrigger className={fieldClass}>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pendente</SelectItem>
+                    <SelectItem value="PAID">Pago</SelectItem>
+                    <SelectItem value="LATE">Atrasado</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="col-span-2">
                 <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">GARANTIA</label>
@@ -702,16 +723,21 @@ function EditOSModal({
               </div>
               <div className="col-span-2">
                 <label className="block text-[10px] font-bold text-muted-foreground font-mono tracking-widest mb-1.5">STATUS DA OS</label>
-                <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))} className={`${fieldClass} font-bold`}>
-                  <option value="CHECK_IN">Check-in</option>
-                  <option value="AWAITING_BUDGET">Orçamento</option>
-                  <option value="AWAITING_APPROVAL">Aguardando Aprovação</option>
-                  <option value="AWAITING_PARTS">Aguardando Peças</option>
-                  <option value="IN_PROGRESS">Em Execução</option>
-                  <option value="TESTING_WASHING">Teste / Lavagem</option>
-                  <option value="READY">Pronto</option>
-                  <option value="DELIVERED">Entregue</option>
-                </select>
+                <Select value={form.status} onValueChange={val => setForm(p => ({ ...p, status: val }))}>
+                  <SelectTrigger className={`${fieldClass} font-bold`}>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CHECK_IN">Check-in</SelectItem>
+                    <SelectItem value="AWAITING_BUDGET">Orçamento</SelectItem>
+                    <SelectItem value="AWAITING_APPROVAL">Aguardando Aprovação</SelectItem>
+                    <SelectItem value="AWAITING_PARTS">Aguardando Peças</SelectItem>
+                    <SelectItem value="IN_PROGRESS">Em Execução</SelectItem>
+                    <SelectItem value="TESTING_WASHING">Teste / Lavagem</SelectItem>
+                    <SelectItem value="READY">Pronto</SelectItem>
+                    <SelectItem value="DELIVERED">Entregue</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

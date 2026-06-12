@@ -23,6 +23,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const springConfig = { type: "spring" as const, stiffness: 300, damping: 28 }
 
@@ -299,27 +306,29 @@ export default function EmployeesPage() {
         </div>
 
         <div className="flex gap-2 text-xs">
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="bg-card border border-border px-3 py-2 text-foreground focus:outline-hidden font-semibold"
-          >
-            <option value="ALL">Todos os Papéis</option>
-            <option value="OWNER">Dono</option>
-            <option value="MANAGER">Gerente</option>
-            <option value="RECEPTOR">Recepção</option>
-            <option value="MECHANIC">Mecânico</option>
-          </select>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[160px] bg-card border border-border px-3 py-2 text-foreground focus:outline-hidden font-semibold h-10 rounded-none">
+              <SelectValue placeholder="Papel" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos os Papéis</SelectItem>
+              <SelectItem value="OWNER">Dono</SelectItem>
+              <SelectItem value="MANAGER">Gerente</SelectItem>
+              <SelectItem value="RECEPTOR">Recepção</SelectItem>
+              <SelectItem value="MECHANIC">Mecânico</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-card border border-border px-3 py-2 text-foreground focus:outline-hidden font-semibold"
-          >
-            <option value="ALL">Todos os Status</option>
-            <option value="ACTIVE">Ativo</option>
-            <option value="INACTIVE">Inativo</option>
-          </select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[160px] bg-card border border-border px-3 py-2 text-foreground focus:outline-hidden font-semibold h-10 rounded-none">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos os Status</SelectItem>
+              <SelectItem value="ACTIVE">Ativo</SelectItem>
+              <SelectItem value="INACTIVE">Inativo</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -518,31 +527,33 @@ export default function EmployeesPage() {
                       {/* Papel */}
                       <div className="space-y-1">
                         <Label className="text-[10px] font-medium text-muted-foreground">Cargo / Papel</Label>
-                        <select
-                          value={formRole}
-                          onChange={(e: any) => setFormRole(e.target.value)}
-                          className="w-full bg-muted/20 border border-border px-3 py-2 text-foreground focus:outline-hidden font-semibold rounded-none"
-                        >
-                          <option value="MECHANIC">Mecânico</option>
-                          <option value="RECEPTOR">Recepção</option>
-                          <option value="MANAGER">Gerente</option>
-                          <option value="OWNER">Dono</option>
-                        </select>
+                        <Select value={formRole} onValueChange={(val: any) => setFormRole(val)}>
+                          <SelectTrigger className="w-full bg-muted/20 border border-border px-3 py-2 text-foreground focus:outline-hidden font-semibold rounded-none h-9">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="MECHANIC">Mecânico</SelectItem>
+                            <SelectItem value="RECEPTOR">Recepção</SelectItem>
+                            <SelectItem value="MANAGER">Gerente</SelectItem>
+                            <SelectItem value="OWNER">Dono</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       {/* Filial */}
                       <div className="space-y-1">
                         <Label className="text-[10px] font-medium text-muted-foreground">Filial Vinculada</Label>
-                        <select
-                          value={formBranchId}
-                          onChange={(e) => setFormBranchId(e.target.value)}
-                          className="w-full bg-muted/20 border border-border px-3 py-2 text-foreground focus:outline-hidden font-semibold rounded-none"
-                        >
-                          <option value="">Todas / Padrão</option>
-                          {branches.map(b => (
-                            <option key={b.id} value={b.id}>{b.name}</option>
-                          ))}
-                        </select>
+                        <Select value={formBranchId} onValueChange={setFormBranchId}>
+                          <SelectTrigger className="w-full bg-muted/20 border border-border px-3 py-2 text-foreground focus:outline-hidden font-semibold rounded-none h-9">
+                            <SelectValue placeholder="Todas / Padrão" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Todas / Padrão</SelectItem>
+                            {branches.map(b => (
+                              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
@@ -594,14 +605,15 @@ export default function EmployeesPage() {
                             <Label className="font-bold text-foreground">Status do Cadastro</Label>
                             <p className="text-[9px] text-muted-foreground">Se desativado, o funcionário perde acesso ao sistema.</p>
                           </div>
-                          <select
-                            value={formIsActive}
-                            onChange={(e) => setFormIsActive(parseInt(e.target.value, 10))}
-                            className="bg-card border border-border px-3 py-1.5 text-foreground focus:outline-hidden font-semibold rounded-none"
-                          >
-                            <option value={1}>Ativo</option>
-                            <option value={0}>Inativo</option>
-                          </select>
+                          <Select value={formIsActive.toString()} onValueChange={(val) => setFormIsActive(parseInt(val, 10))}>
+                            <SelectTrigger className="w-[120px] bg-card border border-border px-3 py-1.5 text-foreground focus:outline-hidden font-semibold rounded-none h-8">
+                              <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">Ativo</SelectItem>
+                              <SelectItem value="0">Inativo</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         {/* Status de Trabalho no Pátio (apenas para mecânicos ativos) */}
@@ -611,15 +623,16 @@ export default function EmployeesPage() {
                               <Label className="font-bold text-foreground">Status no Pátio</Label>
                               <p className="text-[9px] text-muted-foreground">Estado atual do mecânico no pátio de rampas.</p>
                             </div>
-                            <select
-                              value={formWorkStatus}
-                              onChange={(e: any) => setFormWorkStatus(e.target.value)}
-                              className="bg-card border border-border px-3 py-1.5 text-foreground focus:outline-hidden font-semibold rounded-none"
-                            >
-                              <option value="AVAILABLE">Disponível</option>
-                              <option value="BUSY">Ocupado (Em serviço)</option>
-                              <option value="AWAY">Ausente / Almoço</option>
-                            </select>
+                            <Select value={formWorkStatus} onValueChange={(val: any) => setFormWorkStatus(val)}>
+                              <SelectTrigger className="w-[160px] bg-card border border-border px-3 py-1.5 text-foreground focus:outline-hidden font-semibold rounded-none h-8">
+                                <SelectValue placeholder="Status Pátio" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="AVAILABLE">Disponível</SelectItem>
+                                <SelectItem value="BUSY">Ocupado (Em serviço)</SelectItem>
+                                <SelectItem value="AWAY">Ausente / Almoço</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         )}
                       </div>
