@@ -473,16 +473,14 @@ export default function CustomersPage() {
       )}
 
       {/* Busca */}
-      <div className="mb-4 max-w-md relative">
-        <span className="absolute left-2.5 top-2.5 text-muted-foreground">
-          <Search className="size-3.5" />
-        </span>
+      <div className="mb-4 max-w-md relative flex items-center">
+        <Search className="absolute left-3 size-4 text-muted-foreground z-10" />
         <Input
           type="text"
           placeholder="Buscar por nome, telefone ou documento..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full text-xs pl-8 pr-3 py-2 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
+          className="w-full h-10 text-xs pl-9 pr-3 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50"
         />
       </div>
 

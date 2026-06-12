@@ -287,16 +287,14 @@ export default function EmployeesPage() {
 
       {/* Busca e Filtros */}
       <div className="flex flex-col md:flex-row gap-3 mb-4 justify-between">
-        <div className="relative max-w-md w-full">
-          <span className="absolute left-2.5 top-2.5 text-muted-foreground">
-            <Search className="size-3.5" />
-          </span>
+        <div className="relative max-w-md w-full flex items-center">
+          <Search className="absolute left-3 size-4 text-muted-foreground z-10" />
           <Input
             type="text"
             placeholder="Buscar por nome, e-mail ou celular..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full text-xs pl-8 pr-3 py-2 bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium text-foreground placeholder-muted-foreground/50"
+            className="w-full h-10 text-xs pl-9 pr-3 bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium text-foreground placeholder-muted-foreground/50"
           />
         </div>
 

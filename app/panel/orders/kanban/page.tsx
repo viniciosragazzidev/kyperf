@@ -796,16 +796,14 @@ export default function KanbanPage() {
       {/* Filtros e Busca */}
       <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.02)] space-y-4 mb-6 shrink-0">
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full md:max-w-md">
-            <span className="absolute left-3 top-3 text-muted-foreground">
-              <Search className="size-4" />
-            </span>
+          <div className="relative w-full md:max-w-md flex items-center">
+            <Search className="absolute left-3 size-4 text-muted-foreground z-10" />
             <Input
               type="text"
               placeholder="Pesquise por OS, placa, modelo, cliente..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full text-xs border border-border rounded-xl pl-9 pr-4 py-2.5 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground placeholder:text-muted-foreground"
+              className="w-full h-10 text-xs border border-border rounded-xl pl-9 pr-4 bg-muted/20 focus:bg-card focus:outline-hidden text-foreground placeholder:text-muted-foreground"
             />
             {searchTerm && (
               <Button

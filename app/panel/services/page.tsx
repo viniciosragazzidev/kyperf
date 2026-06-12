@@ -338,11 +338,11 @@ export default function ServicesPage() {
             </div>
 
             {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+            <div className="relative flex items-center">
+              <Search className="absolute left-3 size-4 text-muted-foreground z-10" />
               <Input
                 placeholder="BUSCAR NO CATÁLOGO..."
-                className="w-full text-xs bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                className="w-full h-10 text-xs pl-9 bg-muted/20 focus:bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -490,11 +490,11 @@ export default function ServicesPage() {
               </p>
 
               {/* Autocomplete Search input */}
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+              <div className="relative flex items-center">
+                <Search className="absolute left-3 size-4 text-muted-foreground z-10" />
                 <Input
                   placeholder="DIGITE SKU OU NOME PARA BUSCAR NO ESTOQUE..."
-                  className="w-full text-xs pl-8 pr-3 py-1.5 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
+                  className="w-full h-10 text-xs pl-9 pr-3 bg-card focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-foreground placeholder-muted-foreground/50 uppercase"
                   value={partSearchQuery}
                   onChange={(e) => setPartSearchQuery(e.target.value)}
                 />

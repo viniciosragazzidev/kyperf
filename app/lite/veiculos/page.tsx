@@ -152,7 +152,7 @@ export default function VeiculosPage() {
       {/* Search */}
       <div className="px-8 py-4 border-b border-border/60 bg-card">
         <div className="relative max-w-lg">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50 z-10" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
