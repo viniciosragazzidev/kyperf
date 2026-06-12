@@ -16,7 +16,7 @@ import {
 export default function Home() {
   return (
     <SmoothScroll>
-      <InteractiveBg />
+      <InteractiveBg alwaysShow={true} />
       
       <div className="relative min-h-screen text-zinc-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-300">
         {/* Navigation */}

@@ -1,7 +1,7 @@
 "use client"
 
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 
 const vertexShader = `
 attribute vec2 position;
@@ -77,14 +77,33 @@ void main() {
 }
 `;
 
-export default function InteractiveBg() {
+export default function InteractiveBg({ alwaysShow = false }: { alwaysShow?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
   const smoothMouseRef = useRef({ x: 0.5, y: 0.5 });
   const mouseStrengthRef = useRef(0.0);
   const rafRef = useRef(0);
+  const [isDark, setIsDark] = useState(alwaysShow);
+
+  useEffect(() => {
+    if (alwaysShow) return;
+
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    };
+    checkTheme();
+
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, [alwaysShow]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDark) return;
     const ctn = containerRef.current;
     if (!ctn) return;
     const rect = ctn.getBoundingClientRect();
@@ -94,9 +113,10 @@ export default function InteractiveBg() {
     
     // Boost strength temporarily on movement
     mouseStrengthRef.current = Math.min(mouseStrengthRef.current + 0.15, 1.0);
-  }, []);
+  }, [isDark]);
 
   useEffect(() => {
+    if (!isDark) return;
     const ctn = containerRef.current;
     if (!ctn) return;
 
@@ -169,7 +189,9 @@ export default function InteractiveBg() {
       if (gl.canvas.parentElement === ctn) ctn.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [handleMouseMove]);
+  }, [handleMouseMove, isDark]);
+
+  if (!isDark) return null;
 
   return <div ref={containerRef} className="fixed inset-0 w-full h-full -z-10 bg-zinc-950 pointer-events-none" />;
 }

@@ -23,7 +23,7 @@ export default async function PanelLayout({
         <SiteHeader />
         <div className="flex flex-1">
           <AppSidebar />
-          <SidebarInset className="min-w-0 overflow-hidden bg-background/40 backdrop-blur-xs">{children}</SidebarInset>
+          <SidebarInset className="min-w-0 overflow-hidden bg-background dark:bg-background/40 dark:backdrop-blur-xs">{children}</SidebarInset>
         </div>
       </SidebarProvider>
     </div>

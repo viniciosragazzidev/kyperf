@@ -11,7 +11,7 @@ export default async function LiteLayout({ children }: { children: React.ReactNo
     <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden relative">
       <InteractiveBg />
       <LiteSidebar />
-      <main className="flex-1 overflow-y-auto bg-background/40 backdrop-blur-xs border-l border-border/40 z-10">
+      <main className="flex-1 overflow-y-auto bg-background dark:bg-background/40 dark:backdrop-blur-xs border-l border-border/40 z-10">
         {children}
       </main>
     </div>
